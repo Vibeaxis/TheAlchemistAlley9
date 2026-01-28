@@ -53,7 +53,7 @@ const SENSATIONS_MAP = [
   { text: 'feels heavy as lead', tags: ['Purifying', 'Heavy'] }, // Fixed: Changed Crystalline to Heavy to make Salt+Copper viable
   { text: 'grows strange crystals', tags: ['Purifying', 'Hot'] }
 ];
-import { ShieldCheck, Wind, Coins, FlaskConical } from 'lucide-react';
+
 
 export const UPGRADES_LIST = [
   {

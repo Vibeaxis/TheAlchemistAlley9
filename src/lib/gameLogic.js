@@ -53,7 +53,38 @@ const SENSATIONS_MAP = [
   { text: 'feels heavy as lead', tags: ['Purifying', 'Heavy'] }, // Fixed: Changed Crystalline to Heavy to make Salt+Copper viable
   { text: 'grows strange crystals', tags: ['Purifying', 'Hot'] }
 ];
+import { ShieldCheck, Wind, Coins, FlaskConical } from 'lucide-react';
 
+export const UPGRADES_LIST = [
+  {
+    id: 'reinforced',
+    name: 'Reinforced Cauldron',
+    cost: 50,
+    description: 'Explosions cause 0 Reputation loss instead of -10.',
+    icon: ShieldCheck
+  },
+  {
+    id: 'ventilation',
+    name: 'Ventilation System',
+    cost: 40,
+    description: 'Accidental Poisoning causes -2 Reputation instead of -5.',
+    icon: Wind
+  },
+  {
+    id: 'merchant',
+    name: "Merchant's License",
+    cost: 30,
+    description: 'Passive +5 Gold on every successful cure.',
+    icon: Coins
+  },
+  {
+    id: 'mercury',
+    name: 'Mercury Permit',
+    cost: 60,
+    description: 'Using Mercury successfully grants extra +10 Gold bonus.',
+    icon: FlaskConical
+  }
+];
 export const generateSymptom = () => {
   const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
   const loc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];

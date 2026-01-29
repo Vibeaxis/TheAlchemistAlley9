@@ -132,25 +132,22 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     </div>
   );
 };
-// THE CAULDRON (Refined & Vertical)
+// THE CAULDRON (Wider & Better Steam)
 const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
-  // Cap liquid height visually at 85% so it doesn't overflow the rim
-  const liquidHeight = Math.min((selectedIngredients.length / 3) * 85, 85);
+  // 1. Adjusted Max Height: Liquid fills up to 80% to leave room for steam
+  const liquidHeight = Math.min((selectedIngredients.length / 3) * 80, 80);
 
   const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
   
-  // Dynamic Liquid Colors based on toxicity
   const liquidColor = isToxic 
     ? 'bg-gradient-to-t from-red-950 via-red-900 to-red-800' 
     : 'bg-gradient-to-t from-emerald-950 via-emerald-900 to-emerald-800';
-    
-  const bubbleColor = isToxic ? 'text-red-400' : 'text-emerald-400';
 
   return (
-    <div className="relative h-full flex flex-col items-center justify-end pb-4">
+    <div className="relative h-full flex flex-col items-center justify-end pb-8">
       
-      {/* --- HEADER CONTROLS --- */}
-      <div className="w-full flex justify-between items-center mb-4 px-4 absolute top-0 left-0 z-20">
+      {/* HEADER CONTROLS */}
+      <div className="w-full flex justify-between items-center mb-4 px-4 absolute top-0 left-0 z-30">
         <h3 className="text-amber-500/50 text-xs uppercase tracking-widest flex items-center gap-2">
           <Flame size={14} className="animate-pulse" /> The Vessel
         </h3>
@@ -161,15 +158,15 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
         )}
       </div>
 
-      {/* --- THE POT ITSELF --- */}
-      {/* Constrained width to look like a pot, not a trough */}
-      <div className="relative w-64 h-64 mb-6 z-10">
+      {/* --- THE POT --- */}
+      {/* 2. WIDER SHAPE: w-80 (was w-64). Added wider border radius for "Pot" look */}
+      <div className="relative w-80 h-72 mb-8 z-10 group">
         
-        {/* The Rim (Top Oval) */}
-        <div className="absolute top-0 left-0 w-full h-8 bg-slate-800 border-2 border-slate-600 rounded-[100%] z-20 shadow-lg" />
+        {/* The Rim (Perspective Ring) */}
+        <div className="absolute top-0 left-0 w-full h-10 bg-slate-800 border-4 border-slate-600 rounded-[100%] z-20 shadow-xl" />
         
         {/* The Bowl Body */}
-        <div className="absolute top-4 left-2 right-2 bottom-0 bg-slate-900 border-x-4 border-b-4 border-slate-700 rounded-b-[120px] overflow-hidden shadow-2xl">
+        <div className="absolute top-5 left-2 right-2 bottom-0 bg-slate-900 border-x-4 border-b-4 border-slate-700 rounded-b-[160px] overflow-hidden shadow-2xl">
           
           {/* LIQUID LAYER */}
           <motion.div
@@ -177,21 +174,20 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
             animate={{ height: `${liquidHeight}%` }}
             className={`absolute bottom-0 w-full transition-all duration-700 opacity-90 ${liquidColor}`}
           >
-             {/* Surface Highlight */}
-             <div className="absolute top-0 w-full h-4 bg-white/10 blur-md" />
+             {/* Surface Glint */}
+             <div className="absolute top-0 w-full h-6 bg-white/5 blur-md transform scale-x-90" />
           </motion.div>
 
           {/* FLOATING INGREDIENTS */}
-          <div className="absolute inset-0 flex flex-col-reverse items-center justify-start pb-8 gap-1 z-10 pointer-events-none">
+          <div className="absolute inset-0 flex flex-col-reverse items-center justify-start pb-10 gap-2 z-10 pointer-events-none">
             <AnimatePresence>
               {selectedIngredients.map((ing, i) => (
                 <motion.div
                   key={`${ing.name}-${i}`}
                   initial={{ y: -100, opacity: 0, scale: 0.5 }}
-                  animate={{ y: 0, opacity: 1, scale: 1, rotate: Math.random() * 40 - 20 }}
+                  animate={{ y: 0, opacity: 1, scale: 1, rotate: Math.random() * 60 - 30 }}
                   exit={{ y: 50, opacity: 0, scale: 0 }}
-                  transition={{ type: "spring", bounce: 0.4 }}
-                  className="text-3xl drop-shadow-xl"
+                  className="text-4xl drop-shadow-2xl filter brightness-110"
                 >
                   {ing.icon}
                 </motion.div>
@@ -200,19 +196,20 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
           </div>
         </div>
 
-        {/* --- STEAM / WHISPERS --- */}
-        <div className="absolute -top-16 left-0 w-full h-32 flex flex-col items-center justify-end pointer-events-none z-0">
-          <AnimatePresence>
-            {whisperQueue.slice(-1).map((w) => (
+        {/* --- STEAM / WHISPERS (Fixed Floating) --- */}
+        {/* 3. STEAM LOGIC: Positioned relative to the rim, moves UP and fades */}
+        <div className="absolute -top-12 left-0 w-full h-32 flex flex-col items-center justify-end pointer-events-none z-0">
+          <AnimatePresence mode='popLayout'>
+            {whisperQueue.slice(-2).map((w) => (
               <motion.div
                 key={w.id}
-                initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                animate={{ opacity: 1, y: -40, scale: 1.1 }}
-                exit={{ opacity: 0, y: -80, scale: 1.5 }}
-                transition={{ duration: 2 }}
-                className={`text-sm font-serif italic tracking-widest drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 ${
-                  w.type === 'danger' ? 'text-red-300' :
-                    w.type === 'success' ? 'text-emerald-200' : 'text-slate-400'
+                initial={{ opacity: 0, y: 40, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -30, scale: 1.1, filter: 'blur(4px)' }}
+                transition={{ duration: 1.5, ease: "circOut" }}
+                className={`text-xs font-serif italic tracking-widest px-3 py-1 mb-1 ${
+                  w.type === 'danger' ? 'text-red-400 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]' :
+                    w.type === 'success' ? 'text-emerald-300 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'text-slate-400'
                 }`}
               >
                 {w.text}
@@ -226,9 +223,9 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
       <Button
         onClick={onBrew}
         disabled={selectedIngredients.length < 2}
-        className="w-full max-w-xs py-4 bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-amber-100 font-bold uppercase tracking-[0.2em] rounded border-t border-amber-500/30 shadow-lg disabled:opacity-30 disabled:grayscale transition-all active:scale-95"
+        className="relative z-30 w-full max-w-xs py-6 bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 border-amber-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] disabled:opacity-40 disabled:grayscale transition-all active:translate-y-1 active:shadow-none"
       >
-        <span className="drop-shadow-md">Brew Potion</span>
+        <span className="drop-shadow-md">Ignite & Brew</span>
       </Button>
     </div>
   );
@@ -331,38 +328,63 @@ const WHISPERS_ADD = ["Dissolving...", "The mixture shifts...", "Absorbing...", 
 const WHISPERS_DANGER = ["UNSTABLE...", "IT TREMBLES...", "CAREFUL...", "TOO VOLATILE..."];
 const WHISPERS_SUCCESS = ["Golden...", "Perfect balance...", "It glows...", "Pure..."];
 const WHISPERS_FAIL = ["Inert...", "Murky...", "Useless..."];
-// --- NEW COMPONENT: Big Cinematic Announcement (Fixed Text Wrap) ---
 const CinematicAnnouncement = ({ text, type }) => {
   if (!text) return null;
 
-  // Modular Styles based on event type
+  // 1. Slicker Styles (Darker, Glassier)
   const styles = {
-    normal: "border-slate-700 text-slate-200 bg-slate-950/90",
-    success: "border-emerald-500 text-emerald-100 bg-emerald-950/90 shadow-[0_0_50px_rgba(16,185,129,0.2)]",
-    poison: "border-red-500 text-red-100 bg-red-950/90 shadow-[0_0_50px_rgba(239,68,68,0.2)]",
-    explode: "border-orange-500 text-orange-100 bg-orange-950/90 shadow-[0_0_50px_rgba(249,115,22,0.4)]"
+    normal: "border-slate-600 bg-slate-950/95 text-slate-200 shadow-slate-900/50",
+    success: "border-emerald-500 bg-emerald-950/95 text-emerald-100 shadow-emerald-900/50",
+    poison: "border-red-600 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900 via-red-950 to-black text-red-100 shadow-red-900/50",
+    explode: "border-orange-500 bg-orange-950/95 text-orange-100 shadow-orange-900/50"
   };
 
   const activeStyle = styles[type] || styles.normal;
+  const isPoison = type === 'poison';
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -20, scale: 0.9 }}
-      transition={{ duration: 0.3, ease: "backOut" }}
+      initial={{ opacity: 0, x: 50, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 20, scale: 0.95 }}
+      transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
       className={`
-        absolute top-24 left-1/2 -translate-x-1/2 z-50
-        px-12 py-6 w-[90%] max-w-3xl text-center
-        border-y-2 backdrop-blur-xl rounded-xl
-        flex flex-col items-center justify-center
-        pointer-events-none select-none shadow-2xl
+        /* POSITIONING: Right side on Desktop, Bottom on Mobile */
+        absolute z-[100]
+        bottom-8 left-4 right-4 md:left-auto md:right-8 md:bottom-auto md:top-1/2 md:-translate-y-1/2
+        md:w-80 md:max-w-sm
+        
+        /* VISUALS */
+        p-6 border-l-4 rounded-r-lg shadow-2xl backdrop-blur-xl
+        flex flex-col justify-center
+        pointer-events-none select-none
         ${activeStyle}
       `}
     >
-      <h2 className="text-2xl font-serif font-bold tracking-widest uppercase drop-shadow-md leading-relaxed">
-        {text}
+      {/* Decorative Icon or Label */}
+      <div className="mb-2 flex items-center gap-2 opacity-80">
+         {isPoison ? (
+            <span className="text-xs font-black uppercase tracking-widest text-red-500 animate-pulse">
+                ☠ FATAL ERROR
+            </span>
+         ) : (
+            <span className="text-[10px] font-bold uppercase tracking-widest opacity-50">
+                RESULT
+            </span>
+         )}
+      </div>
+
+      {/* Main Text */}
+      <h2 className={`font-serif font-bold leading-snug drop-shadow-md ${isPoison ? 'text-xl md:text-2xl' : 'text-lg md:text-xl'}`}>
+        "{text}"
       </h2>
+
+      {/* Narrative Footer */}
+      {isPoison && (
+        <div className="mt-4 pt-4 border-t border-red-800/50 text-xs text-red-400 font-mono">
+            Reputation Impact: <span className="text-red-200 font-bold">-CRITICAL</span>
+        </div>
+      )}
     </motion.div>
   );
 };

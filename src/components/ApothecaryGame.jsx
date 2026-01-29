@@ -244,7 +244,7 @@ const getTagColor = (tag) => {
   }
 };
 
-const Workbench = ({ selectedIngredients, onIngredientSelect, INGREDIENTS }) => {
+const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
   return (
     <div className="bg-[#0c0a09] border-2 border-[#292524] rounded-xl p-4 h-full flex flex-col shadow-2xl relative overflow-hidden">
       

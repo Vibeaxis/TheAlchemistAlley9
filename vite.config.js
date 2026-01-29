@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   // Repo name fix for The Pass
-  base: '/ThePass/', 
+  base: '/TheAlchemistAlley9/', 
   plugins: [react()],
   resolve: {
     alias: {

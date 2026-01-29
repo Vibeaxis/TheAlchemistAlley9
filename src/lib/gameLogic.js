@@ -91,18 +91,52 @@ export const CUSTOMER_CLASSES = [
   }
 ];
 
-// Replaces static SYMPTOMS array
-const ADJECTIVES = ['Burning', 'Freezing', 'Cursed', 'Poisonous', 'Hollow', 'Whispering', 'Heavy', 'Glowing'];
-const LOCATIONS = ['skin', 'blood', 'bones', 'mind', 'dreams', 'heart', 'veins', 'flesh'];
+// --- 1. FLAVOR ADJECTIVES ---
+const ADJECTIVES = [
+  'Burning', 'Freezing', 'Cursed', 'Poisonous', 'Hollow', 
+  'Whispering', 'Heavy', 'Glowing', 'Rotting', 'Petrified', 
+  'Shadowy', 'Feverish', 'Withering', 'Vibrating', 'Numb'
+];
+
+// --- 2. ANATOMY / LOCATIONS ---
+const LOCATIONS = [
+  'skin', 'blood', 'bones', 'mind', 'dreams', 
+  'heart', 'veins', 'flesh', 'soul', 'shadow', 
+  'vision', 'breath', 'stomach', 'thoughts', 'voice'
+];
+
+// --- 3. THE LOGIC MAP (Problem -> Required Tags) ---
+// This ensures that no matter what text is generated, the game knows exactly what tags solve it.
 const SENSATIONS_MAP = [
+  // --- HOT PROBLEMS (Need Cooling) ---
   { text: 'burns with an unholy fire', tags: ['Cooling', 'Holy'] },
+  { text: 'is scorching from the inside out', tags: ['Cooling', 'Calming'] },
+  { text: 'feels like molten slag', tags: ['Cooling', 'Heavy'] },
+  { text: 'radiates a feverish heat', tags: ['Cooling', 'Vital'] },
+
+  // --- COLD PROBLEMS (Need Hot) ---
   { text: 'feels like solid ice', tags: ['Hot', 'Vital'] },
-  { text: 'is clouded by dark shadows', tags: ['Purifying', 'Calming'] },
-  { text: 'rejects all nourishment', tags: ['Purifying', 'Vital'] },
+  { text: 'shivers with a grave chill', tags: ['Hot', 'Holy'] },
   { text: 'turns to cold stone', tags: ['Hot', 'Vital'] },
+  { text: 'has frozen stiff', tags: ['Hot', 'Calming'] },
+
+  // --- CURSED/DARK PROBLEMS (Need Holy/Purifying) ---
+  { text: 'is clouded by dark shadows', tags: ['Holy', 'Purifying'] },
   { text: 'hears the call of the void', tags: ['Holy', 'Calming'] },
-  { text: 'feels heavy as lead', tags: ['Purifying', 'Heavy'] }, // Fixed: Changed Crystalline to Heavy to make Salt+Copper viable
-  { text: 'grows strange crystals', tags: ['Purifying', 'Hot'] }
+  { text: 'is possessed by a weak spirit', tags: ['Holy', 'Vital'] },
+  { text: 'feels an invisible weight', tags: ['Holy', 'Purifying'] },
+
+  // --- TOXIC/SICK PROBLEMS (Need Purifying) ---
+  { text: 'rejects all nourishment', tags: ['Purifying', 'Vital'] },
+  { text: 'oozes a foul sludge', tags: ['Purifying', 'Cooling'] },
+  { text: 'grows strange crystals', tags: ['Purifying', 'Hot'] },
+  { text: 'tastes like bitter ash', tags: ['Purifying', 'Calming'] },
+
+  // --- PHYSICAL/STRUCTURAL PROBLEMS (Need Heavy/Vital) ---
+  { text: 'feels heavy as lead', tags: ['Purifying', 'Heavy'] }, 
+  { text: 'is turning to dust', tags: ['Heavy', 'Vital'] },
+  { text: 'feels thin and stretched', tags: ['Heavy', 'Calming'] },
+  { text: 'vibrates uncontrollably', tags: ['Calming', 'Heavy'] }
 ];
 
 

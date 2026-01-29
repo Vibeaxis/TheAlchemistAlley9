@@ -1,13 +1,17 @@
-import { Crown, Hand, Shield, Skull, ShieldCheck, Wind, Coins, FlaskConical } from 'lucide-react';
+import { 
+  Crown, Hand, Shield, Skull, ShieldCheck, Wind, Coins, FlaskConical, 
+  Music, Sword, Book, Hammer 
+} from 'lucide-react';
 
 export const CUSTOMER_CLASSES = [
+  // --- ORIGINAL ---
   {
     id: 'noble',
     name: 'Noble',
     icon: Crown,
-    goldMultiplier: 2,
+    goldMultiplier: 2.5, // Buffed: They should pay huge
     reputationFailMultiplier: -2,
-    reputationSuccessMultiplier: 1.5, // Buffed
+    reputationSuccessMultiplier: 1.5,
     description: 'Wealthy and demanding'
   },
   {
@@ -15,8 +19,8 @@ export const CUSTOMER_CLASSES = [
     name: 'Beggar',
     icon: Hand,
     goldMultiplier: 0,
-    reputationFailMultiplier: -1,
-    reputationSuccessMultiplier: 3, // Buffed: Great for farming Rep
+    reputationFailMultiplier: -0.5, // Buffed: Less penalty for failing the poor
+    reputationSuccessMultiplier: 3.5, // Buffed: Huge rep boost
     description: 'Poor but grateful'
   },
   {
@@ -33,10 +37,57 @@ export const CUSTOMER_CLASSES = [
     name: 'Cultist',
     icon: Skull,
     goldMultiplier: 1.5,
-    reputationFailMultiplier: -1,
-    reputationSuccessMultiplier: 1,
+    reputationFailMultiplier: -2, // Nerfed: Failing a cultist is dangerous
+    reputationSuccessMultiplier: 0.5, // Nerfed: No one likes you for helping them
     description: 'Pays in dark secrets',
     specialReward: 'Dark Secret'
+  },
+
+  // --- NEW ADDITIONS ---
+  {
+    id: 'merchant',
+    name: 'Merchant',
+    icon: Coins,
+    goldMultiplier: 3.0, // The "Whale"
+    reputationFailMultiplier: -0.5, // They don't care, it's just business
+    reputationSuccessMultiplier: 0.5, // Transactional relationship
+    description: 'Resells for profit'
+  },
+  {
+    id: 'bard',
+    name: 'Bard',
+    icon: Music, // Make sure to import 'Music'
+    goldMultiplier: 0.8,
+    reputationFailMultiplier: -4.0, // HIGH RISK: They write a bad song about you
+    reputationSuccessMultiplier: 5.0, // HIGH REWARD: They make you famous
+    description: 'Influencer of the realm'
+  },
+  {
+    id: 'adventurer',
+    name: 'Adventurer',
+    icon: Sword, // Make sure to import 'Sword'
+    goldMultiplier: 1.4,
+    reputationFailMultiplier: -1.2,
+    reputationSuccessMultiplier: 1.2,
+    description: 'Needs potions for the dungeon'
+  },
+  {
+    id: 'scholar',
+    name: 'Scholar',
+    icon: Book, // Make sure to import 'Book'
+    goldMultiplier: 1.0,
+    reputationFailMultiplier: -0.2, // Low Risk: They just write a stern letter
+    reputationSuccessMultiplier: 2.0, // Academic validation
+    description: 'Studying alchemical theory'
+  },
+  {
+    id: 'rival',
+    name: 'Rival Alchemist',
+    icon: FlaskConical,
+    goldMultiplier: 1.1,
+    reputationFailMultiplier: -3.0, // They will mock you relentlessly
+    reputationSuccessMultiplier: 2.5, // Earn their respect
+    description: 'Judges your technique'
   }
 ];
 

@@ -230,76 +230,97 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
     </div>
   );
 };
-
-// Helper for colors
+// Helper for colors (Same as before, just kept for context)
 const getTagColor = (tag) => {
   switch (tag) {
-    case 'Toxic': return 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.6)]';
-    case 'Hot': return 'bg-orange-500 shadow-[0_0_5px_rgba(249,115,22,0.6)]';
-    case 'Cooling': return 'bg-cyan-500 shadow-[0_0_5px_rgba(6,182,212,0.6)]';
-    case 'Holy': return 'bg-yellow-400 shadow-[0_0_5px_rgba(250,204,21,0.6)]';
-    case 'Dark': return 'bg-purple-500 shadow-[0_0_5px_rgba(168,85,247,0.6)]';
-    default: return 'bg-slate-500';
+    case 'Toxic': return 'bg-green-900 text-green-300 border-green-700';
+    case 'Hot': return 'bg-orange-900 text-orange-300 border-orange-700';
+    case 'Cooling': return 'bg-cyan-900 text-cyan-300 border-cyan-700';
+    case 'Holy': return 'bg-yellow-900 text-yellow-300 border-yellow-700';
+    case 'Dark': return 'bg-purple-900 text-purple-300 border-purple-700';
+    case 'Vital': return 'bg-red-900 text-red-300 border-red-700';
+    case 'Purifying': return 'bg-blue-900 text-blue-300 border-blue-700';
+    default: return 'bg-slate-800 text-slate-400 border-slate-600';
   }
 };
-const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
-  return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 h-full">
-      <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-4 flex gap-2 items-center">
-        <FlaskConical size={14} /> Ingredient Shelf
-      </h3>
 
-      <div className="grid grid-cols-4 gap-3">
+const Workbench = ({ selectedIngredients, onIngredientSelect, INGREDIENTS }) => {
+  return (
+    <div className="bg-[#0c0a09] border-2 border-[#292524] rounded-xl p-4 h-full flex flex-col shadow-2xl relative overflow-hidden">
+      
+      {/* Background Texture (Subtle Wood Grain) */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none" 
+           style={{ backgroundImage: 'linear-gradient(to right, #292524 1px, transparent 1px), linear-gradient(to bottom, #292524 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
+      />
+
+      {/* Header */}
+      <div className="relative z-10 flex justify-between items-end mb-4 border-b border-stone-800 pb-2">
+        <h3 className="text-stone-500 text-xs font-black uppercase tracking-[0.2em] flex gap-2 items-center">
+          <FlaskConical size={14} className="text-amber-700" /> 
+          Reagent Rack
+        </h3>
+        <span className="text-[10px] text-stone-600 font-mono">
+            {selectedIngredients.length} Items on Table
+        </span>
+      </div>
+
+      {/* THE GRID: 2 cols on mobile, 3 on tablet, 4 on desktop */}
+      <div className="relative z-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pr-1 custom-scrollbar">
         {INGREDIENTS.map((ing) => {
           const count = selectedIngredients.filter(i => i.name === ing.name).length;
+          const isSelected = count > 0;
 
           return (
-            <button
+            <motion.button
               key={ing.name}
               onClick={() => onIngredientSelect(ing)}
-              className="group relative h-32 bg-slate-950 border border-slate-800 rounded hover:border-slate-600 hover:bg-slate-900 transition-all flex flex-col items-center justify-start pt-3 gap-1"
+              whileTap={{ scale: 0.95 }}
+              className={`
+                group relative min-h-[140px] flex flex-col items-center justify-between p-3 rounded-lg border-2 transition-all duration-200
+                ${isSelected 
+                    ? 'bg-amber-950/30 border-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.2)]' 
+                    : 'bg-[#1c1917] border-[#292524] hover:bg-[#292524] hover:border-stone-500'
+                }
+              `}
             >
-              {/* Icon */}
-              <span className="text-3xl filter saturate-50 group-hover:saturate-100 transition-all mb-1">
-                {ing.icon}
-              </span>
+              {/* Selection Glow Overlay */}
+              {isSelected && (
+                <div className="absolute inset-0 bg-gradient-to-t from-amber-500/10 to-transparent pointer-events-none" />
+              )}
 
-              {/* Name */}
-              <span className="text-[10px] font-bold text-slate-300 uppercase mb-1">
-                {ing.name}
-              </span>
+              {/* Count Badge (Floating) */}
+              {count > 0 && (
+                <div className="absolute top-2 right-2 w-6 h-6 bg-amber-500 text-amber-950 font-black text-xs flex items-center justify-center rounded-full shadow-lg z-20 animate-in zoom-in duration-200">
+                  {count}
+                </div>
+              )}
 
-              {/* --- TEXT BADGES (ACTUAL HINTS) --- */}
-              <div className="flex flex-col gap-0.5 w-full px-2">
+              {/* Top Section: Icon & Name */}
+              <div className="flex flex-col items-center gap-2 mt-1">
+                 <div className={`text-4xl transition-all duration-300 ${isSelected ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]' : 'opacity-80 grayscale-[0.3] group-hover:grayscale-0'}`}>
+                    {ing.icon}
+                 </div>
+                 <span className={`text-[10px] font-black uppercase tracking-wider text-center ${isSelected ? 'text-amber-100' : 'text-stone-500 group-hover:text-stone-300'}`}>
+                    {ing.name}
+                 </span>
+              </div>
+
+              {/* Bottom Section: Tags */}
+              <div className="w-full flex flex-wrap gap-1 justify-center mt-2">
                 {ing.tags.map(tag => (
                   <span
                     key={tag}
                     className={`
-                      text-[9px] uppercase font-bold tracking-wider py-0.5 rounded w-full text-center
-                      ${tag === 'Toxic' ? 'bg-green-900/60 text-green-400 border border-green-900' : ''}
-                      ${tag === 'Hot' ? 'bg-orange-900/60 text-orange-400 border border-orange-900' : ''}
-                      ${tag === 'Cooling' ? 'bg-cyan-900/60 text-cyan-400 border border-cyan-900' : ''}
-                      ${tag === 'Purifying' ? 'bg-blue-900/60 text-blue-400 border border-blue-900' : ''}
-                      ${tag === 'Heavy' ? 'bg-slate-800 text-slate-400 border border-slate-700' : ''}
-                      ${tag === 'Holy' ? 'bg-yellow-900/60 text-yellow-200 border border-yellow-900' : ''}
-                      ${tag === 'Vital' ? 'bg-red-900/60 text-red-300 border border-red-900' : ''}
-                      ${tag === 'Dark' ? 'bg-purple-900/60 text-purple-300 border border-purple-900' : ''}
-                      ${tag === 'Calming' ? 'bg-indigo-900/60 text-indigo-300 border border-indigo-900' : ''}
-                      ${tag === 'Crystalline' ? 'bg-pink-900/60 text-pink-300 border border-pink-900' : ''}
-                    `}
+                      text-[9px] uppercase font-bold tracking-tight px-1.5 py-0.5 rounded border
+                      ${getTagColor(tag)}
+                    `}
                   >
                     {tag}
                   </span>
                 ))}
               </div>
 
-              {/* Selection Count Badge */}
-              {count > 0 && (
-                <div className="absolute top-1 right-1 w-5 h-5 bg-amber-600 rounded-full text-[10px] font-bold text-white flex items-center justify-center shadow z-10">
-                  {count}
-                </div>
-              )}
-            </button>
+            </motion.button>
           )
         })}
       </div>
@@ -331,7 +352,6 @@ const WHISPERS_FAIL = ["Inert...", "Murky...", "Useless..."];
 const CinematicAnnouncement = ({ text, type }) => {
   if (!text) return null;
 
-  // 1. Slicker Styles (Darker, Glassier)
   const styles = {
     normal: "border-slate-600 bg-slate-950/95 text-slate-200 shadow-slate-900/50",
     success: "border-emerald-500 bg-emerald-950/95 text-emerald-100 shadow-emerald-900/50",
@@ -341,6 +361,20 @@ const CinematicAnnouncement = ({ text, type }) => {
 
   const activeStyle = styles[type] || styles.normal;
   const isPoison = type === 'poison';
+  
+  // 1. SMART LABEL LOGIC: Don't call it "Fatal" unless it actually is.
+  let headerLabel = "RESULT";
+  if (type === 'success') headerLabel = "SUCCESS";
+  if (type === 'explode') headerLabel = "VOLATILE REACTION";
+  if (isPoison) {
+      // Check the actual text to see if it's lethal or just a failure
+      const lowerText = text.toLowerCase();
+      if (lowerText.includes('poison') || lowerText.includes('died') || lowerText.includes('kill')) {
+          headerLabel = "☠ LETHAL DOSE";
+      } else {
+          headerLabel = "⚠ BREW FAILURE";
+      }
+  }
 
   return (
     <motion.div
@@ -349,10 +383,13 @@ const CinematicAnnouncement = ({ text, type }) => {
       exit={{ opacity: 0, x: 20, scale: 0.95 }}
       transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
       className={`
-        /* POSITIONING: Right side on Desktop, Bottom on Mobile */
-        absolute z-[100]
-        bottom-8 left-4 right-4 md:left-auto md:right-8 md:bottom-auto md:top-1/2 md:-translate-y-1/2
-        md:w-80 md:max-w-sm
+        /* 2. POSITIONING FIX */
+        /* Mobile: Bottom pinned (Keep this) */
+        absolute z-[100] bottom-8 left-4 right-4 
+        
+        /* Desktop: Top-Right (Moved from middle) */
+        md:bottom-auto md:left-auto md:top-24 md:right-8
+        md:w-96 md:max-w-md
         
         /* VISUALS */
         p-6 border-l-4 rounded-r-lg shadow-2xl backdrop-blur-xl
@@ -361,15 +398,15 @@ const CinematicAnnouncement = ({ text, type }) => {
         ${activeStyle}
       `}
     >
-      {/* Decorative Icon or Label */}
+      {/* Header Label */}
       <div className="mb-2 flex items-center gap-2 opacity-80">
          {isPoison ? (
             <span className="text-xs font-black uppercase tracking-widest text-red-500 animate-pulse">
-                ☠ FATAL ERROR
+                {headerLabel}
             </span>
          ) : (
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-50">
-                RESULT
+            <span className={`text-[10px] font-bold uppercase tracking-widest opacity-70 ${type === 'success' ? 'text-emerald-400' : 'text-slate-400'}`}>
+                {headerLabel}
             </span>
          )}
       </div>

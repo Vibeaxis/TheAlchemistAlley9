@@ -43,12 +43,10 @@ const TagBadge = ({ tag }) => {
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags }) => {
   const Icon = customer.class.icon || Ghost;
   
-  // 1. Generate the Avatar Seed based on ID and Class
+  // 1. Generate the Avatar Seed
   const seed = customer.id + customer.class.name;
-  // Using 'adventurer' style for that fantasy RPG look
   const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=transparent`;
 
-  // Keep your existing color logic
   const accentColor =
     customer.class.id === 'noble' ? 'text-yellow-400 border-yellow-500/30' :
       customer.class.id === 'guard' ? 'text-blue-400 border-blue-500/30' :
@@ -62,21 +60,22 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* --- THE SHADOW SILHOUETTE (Background Layer) --- */}
-      <div className="absolute inset-0 z-0 flex items-end justify-center opacity-40 transition-all duration-700 group-hover:opacity-50 group-hover:scale-105 pointer-events-none">
+      {/* --- THE SHADOW SILHOUETTE (Peeking from Corner) --- */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
          <img 
             src={avatarUrl} 
             alt="Customer Shadow"
-            className="w-[140%] h-[140%] object-cover object-top mb-[-20%]"
+            // CHANGED: Positioned to bottom-right (-right-16), reduced size (w-[90%]), opacity lowered
+            className="absolute -right-16 -bottom-10 w-[90%] h-[90%] object-contain opacity-30 transition-all duration-700 group-hover:opacity-40 group-hover:scale-105 group-hover:-translate-x-2"
             style={{ 
-                // This turns the colorful avatar into a dark mystery figure
+                // Hard silhouette filter
                 filter: 'grayscale(100%) brightness(0%) drop-shadow(0 -5px 15px rgba(255,255,255,0.1))'
             }}
         />
       </div>
 
-      {/* Gradient Overlay to ensure text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent z-0 pointer-events-none" />
+      {/* Gradient Overlay (Stronger at bottom to fade the feet) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent z-0 pointer-events-none" />
 
       {/* --- CONTENT LAYER (Z-10) --- */}
       <div className="flex-1 flex flex-col justify-between items-center w-full relative z-10 h-full">
@@ -100,7 +99,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
         </div>
 
         {/* The Symptom / Request Box */}
-        <div className="w-full bg-slate-950/90 border-l-4 border-amber-700 p-6 rounded shadow-xl backdrop-blur-md mt-auto mb-12">
+        <div className="w-full bg-slate-950/90 border-l-4 border-amber-700 p-6 rounded shadow-xl backdrop-blur-md mt-auto mb-12 transform transition-transform group-hover:-translate-y-1">
           <p className="text-amber-100/90 font-serif text-lg leading-relaxed italic">
             "{customer.symptom.text}"
           </p>

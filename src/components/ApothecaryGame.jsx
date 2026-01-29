@@ -133,87 +133,103 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     </div>
   );
 };
-
-// THE CAULDRON (Less Spammy Version)
+// THE CAULDRON (Refined & Vertical)
 const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
-  const liquidHeight = Math.min((selectedIngredients.length / 3) * 100, 100);
+  // Cap liquid height visually at 85% so it doesn't overflow the rim
+  const liquidHeight = Math.min((selectedIngredients.length / 3) * 85, 85);
 
   const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
-  const liquidColor = isToxic ? 'bg-red-900/80' : 'bg-emerald-900/80';
-  const liquidGlow = isToxic ? 'bg-red-500/20' : 'bg-emerald-500/20';
+  
+  // Dynamic Liquid Colors based on toxicity
+  const liquidColor = isToxic 
+    ? 'bg-gradient-to-t from-red-950 via-red-900 to-red-800' 
+    : 'bg-gradient-to-t from-emerald-950 via-emerald-900 to-emerald-800';
+    
+  const bubbleColor = isToxic ? 'text-red-400' : 'text-emerald-400';
 
   return (
-    <div className="relative h-full min-h-[300px] flex flex-col">
-      <div className="flex justify-between items-center mb-2 px-2">
+    <div className="relative h-full flex flex-col items-center justify-end pb-4">
+      
+      {/* --- HEADER CONTROLS --- */}
+      <div className="w-full flex justify-between items-center mb-4 px-4 absolute top-0 left-0 z-20">
         <h3 className="text-amber-500/50 text-xs uppercase tracking-widest flex items-center gap-2">
-          <Flame size={14} /> The Vessel
+          <Flame size={14} className="animate-pulse" /> The Vessel
         </h3>
         {selectedIngredients.length > 0 && (
-          <button onClick={onClear} className="text-slate-600 hover:text-red-400 transition-colors">
+          <button onClick={onClear} className="text-slate-500 hover:text-red-400 transition-colors p-2 hover:bg-slate-800 rounded-full">
             <Trash2 size={16} />
           </button>
         )}
       </div>
 
-      <div className="flex-1 relative mx-4 mb-4">
-        <div className="absolute inset-0 bg-slate-900/50 border-4 border-slate-700 rounded-b-[100px] backdrop-blur-md overflow-hidden shadow-inner">
-
+      {/* --- THE POT ITSELF --- */}
+      {/* Constrained width to look like a pot, not a trough */}
+      <div className="relative w-64 h-64 mb-6 z-10">
+        
+        {/* The Rim (Top Oval) */}
+        <div className="absolute top-0 left-0 w-full h-8 bg-slate-800 border-2 border-slate-600 rounded-[100%] z-20 shadow-lg" />
+        
+        {/* The Bowl Body */}
+        <div className="absolute top-4 left-2 right-2 bottom-0 bg-slate-900 border-x-4 border-b-4 border-slate-700 rounded-b-[120px] overflow-hidden shadow-2xl">
+          
+          {/* LIQUID LAYER */}
           <motion.div
             initial={{ height: '0%' }}
             animate={{ height: `${liquidHeight}%` }}
-            className={`absolute bottom-0 w-full transition-colors duration-700 ${liquidColor}`}
-          />
+            className={`absolute bottom-0 w-full transition-all duration-700 opacity-90 ${liquidColor}`}
+          >
+             {/* Surface Highlight */}
+             <div className="absolute top-0 w-full h-4 bg-white/10 blur-md" />
+          </motion.div>
 
-          <motion.div
-            animate={{ bottom: `${liquidHeight}%` }}
-            className={`absolute w-full h-8 blur-xl ${liquidGlow}`}
-          />
-
-          <div className="absolute inset-0 flex items-center justify-center gap-4 z-10 pointer-events-none">
+          {/* FLOATING INGREDIENTS */}
+          <div className="absolute inset-0 flex flex-col-reverse items-center justify-start pb-8 gap-1 z-10 pointer-events-none">
             <AnimatePresence>
               {selectedIngredients.map((ing, i) => (
                 <motion.div
                   key={`${ing.name}-${i}`}
-                  initial={{ y: -50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1, rotate: Math.random() * 20 - 10 }}
+                  initial={{ y: -100, opacity: 0, scale: 0.5 }}
+                  animate={{ y: 0, opacity: 1, scale: 1, rotate: Math.random() * 40 - 20 }}
                   exit={{ y: 50, opacity: 0, scale: 0 }}
-                  className="text-4xl drop-shadow-lg"
+                  transition={{ type: "spring", bounce: 0.4 }}
+                  className="text-3xl drop-shadow-xl"
                 >
                   {ing.icon}
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
+        </div>
 
-          {/* WHISPERS OVERLAY - Made smaller and less intrusive */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
-            <AnimatePresence>
-              {whisperQueue.slice(-1).map((w) => (
-                <motion.div
-                  key={w.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 0.7, y: -30 }} // Lower opacity
-                  exit={{ opacity: 0, y: -50 }}
-                  transition={{ duration: 2.5 }}
-                  className={`text-sm font-serif italic tracking-widest drop-shadow-md ${ // Smaller text
-                    w.type === 'danger' ? 'text-red-400 font-bold' :
-                      w.type === 'success' ? 'text-amber-200' : 'text-slate-400'
-                    }`}
-                >
-                  {w.text}
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
+        {/* --- STEAM / WHISPERS --- */}
+        <div className="absolute -top-16 left-0 w-full h-32 flex flex-col items-center justify-end pointer-events-none z-0">
+          <AnimatePresence>
+            {whisperQueue.slice(-1).map((w) => (
+              <motion.div
+                key={w.id}
+                initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                animate={{ opacity: 1, y: -40, scale: 1.1 }}
+                exit={{ opacity: 0, y: -80, scale: 1.5 }}
+                transition={{ duration: 2 }}
+                className={`text-sm font-serif italic tracking-widest drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 ${
+                  w.type === 'danger' ? 'text-red-300' :
+                    w.type === 'success' ? 'text-emerald-200' : 'text-slate-400'
+                }`}
+              >
+                {w.text}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 
+      {/* --- BREW BUTTON --- */}
       <Button
         onClick={onBrew}
         disabled={selectedIngredients.length < 2}
-        className="w-full py-6 bg-amber-700 hover:bg-amber-600 text-amber-100 text-xl font-bold uppercase tracking-[0.2em] rounded shadow-lg disabled:opacity-30 disabled:shadow-none"
+        className="w-full max-w-xs py-4 bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-amber-100 font-bold uppercase tracking-[0.2em] rounded border-t border-amber-500/30 shadow-lg disabled:opacity-30 disabled:grayscale transition-all active:scale-95"
       >
-        BREW POTION
+        <span className="drop-shadow-md">Brew Potion</span>
       </Button>
     </div>
   );

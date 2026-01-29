@@ -39,61 +39,94 @@ const TagBadge = ({ tag }) => {
   );
 };
 
-// THE TAROT CARD
+// THE PHANTOM CARD (Replaces Tarot Card)
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags }) => {
   const Icon = customer.class.icon || Ghost;
+  
+  // 1. Generate the Avatar Seed based on ID and Class
+  const seed = customer.id + customer.class.name;
+  // Using 'adventurer' style for that fantasy RPG look
+  const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=transparent`;
 
+  // Keep your existing color logic
   const accentColor =
-    customer.class.id === 'noble' ? 'text-yellow-400' :
-      customer.class.id === 'guard' ? 'text-blue-400' :
-        customer.class.id === 'cultist' ? 'text-purple-400' :
-          customer.class.id === 'merchant' ? 'text-emerald-400' : 'text-slate-400';
+    customer.class.id === 'noble' ? 'text-yellow-400 border-yellow-500/30' :
+      customer.class.id === 'guard' ? 'text-blue-400 border-blue-500/30' :
+        customer.class.id === 'cultist' ? 'text-purple-400 border-purple-500/30' :
+          customer.class.id === 'merchant' ? 'text-emerald-400 border-emerald-500/30' : 
+          customer.class.id === 'bard' ? 'text-pink-400 border-pink-500/30' : 'text-slate-400 border-slate-500/30';
 
   return (
     <div
-      className="relative h-full bg-slate-900 border-4 border-double border-amber-900/40 rounded-lg p-8 flex flex-col items-center text-center shadow-2xl overflow-hidden group"
+      className={`relative h-full bg-slate-950 border-4 border-double rounded-lg p-6 flex flex-col items-center text-center shadow-2xl overflow-hidden group ${accentColor}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] ${accentColor} pointer-events-none`}>
-        <Icon size={400} />
+      {/* --- THE SHADOW SILHOUETTE (Background Layer) --- */}
+      <div className="absolute inset-0 z-0 flex items-end justify-center opacity-40 transition-all duration-700 group-hover:opacity-50 group-hover:scale-105 pointer-events-none">
+         <img 
+            src={avatarUrl} 
+            alt="Customer Shadow"
+            className="w-[140%] h-[140%] object-cover object-top mb-[-20%]"
+            style={{ 
+                // This turns the colorful avatar into a dark mystery figure
+                filter: 'grayscale(100%) brightness(0%) drop-shadow(0 -5px 15px rgba(255,255,255,0.1))'
+            }}
+        />
       </div>
 
-      <div className="flex-1 flex flex-col justify-center items-center w-full relative z-10">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className={`mb-6 drop-shadow-[0_0_15px_rgba(0,0,0,0.5)] ${accentColor}`}
-        >
-          <Icon size={140} strokeWidth={1} />
-        </motion.div>
+      {/* Gradient Overlay to ensure text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent z-0 pointer-events-none" />
 
-        <h2 className={`text-4xl font-serif font-bold mb-2 ${accentColor}`}>{customer.class.name}</h2>
-        <p className="text-slate-500 italic mb-8 font-serif">"{customer.class.description}"</p>
-
-        <div className="w-full bg-slate-950/80 border-l-4 border-amber-700 p-6 rounded relative backdrop-blur-sm">
-          <p className="text-amber-100/90 font-serif text-xl leading-relaxed">"{customer.symptom.text}"</p>
+      {/* --- CONTENT LAYER (Z-10) --- */}
+      <div className="flex-1 flex flex-col justify-between items-center w-full relative z-10 h-full">
+        
+        {/* Header: Class Icon & Name */}
+        <div className="mt-4 flex flex-col items-center">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className={`p-3 rounded-full bg-slate-900/80 border-2 backdrop-blur-md shadow-lg mb-3 ${accentColor}`}
+            >
+              <Icon size={32} strokeWidth={2} />
+            </motion.div>
+            
+            <h2 className={`text-4xl font-serif font-bold drop-shadow-md ${accentColor.split(' ')[0]}`}>
+                {customer.class.name}
+            </h2>
+            <p className="text-slate-400 text-sm italic font-serif tracking-wider">
+                "{customer.class.description}"
+            </p>
         </div>
 
+        {/* The Symptom / Request Box */}
+        <div className="w-full bg-slate-950/90 border-l-4 border-amber-700 p-6 rounded shadow-xl backdrop-blur-md mt-auto mb-12">
+          <p className="text-amber-100/90 font-serif text-lg leading-relaxed italic">
+            "{customer.symptom.text}"
+          </p>
+        </div>
+
+        {/* Observation Hint (Bottom Overlay) */}
         <AnimatePresence>
           {observationHint && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="absolute bottom-4 left-0 w-full text-center"
+              className="absolute bottom-2 left-0 w-full text-center"
             >
-              <span className="text-xs text-slate-500 uppercase tracking-widest bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
-                Observation: {observationHint}
+              <span className="text-xs text-amber-500 uppercase tracking-widest bg-black/90 px-4 py-2 rounded-full border border-amber-900/50 shadow-lg">
+                👁 Observation: {observationHint}
               </span>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
+      {/* Revealed Tags (Top Right) */}
       {revealedTags && revealedTags.length > 0 && (
-        <div className="absolute top-4 right-4 flex flex-col gap-1 items-end">
-          <span className="text-[10px] text-slate-600 uppercase">Diagnosis</span>
+        <div className="absolute top-4 right-4 flex flex-col gap-1 items-end z-20">
+          <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest bg-slate-900/80 px-1 rounded">Diagnosis</span>
           {revealedTags.map(t => <TagBadge key={t} tag={t} />)}
         </div>
       )}

@@ -6,7 +6,7 @@ import {
   FlaskConical, Flame, Trash2, Loader, Map as MapIcon, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import CityMap from '@/components/CityMap';
 // --- Logic/Data Imports ---
 import WelcomeMessage from '@/components/WelcomeMessage';
 import BlackBook from '@/components/BlackBook';

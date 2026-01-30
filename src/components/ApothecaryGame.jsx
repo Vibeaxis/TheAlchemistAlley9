@@ -934,8 +934,7 @@ const handleBrew = () => {
 
           {/* RIGHT SIDE: Action Buttons (Now includes Map) */}
           <div className="flex gap-2 items-center">
-            
-         // FIND THIS BUTTON inside the header div
+      
 <button 
   onClick={() => setShowMap(true)}
   className={`
@@ -1043,13 +1042,15 @@ const handleBrew = () => {
             onClick={() => setShowMap(false)} 
           >
        
+
 <motion.div 
   initial={{ scale: 0.9, y: 20 }}
   animate={{ scale: 1, y: 0 }}
   exit={{ scale: 0.9, y: 20 }}
-  // UPDATE THESE CLASSES: max-w-7xl (Wider) and h-[90vh] (Taller)
-  className="w-full max-w-7xl h-[90vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-xl overflow-hidden relative flex flex-col"
+  // CHANGE: 'max-w-7xl' -> 'w-[95vw] max-w-none'
+  className="w-[95vw] max-w-none h-[90vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-xl overflow-hidden relative flex flex-col"
   onClick={(e) => e.stopPropagation()} 
+>
 >
               <button 
                 onClick={() => setShowMap(false)}

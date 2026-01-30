@@ -516,7 +516,7 @@ const [showMap, setShowMap] = useState(false);
 // Add these to your main component's state
 const [heat, setHeat] = useState(0);
 const [watchFocus, setWatchFocus] = useState('market'); // Where the guards are looking
-const [activeDistrict, setActiveDistrict] = useState('slums'); // Where YOU are
+const [activeDistrict, setActiveDistrict] = useState('dregs');
   // --- Current Interaction ---
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
@@ -578,21 +578,27 @@ const [activeDistrict, setActiveDistrict] = useState('slums'); // Where YOU are
       setTimeout(() => setGameMessage(''), 2000);
     }
   };
-  // Add this useEffect to move the guards automatically
-useEffect(() => {
-  const districts = ['slums', 'market', 'palace'];
-  const interval = setInterval(() => {
-    // Pick a random district
-    const nextDistrict = districts[Math.floor(Math.random() * districts.length)];
-    setWatchFocus(nextDistrict);
+ // --- PATROL LOGIC ---
+  useEffect(() => {
+    // THE NEW LIST OF 6 ZONES
+    const districts = ['dregs', 'market', 'arcanum', 'docks', 'cathedral', 'spire'];
     
-    // Optional: Play a sound if they move to YOUR district
-    if (nextDistrict === activeDistrict) {
-      // soundEngine.playSiren(vol); 
-    }
-  }, 10000); // Guards move every 10 seconds
-  return () => clearInterval(interval);
-}, [activeDistrict]);
+    const interval = setInterval(() => {
+      // Pick a random district
+      const nextDistrict = districts[Math.floor(Math.random() * districts.length)];
+      setWatchFocus(nextDistrict);
+      
+      // Optional: Audio cue if they look at YOU
+      if (nextDistrict === activeDistrict) {
+         // soundEngine.playSiren(vol); 
+         setGameMessage("WARNING: Watch Patrol in your Sector!");
+         setMessageType('danger');
+         setTimeout(() => setGameMessage(''), 3000);
+      }
+    }, 15000); // Guards move every 15 seconds (slowed down slightly for fairness)
+
+    return () => clearInterval(interval);
+  }, [activeDistrict, vol]); // Added 'vol' to dependency if you use sound
   useEffect(() => {
     if (gameState === 'PLAYING') startNewDay();
     // eslint-disable-next-line react-hooks/exhaustive-deps

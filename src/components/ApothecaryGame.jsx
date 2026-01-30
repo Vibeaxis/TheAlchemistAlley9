@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, BookOpen, Search, Settings,
   Shield, Crown, Coins, Skull, Ghost,
-  FlaskConical, Flame, Trash2
+  FlaskConical, Flame, Trash2, Loader
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

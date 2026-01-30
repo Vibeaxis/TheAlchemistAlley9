@@ -500,7 +500,7 @@ const ApothecaryGame = () => {
   const [phase, setPhase] = useState('day');
   const [day, setDay] = useState(1);
   const [customersServed, setCustomersServed] = useState(0);
-
+const [showMap, setShowMap] = useState(false);
   // --- Player Resources ---
   const [gold, setGold] = useState(100);
   const [reputation, setReputation] = useState(20);
@@ -870,6 +870,13 @@ useEffect(() => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-amber-500"><Coins size={18} /> <span className="text-xl font-bold font-mono">{gold}</span></div>
             <div className="flex items-center gap-2 text-blue-400"><Shield size={18} /> <span className="text-xl font-bold font-mono">{reputation}</span></div>
+            <button 
+  onClick={() => setShowMap(true)}
+  className="absolute top-4 right-4 z-40 p-3 bg-slate-900 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 rounded-md shadow-lg flex items-center gap-2 transition-all"
+>
+  <Map size={20} />
+  <span className="text-xs uppercase font-bold tracking-widest hidden md:inline">City Map</span>
+</button>
             <div className="w-px h-6 bg-slate-700 mx-2" />
             <div className="text-slate-500 text-sm font-mono tracking-widest uppercase">Day {day} • {customersServed}/5</div>
           </div>
@@ -938,6 +945,43 @@ useEffect(() => {
           </AnimatePresence>
         </div>
       </div>
+      {/* --- THE MAP MODAL --- */}
+<AnimatePresence>
+  {showMap && (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={() => setShowMap(false)} // Click outside to close
+    >
+      <motion.div 
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        className="w-full max-w-4xl h-[80vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-lg overflow-hidden relative"
+        onClick={(e) => e.stopPropagation()} // Click inside doesn't close
+      >
+        {/* Close Button */}
+        <button 
+          onClick={() => setShowMap(false)}
+          className="absolute top-4 right-4 z-50 bg-slate-900 text-slate-400 hover:text-white p-2 rounded-full border border-slate-700"
+        >
+          <X size={20} />
+        </button>
+
+        {/* The Map Component */}
+        <CityMap 
+           currentHeat={heat} 
+           activeDistrict={activeDistrict} 
+           watchFocus={watchFocus} 
+           onHeatReduce={handleBribe}
+           playerGold={playerProfile.gold}
+        />
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   );
 };

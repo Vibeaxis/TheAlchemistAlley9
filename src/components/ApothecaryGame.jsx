@@ -935,14 +935,33 @@ const handleBrew = () => {
           {/* RIGHT SIDE: Action Buttons (Now includes Map) */}
           <div className="flex gap-2 items-center">
             
-            {/* 1. THE MAP BUTTON (Moved here, removed 'absolute') */}
-            <button 
-              onClick={() => setShowMap(true)}
-              className="p-2 bg-slate-900 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 rounded-md shadow-lg flex items-center gap-2 transition-all mr-2"
-            >
-              <MapIcon size={20} /> 
-              <span className="text-xs uppercase font-bold tracking-widest hidden md:inline">City Map</span>
-            </button>
+         // FIND THIS BUTTON inside the header div
+<button 
+  onClick={() => setShowMap(true)}
+  className={`
+    relative p-2 rounded-md shadow-lg flex items-center gap-2 transition-all mr-2 overflow-hidden
+    ${watchFocus === activeDistrict 
+      ? 'bg-red-950/80 border border-red-500 text-red-200 animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.5)]' 
+      : 'bg-slate-900 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500'
+    }
+  `}
+>
+  {/* Show Siren icon if watched, otherwise Map icon */}
+  {watchFocus === activeDistrict ? (
+     <Siren size={20} className="animate-spin" />
+  ) : (
+     <MapIcon size={20} />
+  )}
+  
+  <span className="text-xs uppercase font-bold tracking-widest hidden md:inline">
+    {watchFocus === activeDistrict ? "PATROL ALERT" : "City Map"}
+  </span>
+
+  {/* Optional: Add a red 'ping' circle animation behind it if watched */}
+  {watchFocus === activeDistrict && (
+    <span className="absolute inset-0 bg-red-500/20 animate-ping rounded-md" />
+  )}
+</button>
 
             {/* 2. Apprentice Button */}
             {apprentice.hired && apprentice.activeAbility?.type === 'consult' && (

@@ -134,14 +134,34 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 };
 // THE CAULDRON (Wider & Better Steam)
 const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
-  // 1. Adjusted Max Height: Liquid fills up to 80% to leave room for steam
-  const liquidHeight = Math.min((selectedIngredients.length / 3) * 80, 80);
+  // 1. STATE LOCK: Prevents double-clicking and manages animation
+  const [isBrewing, setIsBrewing] = useState(false);
 
+  // 2. SAFETY LOGIC: The "Throttled" Brew Handler
+  const handleSafeBrew = () => {
+    if (isBrewing || selectedIngredients.length < 2) return;
+
+    setIsBrewing(true);
+
+    // DELAY: Wait 1.5 seconds for animation before triggering game logic
+    setTimeout(() => {
+      onBrew(); // Triggers the gold/effect
+      setIsBrewing(false); // Unlocks the pot for the next round
+    }, 1500);
+  };
+
+  // Visuals
+  const liquidHeight = Math.min((selectedIngredients.length / 3) * 80, 80);
   const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
   
-  const liquidColor = isToxic 
-    ? 'bg-gradient-to-t from-red-950 via-red-900 to-red-800' 
-    : 'bg-gradient-to-t from-emerald-950 via-emerald-900 to-emerald-800';
+  // Dynamic color that gets brighter/intense when brewing
+  const baseColor = isToxic 
+    ? 'from-red-950 via-red-900 to-red-800' 
+    : 'from-emerald-950 via-emerald-900 to-emerald-800';
+    
+  const brewingColor = isToxic
+    ? 'from-red-600 via-orange-500 to-yellow-400'
+    : 'from-emerald-500 via-teal-400 to-cyan-300';
 
   return (
     <div className="relative h-full flex flex-col items-center justify-end pb-8">
@@ -149,9 +169,10 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
       {/* HEADER CONTROLS */}
       <div className="w-full flex justify-between items-center mb-4 px-4 absolute top-0 left-0 z-30">
         <h3 className="text-amber-500/50 text-xs uppercase tracking-widest flex items-center gap-2">
-          <Flame size={14} className="animate-pulse" /> The Vessel
+          <Flame size={14} className={isBrewing ? "animate-bounce text-orange-500" : "animate-pulse"} /> 
+          {isBrewing ? "REACTION IN PROGRESS..." : "The Vessel"}
         </h3>
-        {selectedIngredients.length > 0 && (
+        {selectedIngredients.length > 0 && !isBrewing && (
           <button onClick={onClear} className="text-slate-500 hover:text-red-400 transition-colors p-2 hover:bg-slate-800 rounded-full">
             <Trash2 size={16} />
           </button>
@@ -159,10 +180,17 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
       </div>
 
       {/* --- THE POT --- */}
-      {/* 2. WIDER SHAPE: w-80 (was w-64). Added wider border radius for "Pot" look */}
-      <div className="relative w-80 h-72 mb-8 z-10 group">
+      {/* ANIMATION: Shakes violently when brewing */}
+      <motion.div 
+        className="relative w-80 h-72 mb-8 z-10 group"
+        animate={isBrewing ? { 
+          x: [-2, 2, -2, 2, 0], 
+          rotate: [0, -1, 1, 0] 
+        } : {}}
+        transition={{ duration: 0.2, repeat: Infinity }}
+      >
         
-        {/* The Rim (Perspective Ring) */}
+        {/* The Rim */}
         <div className="absolute top-0 left-0 w-full h-10 bg-slate-800 border-4 border-slate-600 rounded-[100%] z-20 shadow-xl" />
         
         {/* The Bowl Body */}
@@ -171,11 +199,19 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
           {/* LIQUID LAYER */}
           <motion.div
             initial={{ height: '0%' }}
-            animate={{ height: `${liquidHeight}%` }}
-            className={`absolute bottom-0 w-full transition-all duration-700 opacity-90 ${liquidColor}`}
+            // When brewing, liquid bubbles UP to 95%, then settles
+            animate={{ 
+              height: isBrewing ? '95%' : `${liquidHeight}%`,
+            }}
+            className={`absolute bottom-0 w-full transition-all duration-700 opacity-90 bg-gradient-to-t ${isBrewing ? brewingColor : baseColor}`}
           >
+             {/* Boiling Bubbles (Only visible when brewing) */}
+             {isBrewing && (
+                <div className="absolute inset-0 w-full h-full opacity-50 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />
+             )}
+
              {/* Surface Glint */}
-             <div className="absolute top-0 w-full h-6 bg-white/5 blur-md transform scale-x-90" />
+             <div className="absolute top-0 w-full h-6 bg-white/10 blur-md transform scale-x-90" />
           </motion.div>
 
           {/* FLOATING INGREDIENTS */}
@@ -185,8 +221,13 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
                 <motion.div
                   key={`${ing.name}-${i}`}
                   initial={{ y: -100, opacity: 0, scale: 0.5 }}
-                  animate={{ y: 0, opacity: 1, scale: 1, rotate: Math.random() * 60 - 30 }}
+                  // When brewing, ingredients spin faster and shrink (dissolving)
+                  animate={isBrewing 
+                    ? { y: 50, scale: 0, rotate: 360, opacity: 0 } 
+                    : { y: 0, opacity: 1, scale: 1, rotate: Math.random() * 60 - 30 }
+                  }
                   exit={{ y: 50, opacity: 0, scale: 0 }}
+                  transition={isBrewing ? { duration: 1 } : {}}
                   className="text-4xl drop-shadow-2xl filter brightness-110"
                 >
                   {ing.icon}
@@ -196,8 +237,7 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
           </div>
         </div>
 
-        {/* --- STEAM / WHISPERS (Fixed Floating) --- */}
-        {/* 3. STEAM LOGIC: Positioned relative to the rim, moves UP and fades */}
+        {/* --- STEAM / WHISPERS --- */}
         <div className="absolute -top-12 left-0 w-full h-32 flex flex-col items-center justify-end pointer-events-none z-0">
           <AnimatePresence mode='popLayout'>
             {whisperQueue.slice(-2).map((w) => (
@@ -217,16 +257,32 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
             ))}
           </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
       {/* --- BREW BUTTON --- */}
-      <Button
-        onClick={onBrew}
-        disabled={selectedIngredients.length < 2}
-        className="relative z-30 w-full max-w-xs py-6 bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 border-amber-900 shadow-[0_10px_20px_rgba(0,0,0,0.5)] disabled:opacity-40 disabled:grayscale transition-all active:translate-y-1 active:shadow-none"
+      <button // Changed to standard HTML button for generic compatibility
+        onClick={handleSafeBrew}
+        disabled={selectedIngredients.length < 2 || isBrewing} // LOCKS INPUT
+        className={`
+            relative z-30 w-full max-w-xs py-6 
+            font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 
+            shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all 
+            active:translate-y-1 active:shadow-none flex items-center justify-center gap-3
+            ${isBrewing 
+                ? 'bg-slate-800 border-slate-600 text-slate-400 cursor-wait' 
+                : 'bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 border-amber-900 text-amber-100 disabled:opacity-40 disabled:grayscale'
+            }
+        `}
       >
-        <span className="drop-shadow-md">Ignite & Brew</span>
-      </Button>
+        {isBrewing ? (
+            <>
+                <Loader size={20} className="animate-spin" />
+                <span>Distilling...</span>
+            </>
+        ) : (
+            <span className="drop-shadow-md">Ignite & Brew</span>
+        )}
+      </button>
     </div>
   );
 };

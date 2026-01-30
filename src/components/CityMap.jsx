@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, Eye, Map as MapIcon, Siren, Coins } from 'lucide-react';
+import { ShieldAlert, Eye, Map as MapIcon, Siren, Coins, X } from 'lucide-react';
 
 const DISTRICTS = [
   { id: 'slums', name: 'The Dregs', risk: 'Low', reward: 'Scraps' },

@@ -1023,13 +1023,15 @@ const handleBrew = () => {
             className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setShowMap(false)} 
           >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-4xl h-[80vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-lg overflow-hidden relative"
-              onClick={(e) => e.stopPropagation()} 
-            >
+       
+<motion.div 
+  initial={{ scale: 0.9, y: 20 }}
+  animate={{ scale: 1, y: 0 }}
+  exit={{ scale: 0.9, y: 20 }}
+  // UPDATE THESE CLASSES: max-w-7xl (Wider) and h-[90vh] (Taller)
+  className="w-full max-w-7xl h-[90vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-xl overflow-hidden relative flex flex-col"
+  onClick={(e) => e.stopPropagation()} 
+>
               <button 
                 onClick={() => setShowMap(false)}
                 className="absolute top-4 right-4 z-50 bg-slate-900 text-slate-400 hover:text-white p-2 rounded-full border border-slate-700"

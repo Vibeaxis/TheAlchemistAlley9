@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Eye, MapPin, Siren, Coins, Lock, Crosshair } from 'lucide-react';
 // ADD THIS AT THE TOP
-import mapHoloBg from '../assets/map_holo.jpg';
+
 // 1. PUT YOUR IMAGE IN src/assets/ AND IMPORT IT HERE:
 // import mapBg from '../assets/map_holo.jpg'; 
 // For now, using the uploaded URL:
 // ASSIGN THE IMPORTED VARIABLE HERE
-const MAP_IMAGE_URL = mapHoloBg;
+// ADD THIS BACK
+const MAP_IMAGE_URL = "https://vibeaxis.github.io/MoodMatch/assets/map_holo.jpg";
 
 // 2. DEBUG MODE: Set to 'true' if you need to see the red boxes to adjust positions
 const DEBUG_MODE = false;

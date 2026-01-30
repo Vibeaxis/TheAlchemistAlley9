@@ -755,8 +755,8 @@ const [activeDistrict, setActiveDistrict] = useState('dregs');
     setTimeout(() => setGameMessage(''), 1000);
   };
 
- const handleBrew = () => {
-    // --- 1. YOUR EXISTING VALIDATION (Keep this) ---
+const handleBrew = () => {
+    // --- 1. EXISTING VALIDATION (Kept) ---
     if (selectedIngredients.length < 2) {
       soundEngine.playFail(vol);
       setGameMessage('Mixture Unstable');
@@ -765,48 +765,72 @@ const [activeDistrict, setActiveDistrict] = useState('dregs');
       return;
     }
 
-    // --- 2. YOUR EXISTING SUCCESS SOUND (Keep this) ---
+    // --- 2. EXISTING SUCCESS SOUND (Kept) ---
     soundEngine.playBubble(vol);
 
     // --- 3. NEW: CALCULATE HEAT GENERATION ---
-    // Check if ingredients are "loud" or "illegal"
+    // A. Check Ingredient Properties
     const isExplosive = selectedIngredients.some(i => i.tags.includes('Explosive'));
     const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
     
-    // Check if the Guards are watching YOUR district
+    // B. Check Environment (The 6-District Risk System)
     const isWatched = watchFocus === activeDistrict;
 
-    let heatSpike = 0;
+    const RISK_MULTIPLIERS = {
+       'dregs': 1.0,      // Normal
+       'market': 1.2,     // Crowded
+       'arcanum': 1.5,    // Sensitive Sensors
+       'docks': 1.8,      // Customs Check
+       'cathedral': 2.5,  // STRICT
+       'spire': 3.0       // ROYAL GUARD
+    };
 
+    const zoneMultiplier = RISK_MULTIPLIERS[activeDistrict] || 1.0;
+
+    // C. Calculate Base Heat (Noise/Smell)
+    let baseHeat = 2; // Brewing always makes a little noise
+    if (isExplosive) baseHeat += 15; 
+    if (isToxic) baseHeat += 10;
+
+    // D. Apply Multipliers
+    let finalHeatSpike = baseHeat * zoneMultiplier;
+
+    // If Patrol is Active on your location, heat is DOUBLED (or TRIPLED if you prefer)
     if (isWatched) {
-      // HIGH RISK: If watched, everything generates heat
-      heatSpike += 5; 
-      if (isExplosive) heatSpike += 20; // Explosion while watched = Bad
-      if (isToxic) heatSpike += 15;     // Poison while watched = Bad
-    } else {
-      // LOW RISK: If not watched, only big mistakes generate heat
-      if (isExplosive) heatSpike += 5; // Distant boom
+       finalHeatSpike *= 2.5; 
     }
 
-    // Apply the Heat
+    // Round to integer
+    finalHeatSpike = Math.floor(finalHeatSpike);
+
+    // --- 4. APPLY HEAT & CHECK GAME OVER ---
     setHeat(prev => {
-        const newHeat = Math.min(prev + heatSpike, 100);
+        const newHeat = Math.min(prev + finalHeatSpike, 100);
         
-        // --- 4. NEW: CONSEQUENCES ---
         if (newHeat >= 100) {
-            // TRIGGER RAID / GAME OVER
-            // setGameMessage("RAIDED BY CITY WATCH!");
-            // setGold(g => Math.floor(g / 2)); // Lose half gold
-            // return 50; // Reset heat to 50
+            // TRIGGER RAID (Soft Game Over logic)
+            setGameMessage("RAIDED BY CITY WATCH! (-50% Gold)");
+            setMessageType('danger');
+            soundEngine.playFail(vol); // Or playSiren if you have it
+            
+            // Penalty: Lose half gold, reset heat to 50
+            setGold(g => Math.floor(g / 2)); 
+            return 50; 
         }
         
         return newHeat;
     });
 
-    // --- 5. VISUAL FEEDBACK FOR HEAT ---
-    if (heatSpike > 0) {
-        setGameMessage(isWatched ? `Careful! Watch Active (+${heatSpike} Heat)` : `Noise Detected (+${heatSpike} Heat)`);
-        setMessageType('danger');
+    // --- 5. VISUAL FEEDBACK ---
+    if (finalHeatSpike > 5) {
+        // Only show message if significant heat was generated
+        const alertMsg = isWatched 
+            ? `PATROL ALERT! (+${finalHeatSpike} Heat)` 
+            : `Suspicion Raised (+${finalHeatSpike} Heat)`;
+            
+        setGameMessage(alertMsg);
+        setMessageType(isWatched ? 'danger' : 'warning');
+        setTimeout(() => setGameMessage(''), 3000);
     }
 
     const outcome = calculateOutcome(selectedIngredients, currentCustomer, upgrades, apprentice.hired ? apprentice : null);

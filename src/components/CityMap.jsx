@@ -84,7 +84,7 @@ const CityMap = ({
       <div className="relative flex-grow w-full overflow-hidden bg-[#0a0f14] flex items-center justify-center p-12">
         
         {/* The Map Container (Restrained to Aspect Ratio) */}
-     <div className="relative w-full h-full flex items-center justify-center">
+<div className="relative w-full h-full max-w-[1400px] max-h-[900px]">
              
             {/* The Base Image */}
             <div 

@@ -884,6 +884,7 @@ useEffect(() => {
       </div>
     );
   }
+// ... (Title and GameOver checks remain the same)
 
   return (
     <div className='min-h-screen bg-slate-950 text-amber-500 font-sans selection:bg-amber-900 selection:text-white overflow-hidden'>
@@ -891,30 +892,41 @@ useEffect(() => {
 
         {/* Navigation */}
         <div className="h-16 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between px-8 shrink-0 z-40 relative">
+          
+          {/* LEFT SIDE: Stats */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-amber-500"><Coins size={18} /> <span className="text-xl font-bold font-mono">{gold}</span></div>
             <div className="flex items-center gap-2 text-blue-400"><Shield size={18} /> <span className="text-xl font-bold font-mono">{reputation}</span></div>
-         <button 
-  onClick={() => setShowMap(true)}
-  className="absolute top-4 right-4 z-40 p-3 bg-slate-900 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 rounded-md shadow-lg flex items-center gap-2 transition-all"
->
-  {/* USE THE NICKNAME HERE */}
-  <MapIcon size={20} /> 
-  <span className="text-xs uppercase font-bold tracking-widest hidden md:inline">City Map</span>
-</button>
+            
             <div className="w-px h-6 bg-slate-700 mx-2" />
             <div className="text-slate-500 text-sm font-mono tracking-widest uppercase">Day {day} • {customersServed}/5</div>
           </div>
 
-          <div className="flex gap-2">
+          {/* RIGHT SIDE: Action Buttons (Now includes Map) */}
+          <div className="flex gap-2 items-center">
+            
+            {/* 1. THE MAP BUTTON (Moved here, removed 'absolute') */}
+            <button 
+              onClick={() => setShowMap(true)}
+              className="p-2 bg-slate-900 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 rounded-md shadow-lg flex items-center gap-2 transition-all mr-2"
+            >
+              <MapIcon size={20} /> 
+              <span className="text-xs uppercase font-bold tracking-widest hidden md:inline">City Map</span>
+            </button>
+
+            {/* 2. Apprentice Button */}
             {apprentice.hired && apprentice.activeAbility?.type === 'consult' && (
-              <Button onClick={handleConsultApprentice} disabled={consultUsed} size="sm" className={`mr-4 ${consultUsed ? 'bg-slate-800 text-slate-500' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}>
+              <Button onClick={handleConsultApprentice} disabled={consultUsed} size="sm" className={`mr-2 ${consultUsed ? 'bg-slate-800 text-slate-500' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}>
                 <Search className="w-4 h-4 mr-2" /> {consultUsed ? 'Consulted' : 'Ask Apprentice'}
               </Button>
             )}
+
+            {/* 3. Black Book */}
             <Button onMouseEnter={() => soundEngine.playHover(vol)} onClick={() => { soundEngine.playClick(vol); setIsBlackBookOpen(true); }} variant="ghost" className="text-amber-500 hover:text-amber-200">
               <BookOpen size={20} />
             </Button>
+
+            {/* 4. Settings */}
             <Button onMouseEnter={() => soundEngine.playHover(vol)} onClick={() => { soundEngine.playClick(vol); setSettingsOpen(true); }} variant="ghost" className="text-amber-500 hover:text-amber-200">
               <Settings size={20} />
             </Button>
@@ -925,11 +937,12 @@ useEffect(() => {
         <BlackBook isOpen={isBlackBookOpen} onClose={() => { soundEngine.playClick(vol); setIsBlackBookOpen(false); }} discoveredIngredients={discoveredIngredients} brewHistory={brewHistory} />
         <SettingsMenu isOpen={settingsOpen} onClose={() => { soundEngine.playClick(vol); setSettingsOpen(false); }} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} />
 
-        {/* --- HERE IT IS: THE MISSING COMPONENT --- */}
+        {/* Cinematic Messages */}
         <AnimatePresence>
           {gameMessage && <CinematicAnnouncement text={gameMessage} type={messageType} />}
         </AnimatePresence>
 
+        {/* Main Game Area */}
         <div className="flex-1 overflow-hidden relative">
           <AnimatePresence mode='wait'>
             {phase === 'day' && (
@@ -951,7 +964,6 @@ useEffect(() => {
                 </div>
 
                 <div className="col-span-8 h-full flex flex-col gap-6">
-                  {/* OLD PILL DIV WAS REMOVED FROM HERE */}
                   <div className="flex-1">
                     <Cauldron selectedIngredients={selectedIngredients} onBrew={handleBrew} onClear={handleClearSelection} whisperQueue={whisperQueue} />
                   </div>
@@ -970,43 +982,42 @@ useEffect(() => {
           </AnimatePresence>
         </div>
       </div>
-      {/* --- THE MAP MODAL --- */}
-<AnimatePresence>
-  {showMap && (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={() => setShowMap(false)} // Click outside to close
-    >
-      <motion.div 
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        className="w-full max-w-4xl h-[80vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-lg overflow-hidden relative"
-        onClick={(e) => e.stopPropagation()} // Click inside doesn't close
-      >
-        {/* Close Button */}
-        <button 
-          onClick={() => setShowMap(false)}
-          className="absolute top-4 right-4 z-50 bg-slate-900 text-slate-400 hover:text-white p-2 rounded-full border border-slate-700"
-        >
-          <X size={20} />
-        </button>
 
-        {/* The Map Component */}
-        <CityMap 
-           currentHeat={heat} 
-           activeDistrict={activeDistrict} 
-           watchFocus={watchFocus} 
-           onHeatReduce={handleBribe}
-           playerGold={gold} // <--- CHANGE THIS to just 'gold'
-        />
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+      {/* --- THE MAP MODAL --- */}
+      <AnimatePresence>
+        {showMap && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowMap(false)} 
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="w-full max-w-4xl h-[80vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-lg overflow-hidden relative"
+              onClick={(e) => e.stopPropagation()} 
+            >
+              <button 
+                onClick={() => setShowMap(false)}
+                className="absolute top-4 right-4 z-50 bg-slate-900 text-slate-400 hover:text-white p-2 rounded-full border border-slate-700"
+              >
+                <X size={20} />
+              </button>
+
+              <CityMap 
+                 currentHeat={heat} 
+                 activeDistrict={activeDistrict} 
+                 watchFocus={watchFocus} 
+                 onHeatReduce={handleBribe}
+                 playerGold={gold}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

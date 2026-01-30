@@ -513,7 +513,10 @@ const ApothecaryGame = () => {
   const [isBlackBookOpen, setIsBlackBookOpen] = useState(false);
   const [discoveredIngredients, setDiscoveredIngredients] = useState({});
   const [brewHistory, setBrewHistory] = useState([]);
-
+// Add these to your main component's state
+const [heat, setHeat] = useState(0);
+const [watchFocus, setWatchFocus] = useState('market'); // Where the guards are looking
+const [activeDistrict, setActiveDistrict] = useState('slums'); // Where YOU are
   // --- Current Interaction ---
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
@@ -551,6 +554,21 @@ const ApothecaryGame = () => {
   };
 
   // --- Game Loop Triggers ---
+  // Add this useEffect to move the guards automatically
+useEffect(() => {
+  const districts = ['slums', 'market', 'palace'];
+  const interval = setInterval(() => {
+    // Pick a random district
+    const nextDistrict = districts[Math.floor(Math.random() * districts.length)];
+    setWatchFocus(nextDistrict);
+    
+    // Optional: Play a sound if they move to YOUR district
+    if (nextDistrict === activeDistrict) {
+      // soundEngine.playSiren(vol); 
+    }
+  }, 10000); // Guards move every 10 seconds
+  return () => clearInterval(interval);
+}, [activeDistrict]);
   useEffect(() => {
     if (gameState === 'PLAYING') startNewDay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -707,7 +725,8 @@ const ApothecaryGame = () => {
     setTimeout(() => setGameMessage(''), 1000);
   };
 
-  const handleBrew = () => {
+ const handleBrew = () => {
+    // --- 1. YOUR EXISTING VALIDATION (Keep this) ---
     if (selectedIngredients.length < 2) {
       soundEngine.playFail(vol);
       setGameMessage('Mixture Unstable');
@@ -715,7 +734,50 @@ const ApothecaryGame = () => {
       setTimeout(() => setGameMessage(''), 2000);
       return;
     }
+
+    // --- 2. YOUR EXISTING SUCCESS SOUND (Keep this) ---
     soundEngine.playBubble(vol);
+
+    // --- 3. NEW: CALCULATE HEAT GENERATION ---
+    // Check if ingredients are "loud" or "illegal"
+    const isExplosive = selectedIngredients.some(i => i.tags.includes('Explosive'));
+    const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
+    
+    // Check if the Guards are watching YOUR district
+    const isWatched = watchFocus === activeDistrict;
+
+    let heatSpike = 0;
+
+    if (isWatched) {
+      // HIGH RISK: If watched, everything generates heat
+      heatSpike += 5; 
+      if (isExplosive) heatSpike += 20; // Explosion while watched = Bad
+      if (isToxic) heatSpike += 15;     // Poison while watched = Bad
+    } else {
+      // LOW RISK: If not watched, only big mistakes generate heat
+      if (isExplosive) heatSpike += 5; // Distant boom
+    }
+
+    // Apply the Heat
+    setHeat(prev => {
+        const newHeat = Math.min(prev + heatSpike, 100);
+        
+        // --- 4. NEW: CONSEQUENCES ---
+        if (newHeat >= 100) {
+            // TRIGGER RAID / GAME OVER
+            // setGameMessage("RAIDED BY CITY WATCH!");
+            // setGold(g => Math.floor(g / 2)); // Lose half gold
+            // return 50; // Reset heat to 50
+        }
+        
+        return newHeat;
+    });
+
+    // --- 5. VISUAL FEEDBACK FOR HEAT ---
+    if (heatSpike > 0) {
+        setGameMessage(isWatched ? `Careful! Watch Active (+${heatSpike} Heat)` : `Noise Detected (+${heatSpike} Heat)`);
+        setMessageType('danger');
+    }
 
     const outcome = calculateOutcome(selectedIngredients, currentCustomer, upgrades, apprentice.hired ? apprentice : null);
 

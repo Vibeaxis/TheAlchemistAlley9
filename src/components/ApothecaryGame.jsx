@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, BookOpen, Search, Settings,
   Shield, Crown, Coins, Skull, Ghost,
-  FlaskConical, Flame, Trash2, Loader
+  FlaskConical, Flame, Trash2, Loader, Map as MapIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -870,11 +870,12 @@ useEffect(() => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-amber-500"><Coins size={18} /> <span className="text-xl font-bold font-mono">{gold}</span></div>
             <div className="flex items-center gap-2 text-blue-400"><Shield size={18} /> <span className="text-xl font-bold font-mono">{reputation}</span></div>
-            <button 
+         <button 
   onClick={() => setShowMap(true)}
   className="absolute top-4 right-4 z-40 p-3 bg-slate-900 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 rounded-md shadow-lg flex items-center gap-2 transition-all"
 >
-  <Map size={20} />
+  {/* USE THE NICKNAME HERE */}
+  <MapIcon size={20} /> 
   <span className="text-xs uppercase font-bold tracking-widest hidden md:inline">City Map</span>
 </button>
             <div className="w-px h-6 bg-slate-700 mx-2" />

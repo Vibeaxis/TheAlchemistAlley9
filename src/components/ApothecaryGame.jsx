@@ -554,6 +554,36 @@ const [activeDistrict, setActiveDistrict] = useState('slums'); // Where YOU are
   };
 
   // --- Game Loop Triggers ---
+
+  // --- HANDLE BRIBE (Lowers Heat) ---
+  const handleBribe = (cost) => {
+    // Check if player has enough gold
+    if (playerProfile.gold >= cost) {
+      // 1. Play Coin Sound
+      soundEngine.playCoin(vol); 
+      
+      // 2. Deduct Gold
+      setPlayerProfile(prev => ({
+        ...prev,
+        gold: prev.gold - cost
+      }));
+
+      // 3. Lower Heat (Remove 25 points, but don't go below 0)
+      setHeat(prev => Math.max(0, prev - 25));
+      
+      // 4. Show Feedback
+      setGameMessage("The guards look the other way...");
+      setMessageType('success'); // Green text
+      setTimeout(() => setGameMessage(''), 2000);
+      
+    } else {
+      // Not enough money
+      soundEngine.playFail(vol);
+      setGameMessage("Not enough gold for a bribe!");
+      setMessageType('danger'); // Red text
+      setTimeout(() => setGameMessage(''), 2000);
+    }
+  };
   // Add this useEffect to move the guards automatically
 useEffect(() => {
   const districts = ['slums', 'market', 'palace'];

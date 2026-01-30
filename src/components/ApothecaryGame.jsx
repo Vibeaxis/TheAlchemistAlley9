@@ -557,30 +557,24 @@ const [activeDistrict, setActiveDistrict] = useState('slums'); // Where YOU are
 
   // --- HANDLE BRIBE (Lowers Heat) ---
   const handleBribe = (cost) => {
-    // Check if player has enough gold
-    if (playerProfile.gold >= cost) {
-      // 1. Play Coin Sound
+    // CHANGE: Use 'gold' directly
+    if (gold >= cost) {
+      
       soundEngine.playCoin(vol); 
       
-      // 2. Deduct Gold
-      setPlayerProfile(prev => ({
-        ...prev,
-        gold: prev.gold - cost
-      }));
+      // CHANGE: Update gold directly
+      setGold(prev => prev - cost);
 
-      // 3. Lower Heat (Remove 25 points, but don't go below 0)
       setHeat(prev => Math.max(0, prev - 25));
       
-      // 4. Show Feedback
       setGameMessage("The guards look the other way...");
-      setMessageType('success'); // Green text
+      setMessageType('success');
       setTimeout(() => setGameMessage(''), 2000);
       
     } else {
-      // Not enough money
       soundEngine.playFail(vol);
       setGameMessage("Not enough gold for a bribe!");
-      setMessageType('danger'); // Red text
+      setMessageType('danger');
       setTimeout(() => setGameMessage(''), 2000);
     }
   };
@@ -1007,7 +1001,7 @@ useEffect(() => {
            activeDistrict={activeDistrict} 
            watchFocus={watchFocus} 
            onHeatReduce={handleBribe}
-           playerGold={playerProfile.gold}
+           playerGold={gold} // <--- CHANGE THIS to just 'gold'
         />
       </motion.div>
     </motion.div>

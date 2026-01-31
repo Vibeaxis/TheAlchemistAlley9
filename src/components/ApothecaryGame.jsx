@@ -1275,7 +1275,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       {/* 1. Scale Container */}
       <div className="flex-1 flex flex-col" style={{ transform: `scale(${uiScale / 100})`, transformOrigin: 'top center', filter: `brightness(${gamma})` }}>
         
-       {/* 2. Top Navigation (Themed) */}
+      {/* 2. Top Navigation (Themed) */}
 <div className={`h-16 border-b ${theme.nav} flex items-center justify-between px-8 shrink-0 z-40 relative backdrop-blur-md`}>
   <div className="flex items-center gap-6">
     
@@ -1306,12 +1306,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
     </div>
 
   </div>
-
-  {/* Keep your existing Settings/Grimoire buttons on the right side here */}
-  <div className="flex items-center gap-4">
-      {/* ... your existing buttons ... */}
-  </div>
-</div>
+          
           <div className="flex gap-2 items-center">
             {/* Map Button (Custom styling to match theme) */}
             <button onClick={() => setShowMap(true)} className={`relative p-2 rounded-md shadow-lg flex items-center gap-2 transition-all mr-2 overflow-hidden border ${watchFocus === activeDistrict ? 'bg-red-950/80 border-red-500 text-red-200 animate-pulse' : `${theme.nav} hover:text-amber-200`}`}>

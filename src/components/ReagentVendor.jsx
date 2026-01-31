@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShoppingBag, Coins, Package, Shield } from 'lucide-react';
-import { INGREDIENTS } from '@/lib/constants'; // Ensure correct path!
+import { INGREDIENTS } from '@/lib/gameLogic'; // Ensure correct path!
 
 // Simple local safe render for the Vendor to avoid import loops
 const VendorIcon = ({ icon }) => {

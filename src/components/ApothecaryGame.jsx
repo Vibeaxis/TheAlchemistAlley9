@@ -142,7 +142,7 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     // 3. Fallback
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
-// --- UPDATED CUSTOMER CARD (Safe + Visual FX) ---
+// --- UPDATED CUSTOMER CARD (Fixed Feedback Positioning) ---
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme, feedbackState }) => {
   const [hasRevealed, setHasRevealed] = useState(false);
   
@@ -150,35 +150,36 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
   useEffect(() => { setHasRevealed(false); }, [customer.id]);
 
   const t = theme || THEMES.grimoire;
+  // Use safe icon renderer logic here if not passed as prop, but usually SafeIcon handles it in render
   const iconSource = customer.class.icon; 
 
   const districts = [ { name: 'The Dregs', color: 'text-emerald-500' }, { name: 'Market', color: 'text-amber-500' }, { name: 'Arcanum', color: 'text-purple-400' }, { name: 'Docks', color: 'text-cyan-600' }, { name: 'Cathedral', color: 'text-yellow-400' }, { name: 'Spire', color: 'text-rose-500' } ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
 
-  // Animation Variants for the Avatar
+  // Animation Variants
   const avatarVariants = {
     idle: { y: 0, rotate: 0, scale: 1, filter: 'none' },
     cured: { 
-        y: [0, -20, 0], 
+        y: [0, -15, 0], 
         scale: [1, 1.1, 1],
-        filter: 'brightness(1.3) contrast(1.1) drop-shadow(0 0 15px gold)',
-        transition: { duration: 0.5 }
+        filter: 'brightness(1.2) contrast(1.1) drop-shadow(0 0 15px #fbbf24)', // Golden glow
+        transition: { duration: 0.6 }
     },
     poisoned: { 
         x: [-5, 5, -5, 5, 0],
-        filter: 'hue-rotate(90deg) contrast(1.5) drop-shadow(0 0 10px lime)',
+        filter: 'hue-rotate(90deg) contrast(1.2) drop-shadow(0 0 10px #84cc16)', // Greenish
         transition: { duration: 0.4 } 
     },
     exploded: { 
         x: [-10, 10, -10, 10, 0],
         scale: 0.9,
-        filter: 'grayscale(100%) brightness(0.4) sepia(1)', 
+        filter: 'grayscale(100%) brightness(0.3) blur(1px)', // Soot
         transition: { duration: 0.3 }
     },
     failed: {
         rotate: [0, -5, 5, 0],
-        filter: 'grayscale(100%) opacity(0.7)',
+        filter: 'grayscale(80%) opacity(0.8)',
         transition: { duration: 0.5 }
     }
   };
@@ -189,45 +190,59 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
       {/* 1. Background */}
       <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
       
-      {/* 2. Avatar Container */}
+      {/* 2. Avatar & Feedback Container */}
       <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10">
-         <div className="relative w-full h-full flex justify-center">
+         <div className="relative w-full h-full flex justify-center items-center">
+            {/* Glow backing */}
             <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
             
-            {/* Animated Avatar Image */}
+            {/* The Avatar */}
             <motion.img 
                 src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
                 alt="Customer" 
                 variants={avatarVariants}
                 animate={feedbackState || 'idle'}
-                className="h-full w-auto object-contain drop-shadow-xl z-10"
+                className="h-[85%] w-auto object-contain drop-shadow-xl z-10"
             />
 
-            {/* Overlays for States */}
+            {/* FEEDBACK OVERLAYS (Centered over head) */}
             <AnimatePresence>
                 {feedbackState === 'poisoned' && (
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-                        className="absolute top-1/3 left-1/2 -translate-x-1/2 z-20 flex gap-8 pointer-events-none"
+                        className="absolute top-[20%] left-1/2 -translate-x-1/2 z-20 flex gap-12 pointer-events-none"
                     >
-                        <div className="text-4xl font-bold text-red-500 drop-shadow-md">X</div>
-                        <div className="text-4xl font-bold text-red-500 drop-shadow-md">X</div>
+                        <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
+                        <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
                     </motion.div>
                 )}
+                
                 {feedbackState === 'cured' && (
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.5, y: 20 }} animate={{ opacity: 1, scale: 1.5, y: -50 }} exit={{ opacity: 0 }}
-                        className="absolute top-1/4 left-1/2 -translate-x-1/2 z-0 pointer-events-none"
+                        initial={{ opacity: 0, scale: 0.5, y: 0 }} animate={{ opacity: 1, scale: 1.2, y: -60 }} exit={{ opacity: 0 }}
+                        className="absolute top-[10%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
                     >
-                        <div className="text-6xl filter drop-shadow-lg">✨</div>
+                        {/* Golden Sparkles */}
+                        <div className="text-6xl filter drop-shadow-[0_0_10px_gold]">✨</div>
                     </motion.div>
                 )}
+                
                 {feedbackState === 'failed' && (
                     <motion.div 
-                        initial={{ opacity: 0, y: 0 }} animate={{ opacity: 1, y: -40 }} exit={{ opacity: 0 }}
-                        className="absolute top-1/4 right-10 z-20 pointer-events-none"
+                        initial={{ opacity: 0, y: 0, rotate: -10 }} animate={{ opacity: 1, y: -50, rotate: 10 }} exit={{ opacity: 0 }}
+                        className="absolute top-[15%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
                     >
-                        <div className="text-6xl font-bold text-slate-500">?</div>
+                        {/* Grey Question Mark */}
+                        <div className="text-7xl font-bold text-slate-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">?</div>
+                    </motion.div>
+                )}
+
+                {feedbackState === 'exploded' && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1.5 }} exit={{ opacity: 0 }}
+                        className="absolute top-[25%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                    >
+                        <div className="text-7xl">💥</div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -246,7 +261,6 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
         <div className={`relative z-30 flex-1 flex flex-col ${t.font}`}>
             <div className="w-full flex flex-col items-center -mt-8">
                 <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg mb-2`}>
-                    {/* Safe Icon Render */}
                     <SafeIcon icon={iconSource} size={24} className={t.textMain} />
                 </div>
                 <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>{customer.class.name}</h2>
@@ -280,97 +294,6 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
           ))}
         </div>
       )}
-    </div>
-  );
-};
-const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProcess, isProcessing }) => {
-  const [isBrewing, setIsBrewing] = useState(false);
-
-  const handleSafeBrew = () => {
-    if (isBrewing || isProcessing || selectedIngredients.length < 2) return;
-    setIsBrewing(true);
-    setTimeout(() => {
-      onBrew();
-      setIsBrewing(false);
-    }, 1500);
-  };
-
-  const liquidHeight = Math.min((selectedIngredients.length / 3) * 80, 80);
-  const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
-  
-  const baseColor = isToxic ? 'from-[#450a0a] via-[#7f1d1d] to-[#991b1b]' : 'from-[#0f172a] via-[#1e293b] to-[#334155]';
-  const brewingColor = isToxic ? 'from-orange-700 via-red-600 to-amber-500' : 'from-emerald-800 via-teal-600 to-cyan-500';
-
-  return (
-    <div className="relative h-full flex flex-col items-center justify-end">
-      {/* Clear Button */}
-      <div className="w-full flex justify-end items-center mb-2 px-4 absolute top-0 left-0 z-30 h-8">
-        {selectedIngredients.length > 0 && !isBrewing && !isProcessing && (
-          <button onClick={onClear} className="text-[#57534e] hover:text-red-400 transition-colors p-2 hover:bg-[#292524] rounded-full">
-            <Trash2 size={16} />
-          </button>
-        )}
-      </div>
-
-      {/* Cauldron Body */}
-      <motion.div 
-        className="relative w-72 h-64 mb-6 z-10 group"
-        animate={isBrewing ? { x: [-2, 2, -2, 2, 0], rotate: [0, -1, 1, 0] } : {}}
-        transition={{ duration: 0.2, repeat: Infinity }}
-      >
-        <div className="absolute top-0 left-0 w-full h-10 bg-[#292524] border-4 border-[#44403c] rounded-[100%] z-20 shadow-2xl" />
-        <div className="absolute top-5 left-2 right-2 bottom-0 bg-[#292524] border-x-4 border-b-4 border-[#44403c] rounded-b-[160px] overflow-hidden shadow-2xl">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/5 via-transparent to-black/40 pointer-events-none z-20" />
-          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none z-20 mix-blend-overlay" />
-          
-          <motion.div initial={{ height: '0%' }} animate={{ height: isBrewing ? '95%' : `${liquidHeight}%` }} className={`absolute bottom-0 w-full transition-all duration-700 opacity-90 bg-gradient-to-t ${isBrewing ? brewingColor : baseColor}`}>
-             {isBrewing && <div className="absolute inset-0 w-full h-full opacity-50 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />}
-             <div className="absolute top-0 w-full h-4 bg-white/5 blur-md transform scale-x-90" />
-          </motion.div>
-          
-          <div className="absolute inset-0 flex flex-col-reverse items-center justify-start pb-10 gap-2 z-10">
-            <AnimatePresence>
-              {selectedIngredients.map((ing, i) => {
-                 // --- SAFE ICON RENDERER ---
-                 const renderIcon = () => {
-                    if (!ing.icon) return null;
-                    if (typeof ing.icon === 'string') return ing.icon;
-                    if (typeof ing.icon === 'function') {
-                        const IconComp = ing.icon;
-                        return <IconComp size={32} />;
-                    }
-                    return ing.icon;
-                 };
-
-                 return (
-                    <motion.div
-                      key={ing.id || `${ing.name}-${i}`}
-                      initial={{ y: -100, opacity: 0, scale: 0.5 }}
-                      animate={isBrewing ? { y: 50, scale: 0, rotate: 360, opacity: 0 } : { y: 0, opacity: 1, scale: 1, rotate: Math.random() * 60 - 30 }}
-                      exit={{ y: 50, opacity: 0, scale: 0 }}
-                      transition={isBrewing ? { duration: 1 } : {}}
-                      className="relative text-4xl drop-shadow-2xl filter brightness-110 cursor-pointer group"
-                    >
-                      {renderIcon()}
-                      
-                      {!ing.isProcessed && ing.processed && !isBrewing && !isProcessing && (
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                            <button onClick={(e) => { e.stopPropagation(); onProcess(ing.id); }} className="bg-[#292524] text-amber-100 text-[9px] font-black tracking-widest px-2 py-1 rounded border border-amber-900/50 hover:bg-amber-900 whitespace-nowrap">
-                                CRUSH
-                            </button>
-                        </div>
-                      )}
-                    </motion.div>
-                 );
-              })}
-            </AnimatePresence>
-          </div>
-        </div>
-      </motion.div>
-
-      <button onClick={handleSafeBrew} disabled={selectedIngredients.length < 2 || isBrewing || isProcessing} className={`relative z-30 w-full max-w-xs py-5 font-serif font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all active:translate-y-1 active:shadow-none flex items-center justify-center gap-3 ${isBrewing || isProcessing ? 'bg-[#1c1917] border-[#44403c] text-[#57534e] cursor-wait' : 'bg-gradient-to-b from-[#78350f] to-[#451a03] border-[#92400e] text-amber-100 hover:from-[#92400e] hover:to-[#78350f] hover:border-amber-500 hover:shadow-amber-900/20'}`}>
-        {isBrewing ? <><Loader size={20} className="animate-spin" /><span>Distilling...</span></> : <span className="drop-shadow-md">Ignite & Brew</span>}
-      </button>
     </div>
   );
 };

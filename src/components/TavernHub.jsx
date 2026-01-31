@@ -6,7 +6,7 @@ import { soundEngine } from '@/lib/SoundEngine';
 import { HIREABLE_NPCS } from '@/lib/NPCData';
 import { UPGRADES_LIST } from '@/lib/gameLogic';
 import ReagentVendor from '@/components/ReagentVendor';
-
+import ApprenticeMissions from './ApprenticeMissions'; // Import the new file
 // --- SAFE ICON RENDERER ---
 const RenderIcon = ({ icon, className }) => {
     // 1. Missing?
@@ -43,7 +43,8 @@ const TavernHub = ({
   onRest,
   volume = 1.0,
   inventory, 
-  onBuyReagent
+  onBuyReagent,
+  onAssignMission
 }) => {
   const [activeTab, setActiveTab] = useState('market');
 
@@ -125,7 +126,13 @@ const TavernHub = ({
             <NavButton active={activeTab === 'market'} onClick={() => setActiveTab('market')} icon={ShoppingBag} label="Black Market" desc="Buy Rare Reagents" />
             <NavButton active={activeTab === 'upgrades'} onClick={() => setActiveTab('upgrades')} icon={Zap} label="Workshop" desc="Shop Upgrades" />
             <NavButton active={activeTab === 'hire'} onClick={() => setActiveTab('hire')} icon={UserPlus} label="Recruit" desc="Hire Apprentices" />
-            
+            <NavButton 
+                active={activeTab === 'missions'} 
+                onClick={() => setActiveTab('missions')} 
+                icon={ShieldAlert} 
+                label="Covert Ops" 
+                desc="Send Apprentice" 
+            />
             {/* Active Apprentice */}
             <div className="mt-auto bg-[#1c1917] p-4 rounded-xl border border-amber-900/30">
                 <h4 className="text-xs font-bold uppercase text-stone-500 mb-2">Active Apprentice</h4>
@@ -152,7 +159,13 @@ const TavernHub = ({
             {activeTab === 'market' && (
                 <ReagentVendor inventory={inventory} onBuy={onBuyReagent} playerGold={gold} />
             )}
-
+{activeTab === 'missions' && (
+                <ApprenticeMissions 
+                    apprentice={apprentice} 
+                    onAssignMission={onAssignMission} 
+                    gold={gold} 
+                />
+            )}
             {/* 2. UPGRADES */}
             {activeTab === 'upgrades' && (
                 <div className="p-8 h-full overflow-y-auto custom-scrollbar">

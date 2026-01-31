@@ -707,6 +707,8 @@ const [isProcessing, setIsProcessing] = useState(false);
 // NEW: Theme State (Defaulting to Grimoire)
   const [currentThemeId, setCurrentThemeId] = useState('grimoire');
   const theme = THEMES[currentThemeId];
+  // Tracks the result of the night's mission to show in the morning
+const [missionReport, setMissionReport] = useState(null);
   // --- Effects & Handlers ---
   useEffect(() => {
     const savedVol = localStorage.getItem('alchemistAudioVolume');
@@ -732,7 +734,22 @@ const [isProcessing, setIsProcessing] = useState(false);
     initial['Mercury'] = 1; 
     return initial;
   });
-
+const handleAssignMission = (mission) => {
+    if (gold < mission.cost) {
+        soundEngine.playFail(vol);
+        return;
+    }
+    
+    soundEngine.playTransaction(vol);
+    setGold(prev => prev - mission.cost);
+    
+    setApprentice(prev => ({
+        ...prev,
+        status: 'on_mission',
+        currentMissionId: mission.id,
+        daysRemaining: mission.duration
+    }));
+};
   // --- ADD THIS BUY HANDLER (Passed to TavernHub) ---
   const handleBuyReagent = (ingredient) => {
     if (gold >= ingredient.cost) {
@@ -896,20 +913,114 @@ const [isProcessing, setIsProcessing] = useState(false);
     }
     setTimeout(() => setGameMessage(''), 2000);
   };
-
-  const handleRest = () => {
+const handleRest = () => {
     soundEngine.playClick(vol);
-    setDay(d => d + 1);
+    
+    // --- PART 1: RESOLVE COVERT MISSIONS ---
+    let report = null;
+    
+    // Scenario A: Apprentice is out on a mission
+    if (apprentice.hired && apprentice.status === 'on_mission') {
+        const mission = APPRENTICE_MISSIONS.find(m => m.id === apprentice.currentMissionId);
+        
+        if (mission) {
+            const roll = Math.random();
+            // Success Check (Roll must be higher than Risk)
+            const isSuccess = roll > mission.risk;
+            // Crit Check (Top 5% of rolls)
+            const isCrit = roll > 0.95; 
+            // Injury Check (If failed, did they fail badly? Bottom 50% of risk range)
+            const isInjury = !isSuccess && roll < (mission.risk / 2);
+
+            if (isSuccess) {
+                // -- SUCCESS --
+                // 1. Calculate Gold
+                const baseGold = Math.floor(Math.random() * (mission.rewards.maxGold - mission.rewards.minGold + 1)) + mission.rewards.minGold;
+                const finalGold = isCrit ? baseGold * 2 : baseGold;
+                if (finalGold > 0) setGold(g => g + finalGold);
+                
+                // 2. Calculate Loot (Ingredients)
+                let lootList = [];
+                if (mission.rewards.ingredients > 0) {
+                    const qty = isCrit ? mission.rewards.ingredients + 1 : mission.rewards.ingredients;
+                    // Filter ingredients by rarity (Rare missions give Finite items)
+                    const pool = INGREDIENTS.filter(i => mission.rewards.rarity === 'rare' ? i.finite : !i.finite);
+                    // Fallback if pool is empty (shouldn't happen)
+                    const actualPool = pool.length > 0 ? pool : INGREDIENTS;
+                    
+                    const newInventory = { ...inventory };
+                    for(let i=0; i < qty; i++) {
+                        const item = actualPool[Math.floor(Math.random() * actualPool.length)];
+                        newInventory[item.name] = (newInventory[item.name] || 0) + 1;
+                        lootList.push(item.name);
+                    }
+                    setInventory(newInventory);
+                }
+
+                // 3. Generate Report
+                report = {
+                    title: isCrit ? 'Critical Success!' : 'Mission Accomplished',
+                    description: `${apprentice.npcName} returned safely from the ${mission.name} with spoils.`,
+                    rewards: [
+                        finalGold > 0 ? `${finalGold} Gold` : null,
+                        ...lootList
+                    ].filter(Boolean),
+                    type: 'success'
+                };
+                
+                // Reset Apprentice to Idle
+                setApprentice(prev => ({ ...prev, status: 'idle', currentMissionId: null }));
+
+            } else {
+                // -- FAILURE --
+                if (isInjury) {
+                    // Severe Failure: Injured
+                    report = {
+                        title: 'Mission Failed - Injured',
+                        description: `${apprentice.npcName} was ambushed during the ${mission.name}. They barely escaped and need time to recover.`,
+                        rewards: [],
+                        type: 'danger'
+                    };
+                    setApprentice(prev => ({ ...prev, status: 'injured', daysRemaining: 1, currentMissionId: null }));
+                } else {
+                    // Standard Failure: Empty Handed
+                    report = {
+                        title: 'Mission Failed',
+                        description: `${apprentice.npcName} returned empty handed from the ${mission.name}, but unharmed.`,
+                        rewards: [],
+                        type: 'warning'
+                    };
+                    setApprentice(prev => ({ ...prev, status: 'idle', currentMissionId: null }));
+                }
+            }
+        }
+    } 
+    // Scenario B: Apprentice is recovering from injury
+    else if (apprentice.status === 'injured') {
+        const remaining = (apprentice.daysRemaining || 1) - 1;
+        if (remaining <= 0) {
+            setApprentice(prev => ({ ...prev, status: 'idle', daysRemaining: 0 }));
+            report = { 
+                title: 'Recovered', 
+                description: `${apprentice.npcName} is fit for duty again.`, 
+                type: 'success', 
+                rewards: [] 
+            };
+        } else {
+            setApprentice(prev => ({ ...prev, daysRemaining: remaining }));
+        }
+    }
+
+    // Save the report to trigger the modal
+    if (report) setMissionReport(report);
+
+    // --- PART 2: STANDARD DAY RESET ---
+    const nextDay = day + 1;
+    setDay(nextDay);
     setGameStats(prev => ({ ...prev, daysCount: prev.daysCount + 1 }));
     setPhase('day');
     setCustomersServed(0);
-    setCurrentCustomer(generateCustomer());
-    setConsultUsed(false);
-    setRevealedCustomerTags([]);
-    setWhisperQueue([]);
-    setGameMessage(`Day ${day + 1} Begins`);
-    setTimeout(() => setGameMessage(''), 3000);
-  };
+    setHeat(h => Math.max(0, h
 
 // 1. SELECTING (Clicking the Rack)
  // 1. SELECTING (Clicking the Rack)
@@ -1279,7 +1390,58 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={currentThemeId}        // <--- Add this
   onThemeChange={setCurrentThemeId}      // <--- Add this
   availableThemes={THEMES} />
-      
+      <AnimatePresence>
+    {missionReport && (
+        <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setMissionReport(null)}
+        >
+            <motion.div 
+                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+                className="bg-[#1c1917] border-2 border-[#44403c] p-8 max-w-md w-full text-center rounded-xl shadow-2xl relative"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#1c1917] p-3 rounded-full border-2 border-[#44403c]">
+                    {missionReport.type === 'success' ? <CheckCircle className="text-emerald-500 w-8 h-8" /> : 
+                     missionReport.type === 'danger' ? <Skull className="text-red-500 w-8 h-8" /> : 
+                     <ShieldAlert className="text-orange-500 w-8 h-8" />}
+                </div>
+                
+                <h2 className={`text-2xl font-bold font-serif mt-4 mb-2 ${
+                    missionReport.type === 'success' ? 'text-emerald-400' : 
+                    missionReport.type === 'danger' ? 'text-red-400' : 'text-orange-400'
+                }`}>
+                    {missionReport.title}
+                </h2>
+                
+                <p className="text-stone-400 mb-6 leading-relaxed">
+                    {missionReport.description}
+                </p>
+                
+                {missionReport.rewards && missionReport.rewards.length > 0 && (
+                    <div className="bg-black/30 p-4 rounded-lg border border-white/5">
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">Acquired</h4>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            {missionReport.rewards.map((r, i) => (
+                                <span key={i} className="text-sm font-bold text-amber-300 bg-amber-900/20 px-3 py-1 rounded border border-amber-900/50">
+                                    {r}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                
+                <Button 
+                    className="mt-8 w-full bg-stone-800 hover:bg-stone-700 text-stone-200"
+                    onClick={() => setMissionReport(null)}
+                >
+                    Dismiss
+                </Button>
+            </motion.div>
+        </motion.div>
+    )}
+</AnimatePresence>
       <AnimatePresence>
         {showMap && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowMap(false)}>

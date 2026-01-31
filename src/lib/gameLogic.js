@@ -2,7 +2,53 @@ import {
   Crown, Hand, Shield, Skull, ShieldCheck, Wind, Coins, FlaskConical, 
   Music, Sword, Book, Hammer, Anchor, Cross // <--- Added new icons
 } from 'lucide-react';
-
+// --- NEW: COVERT MISSIONS ---
+export const APPRENTICE_MISSIONS = [
+  {
+    id: 'gather_herbs',
+    name: 'Midnight Harvest',
+    description: 'Scavenge for basic reagents in the city outskirts.',
+    type: 'scavenge',
+    icon: Leaf,
+    risk: 0.1, // 10% Injury Chance
+    duration: 1,
+    cost: 0,
+    rewards: { minGold: 0, maxGold: 0, ingredients: 2, rarity: 'common' }
+  },
+  {
+    id: 'black_market_run',
+    name: 'Smuggler\'s Run',
+    description: 'Deliver a package to the Docks. Don\'t ask what\'s inside.',
+    type: 'heist',
+    icon: Coins,
+    risk: 0.3, // 30% Risk
+    duration: 1,
+    cost: 10, // Costs gold to set up
+    rewards: { minGold: 40, maxGold: 80, ingredients: 0 }
+  },
+  {
+    id: 'steal_secrets',
+    name: 'Arcane Espionage',
+    description: 'Spy on a rival alchemist to learn their secrets.',
+    type: 'spy',
+    icon: Eye,
+    risk: 0.5, // 50% Risk (High)
+    duration: 1,
+    cost: 20,
+    rewards: { minGold: 0, maxGold: 0, ingredients: 1, rarity: 'rare' } // Unlocks rare items
+  },
+  {
+    id: 'graverobbing',
+    name: 'Grave Digging',
+    description: 'The Cathedral graveyard is unguarded tonight...',
+    type: 'danger',
+    icon: Skull,
+    risk: 0.7, // 70% Risk (Very High)
+    duration: 1,
+    cost: 5,
+    rewards: { minGold: 20, maxGold: 50, ingredients: 2, rarity: 'rare' }
+  }
+];
 // ==========================================
 // 1. DATA: CUSTOMER CLASSES (Weighted)
 // ==========================================

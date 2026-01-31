@@ -81,7 +81,7 @@ const CityMap = ({
       {/* --- 1. THE MAP LAYER --- */}
       <div className="relative flex-grow w-full overflow-hidden flex items-center justify-center p-4 md:p-12">
         
-        <div className="relative w-full h-full max-w-[1400px] max-h-[900px] shadow-2xl">
+        <div className="relative w-full h-full max-w-[1400px] max-h-[800px] shadow-2xl">
               
             {/* The Copper Map Image */}
             <div 

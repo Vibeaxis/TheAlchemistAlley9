@@ -1,10 +1,5 @@
 import { 
   Crown, Hand, Shield, Skull, ShieldCheck, Wind, Coins, FlaskConical, 
-  Music, Sword, Book, Hammer 
-} from 'lucide-react';
-
-import { 
-  Crown, Hand, Shield, Skull, ShieldCheck, Wind, Coins, FlaskConical, 
   Music, Sword, Book, Hammer, Anchor, Cross // <--- Added new icons
 } from 'lucide-react';
 

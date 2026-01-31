@@ -20,6 +20,19 @@ import alcBg from '../assets/alc_bg.jpg';
 // 1. IMPORT
 import ReputationExchange from '@/components/ReputationExchange';
 import WorldCalendar from '@/components/WorldCalendar';
+
+
+
+
+
+
+import { generateRival, resolveRivalAction, RIVAL_ENCOUNTERS } from '@/lib/RivalSystem';
+import RivalCard from '@/components/RivalCard';
+
+
+
+
+
 // ==========================================
 // 1. INLINE VISUAL COMPONENTS (FIXED)
 // ==========================================
@@ -681,7 +694,8 @@ const ApothecaryGame = () => {
   const [day, setDay] = useState(1);
   const [customersServed, setCustomersServed] = useState(0);
   const [showMap, setShowMap] = useState(false);
-  
+  const [rival, setRival] = useState(null);
+  const [activeEncounter, setActiveEncounter] = useState(null); // If this is not null, the modal shows
   const [gold, setGold] = useState(100);
   const [reputation, setReputation] = useState(20);
   const [upgrades, setUpgrades] = useState({ reinforced: false, ventilation: false, merchant: false, mercury: false });
@@ -931,10 +945,46 @@ const handleAssignMission = (mission) => {
     }
     setTimeout(() => setGameMessage(''), 2000);
   };
+
+
+
+
+
+
+// HELPER: Advances the game state to the next day.
+// Called immediately by handleRest() if no rival appears, 
+// OR called by handleEncounterResolve() after the player deals with the rival.
+const advanceDay = () => {
+    const nextDay = day + 1;
+    
+    setDay(nextDay);
+    setGameStats(prev => ({ ...prev, daysCount: prev.daysCount + 1 }));
+    setPhase('day');
+    setCustomersServed(0);
+    setHeat(h => Math.max(0, h - 10)); // Natural heat decay
+    
+    // Generate new customer (Respecting progression with nextDay)
+    setCurrentCustomer(generateCustomer(nextDay)); 
+    
+    setConsultUsed(false);
+    setRevealedCustomerTags([]);
+    setWhisperQueue([]);
+    setSelectedIngredients([]); // Clear workbench
+    setGameMessage(`Day ${nextDay} Begins`);
+    
+    // Randomize Watch Focus for the new day
+    const districts = ['dregs', 'market', 'arcanum', 'docks', 'cathedral', 'spire'];
+    setWatchFocus(districts[Math.floor(Math.random() * districts.length)]);
+    
+    setTimeout(() => setGameMessage(''), 3000);
+};
+
+
+
 const handleRest = () => {
     soundEngine.playClick(vol);
     
-    // --- PART 1: RESOLVE COVERT MISSIONS ---
+    // --- PART 1: RESOLVE COVERT MISSIONS (Apprentice) ---
     let report = null;
     
     // Scenario A: Apprentice is out on a mission
@@ -963,7 +1013,7 @@ const handleRest = () => {
                     const qty = isCrit ? mission.rewards.ingredients + 1 : mission.rewards.ingredients;
                     // Filter ingredients by rarity (Rare missions give Finite items)
                     const pool = INGREDIENTS.filter(i => mission.rewards.rarity === 'rare' ? i.finite : !i.finite);
-                    // Fallback if pool is empty (shouldn't happen)
+                    // Fallback if pool is empty
                     const actualPool = pool.length > 0 ? pool : INGREDIENTS;
                     
                     const newInventory = { ...inventory };
@@ -1029,34 +1079,56 @@ const handleRest = () => {
         }
     }
 
-    // Save the report to trigger the modal
+    // Save the report to trigger the modal (This is informational, doesn't block)
     if (report) setMissionReport(report);
 
-    // --- PART 2: STANDARD DAY RESET ---
-    const nextDay = day + 1;
-    setDay(nextDay);
-    setGameStats(prev => ({ ...prev, daysCount: prev.daysCount + 1 }));
-    setPhase('day');
-    setCustomersServed(0);
-    setHeat(h => Math.max(0, h - 10)); // Natural heat decay
-    
-    // Generate new customer (Respecting progression with nextDay)
-    setCurrentCustomer(generateCustomer(nextDay)); 
-    
-    setConsultUsed(false);
-    setRevealedCustomerTags([]);
-    setWhisperQueue([]);
-    setSelectedIngredients([]); // Clear workbench
-    setGameMessage(`Day ${nextDay} Begins`);
-    
-    // Randomize Watch Focus for the new day
-    const districts = ['dregs', 'market', 'arcanum', 'docks', 'cathedral', 'spire'];
-    setWatchFocus(districts[Math.floor(Math.random() * districts.length)]);
-    
-    setTimeout(() => setGameMessage(''), 3000);
+
+    // --- PART 2: RIVAL INTRUSION CHECK (New Logic) ---
+    // If a Rival intrudes, we DO NOT advance the day yet. We wait for the modal.
+    let encounterTriggered = false;
+
+    // 1. Spawn First Rival (Day 3+)
+    if (!rival && day >= 3) {
+        const newRival = generateRival(day);
+        setRival(newRival);
+        // Force the Intro Encounter
+        setActiveEncounter({ rival: newRival, data: RIVAL_ENCOUNTERS[0] }); 
+        encounterTriggered = true;
+    } 
+    // 2. Random Intrusion (30% chance if Rival exists)
+    else if (rival && Math.random() > 0.7) { 
+        const randomEnc = RIVAL_ENCOUNTERS[Math.floor(Math.random() * RIVAL_ENCOUNTERS.length)];
+        setActiveEncounter({ rival: rival, data: randomEnc });
+        encounterTriggered = true;
+    }
+
+    // --- PART 3: TRANSITION ---
+    // Only advance the day immediately if NO rival encounter happened.
+    // If an encounter happened, advanceDay() will be called by handleEncounterResolve()
+    if (!encounterTriggered) {
+        advanceDay();
+    }
 };
 
-// 1. SELECTING (Clicking the Rack)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  // 1. SELECTING (Clicking the Rack)
   const handleIngredientSelect = (ingredient) => {
     // Basic interaction sound
@@ -1443,7 +1515,13 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       </div>
 
       {/* Modals */}
-
+{/* RIVAL MODAL - Place at the very bottom */}
+{activeEncounter && (
+    <RivalEncounter 
+        rival={activeEncounter.rival} 
+        encounter={activeEncounter.data} 
+        onResolve={handleEncounterResolve} 
+    />
 
 <ReputationExchange 
     isOpen={isRepModalOpen} 

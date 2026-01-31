@@ -908,12 +908,14 @@ const mortarRef = useRef(null); // To help with drop detection
   if (gameState === 'GAMEOVER') return <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}><GameOverScreen stats={gameStats} onReturnToTitle={() => setGameState('TITLE')} /></div>;
 
   // --- MAIN RENDER (REFACTORED LAYOUT) ---
+  // --- MAIN RENDER ---
   return (
     <div className='min-h-screen bg-slate-950 text-amber-500 font-sans selection:bg-amber-900 selection:text-white overflow-hidden flex flex-col'>
+      
       {/* 1. Scale Container */}
       <div className="flex-1 flex flex-col" style={{ transform: `scale(${uiScale / 100})`, transformOrigin: 'top center', filter: `brightness(${gamma})` }}>
         
-        {/* 2. Top Navigation (Fixed Height) */}
+        {/* 2. Top Navigation */}
         <div className="h-16 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between px-8 shrink-0 z-40 relative">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-amber-500"><Coins size={18} /> <span className="text-xl font-bold font-mono">{gold}</span></div>
@@ -936,110 +938,111 @@ const mortarRef = useRef(null); // To help with drop detection
           </div>
         </div>
 
-   {/* 3. Game Content Area */}
-<div className="flex-1 relative overflow-hidden flex flex-col">
-    
-    {/* Background Image Layer */}
-    <div className="absolute inset-0 z-0">
-        <img src={alcBg} alt="Alchemist Alley" className="w-full h-full object-cover opacity-60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60" />
-    </div>
-
-    {/* Note: Floating Cinematic Toast REMOVED from here. It is now in the Right Column. */}
-
-    <AnimatePresence mode='wait'>
-        {phase === 'day' ? (
-            <motion.div 
-    key="day-phase" 
-    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
-    className="relative z-10 flex-1 flex flex-col"
->
-    {/* A. The Stage */}
-    <div className="flex-1 grid grid-cols-12 px-8 min-h-0 items-end">
-        
-        {/* LEFT COL: Customer (The Doorway) */}
-        {/* Added border-r to simulate a wall/doorframe separation */}
-        <div className="col-span-3 flex flex-col justify-center h-full pb-12 z-20 border-r border-black/40 shadow-[10px_0_20px_rgba(0,0,0,0.5)] pr-8">
-            <AnimatePresence mode='wait'>
-                {currentCustomer && (
-                    <motion.div 
-                        key={currentCustomer.id} 
-                        initial={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
-                        animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }} 
-                        exit={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
-                        transition={{ type: "spring", bounce: 0, duration: 0.6 }}
-                        className="w-full max-w-[320px]"
-                    >
-                        <CustomerCard 
-                            customer={currentCustomer} 
-                            observationHint={observationHint} 
-                            onMouseEnter={() => handleCustomerHover(currentCustomer)} 
-                            onMouseLeave={handleCustomerLeave} 
-                            revealedTags={revealedCustomerTags}
-                            isInspecting={isInspecting} 
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-
-        {/* CENTER COL: The Desk Surface */}
-        <div className="col-span-6 flex flex-col justify-end items-center relative h-full">
+        {/* 3. Game Content Area */}
+        <div className="flex-1 relative overflow-hidden flex flex-col">
             
-            {/* Visual Trick: "Table Surface" Gradient at the bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/60 to-transparent pointer-events-none z-0" />
-
-            {/* 1. LENS (Sitting FLUSH on the table - bottom-0) */}
-            <div className="absolute bottom-2 left-4 z-40">
-                <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
+            {/* Background Image Layer */}
+            <div className="absolute inset-0 z-0 bg-black">
+                <img src={alcBg} alt="Alchemist Alley" className="w-full h-full object-cover opacity-50" />
+                {/* Floor Fade */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/80" />
+                {/* Right Void Fade (For Window) */}
+                <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-black to-transparent" />
+                {/* Left Shadow Fade (For Door) */}
+                <div className="absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-black/80 to-transparent" />
             </div>
 
-            {/* 2. MORTAR (Sitting FLUSH on the table - bottom-0) */}
-            <div className="absolute bottom-2 right-4 z-40">
-                <Mortar onInteract={handleMortarClick} />
-            </div>
+            <AnimatePresence mode='wait'>
+                {phase === 'day' ? (
+                    <motion.div 
+                        key="day-phase" 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+                        className="relative z-10 flex-1 flex flex-col"
+                    >
+                        {/* A. The Stage */}
+                        <div className="flex-1 grid grid-cols-12 px-8 min-h-0 items-end">
+                            
+                            {/* LEFT COL: Customer (The Doorway) */}
+                            <div className="col-span-3 flex flex-col justify-center h-full pb-12 z-20 border-r border-black/40 shadow-[10px_0_20px_rgba(0,0,0,0.5)] pr-8">
+                                <AnimatePresence mode='wait'>
+                                    {currentCustomer && (
+                                        <motion.div 
+                                            key={currentCustomer.id} 
+                                            initial={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
+                                            animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }} 
+                                            exit={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
+                                            transition={{ type: "spring", bounce: 0, duration: 0.6 }}
+                                            className="w-full max-w-[320px]"
+                                        >
+                                            <CustomerCard 
+                                                customer={currentCustomer} 
+                                                observationHint={observationHint} 
+                                                onMouseEnter={() => handleCustomerHover(currentCustomer)} 
+                                                onMouseLeave={handleCustomerLeave} 
+                                                revealedTags={revealedCustomerTags}
+                                                isInspecting={isInspecting} 
+                                            />
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
 
-            {/* 3. CAULDRON */}
-            <div className="w-full max-w-xl z-10 mb-2"> {/* mb-2 gives it just a tiny lift off the raw edge */}
-                <Cauldron 
-                    selectedIngredients={selectedIngredients} 
-                    onBrew={handleBrew} 
-                    onClear={handleClearSelection} 
-                    whisperQueue={whisperQueue} 
-                    onProcess={handleProcessIngredient} 
-                />
-            </div>
-        </div>
+                            {/* CENTER COL: The Desk Surface */}
+                            <div className="col-span-6 flex flex-col justify-end items-center relative h-full">
+                                
+                                {/* Visual Trick: "Table Edge" Shadow */}
+                                <div className="absolute bottom-0 left-[-20px] right-[-20px] h-16 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none z-0" />
 
-        {/* RIGHT COL: Atmosphere & Results */}
-        <div className="col-span-3 flex flex-col justify-start pt-12 h-full z-10 pl-4">
-                
-                {/* Window */}
-                <ShopAtmosphere 
-                heat={heat} 
-                watchFocus={watchFocus} 
-                activeDistrict={activeDistrict} 
-                />
+                                {/* 1. LENS (Grounded) */}
+                                <div className="absolute bottom-1 left-4 z-40">
+                                    <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
+                                </div>
 
-                {/* Result Log */}
-                <div className="flex-1 flex items-start justify-center mt-8">
-                    <AnimatePresence mode='wait'>
-                    {gameMessage && (
-                        <CinematicAnnouncement text={gameMessage} type={messageType} />
-                    )}
-                    </AnimatePresence>
-                </div>
-        </div>
+                                {/* 2. MORTAR (Grounded) */}
+                                <div className="absolute bottom-1 right-4 z-40">
+                                    <Mortar onInteract={handleMortarClick} />
+                                </div>
 
-    </div>
+                                {/* 3. CAULDRON */}
+                                <div className="w-full max-w-xl z-10 mb-1">
+                                    <Cauldron 
+                                        selectedIngredients={selectedIngredients} 
+                                        onBrew={handleBrew} 
+                                        onClear={handleClearSelection} 
+                                        whisperQueue={whisperQueue} 
+                                        onProcess={handleProcessIngredient} 
+                                    />
+                                </div>
+                            </div>
 
-    {/* B. The HUD (Workbench) - This acts as the physical front edge of the table */}
-    <div className="shrink-0 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
-        <Workbench selectedIngredients={selectedIngredients} onIngredientSelect={handleIngredientSelect} />
-    </div>
+                            {/* RIGHT COL: Atmosphere & Results */}
+                            <div className="col-span-3 flex flex-col justify-start pt-12 h-full z-10 pl-4">
+                                    {/* Window */}
+                                    <ShopAtmosphere 
+                                        heat={heat} 
+                                        watchFocus={watchFocus} 
+                                        activeDistrict={activeDistrict} 
+                                    />
 
-</motion.div>
-        ) : (
+                                    {/* Result Log */}
+                                    <div className="flex-1 flex items-start justify-center mt-8">
+                                        <AnimatePresence mode='wait'>
+                                            {gameMessage && (
+                                                <CinematicAnnouncement text={gameMessage} type={messageType} />
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                            </div>
+
+                        </div>
+
+                        {/* B. The HUD (Workbench) */}
+                        <div className="shrink-0 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.8)] relative">
+                            <Workbench selectedIngredients={selectedIngredients} onIngredientSelect={handleIngredientSelect} />
+                        </div>
+
+                    </motion.div>
+                ) : (
                     <motion.div key="night" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full z-20 relative bg-slate-950">
                         <TavernHub gold={gold} setGold={setGold} upgrades={upgrades} setUpgrades={setUpgrades} apprentice={apprentice} setApprentice={setApprentice} day={day} onRest={handleRest} volume={vol} />
                     </motion.div>

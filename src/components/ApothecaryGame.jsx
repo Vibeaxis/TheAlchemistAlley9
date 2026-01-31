@@ -1012,37 +1012,66 @@ const handleBrew = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/60" />
                </div>
 
-               {/* --- 3. CONTENT GRID (Z-10 to sit on top) --- */}
-               <div className="relative z-10 h-full grid grid-cols-12 gap-8 p-8">
-                  
-                  {/* LEFT COL: Customer */}
-                  <div className="col-span-4 h-full relative">
-                    <AnimatePresence mode='wait'>
-                      {currentCustomer && (
-                        <motion.div key={currentCustomer.id} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="h-full">
-                          <CustomerCard
-                            customer={currentCustomer}
-                            observationHint={observationHint}
-                            onMouseEnter={() => handleCustomerHover(currentCustomer)}
-                            onMouseLeave={handleCustomerLeave}
-                            revealedTags={revealedCustomerTags}
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+            {/* --- 3. CONTENT GRID --- */}
+<div className="relative z-10 h-full grid grid-cols-12 gap-6 p-6">
+  
+  {/* LEFT COL: Compact Customer Info (Now 3 columns instead of 4) */}
+  <div className="col-span-3 flex flex-col gap-4">
+    <AnimatePresence mode='wait'>
+      {currentCustomer && (
+        <motion.div 
+          key={currentCustomer.id} 
+          initial={{ x: -20, opacity: 0 }} 
+          animate={{ x: 0, opacity: 1 }} 
+          exit={{ x: -20, opacity: 0 }}
+          className="w-full"
+        >
+          {/* We'll assume CustomerCard can handle a smaller container or scale down */}
+          <div className="transform origin-top scale-90">
+             <CustomerCard
+                customer={currentCustomer}
+                observationHint={observationHint}
+                onMouseEnter={() => handleCustomerHover(currentCustomer)}
+                onMouseLeave={handleCustomerLeave}
+                revealedTags={revealedCustomerTags}
+              />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
 
-                  {/* RIGHT COL: Workbench */}
-                  <div className="col-span-8 h-full flex flex-col gap-6">
-                    <div className="flex-1">
-                      <Cauldron selectedIngredients={selectedIngredients} onBrew={handleBrew} onClear={handleClearSelection} whisperQueue={whisperQueue} />
-                    </div>
-                    <div className="h-auto">
-                      <Workbench selectedIngredients={selectedIngredients} onIngredientSelect={handleIngredientSelect} />
-                    </div>
-                  </div>
+    {/* Result Toasts / Notifications can live here now in the empty space below the card */}
+    <div className="flex-1 flex flex-col justify-end pb-4">
+       {/* Toasts go here */}
+    </div>
+  </div>
 
-               </div>
+  {/* RIGHT COL: The Desk (Expanded to 9 columns) */}
+  <div className="col-span-9 h-full flex flex-col gap-4">
+    
+    {/* 1. REAGENT RACK (Now at the top like a shelf) */}
+    <div className="h-1/3 min-h-[280px]">
+      <Workbench 
+        selectedIngredients={selectedIngredients} 
+        onIngredientSelect={handleIngredientSelect} 
+      />
+    </div>
+
+    {/* 2. THE CAULDRON (Now at the bottom, centered) */}
+    <div className="flex-1 flex items-center justify-center relative">
+       {/* You might want to add a 'table top' graphic div here */}
+       <div className="w-full max-w-2xl transform translate-y-4">
+          <Cauldron 
+            selectedIngredients={selectedIngredients} 
+            onBrew={handleBrew} 
+            onClear={handleClearSelection} 
+            whisperQueue={whisperQueue} 
+          />
+       </div>
+    </div>
+
+  </div>
+</div>
             </motion.div>
           )}
 

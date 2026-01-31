@@ -348,12 +348,17 @@ export const generateCustomer = () => {
   // 3. Pick Body Part (Flavor) based on Category
   const validParts = LOCATIONS[scenario.category] || LOCATIONS.physical;
   const part = validParts[Math.floor(Math.random() * validParts.length)];
+  
+  // 4. Fix Grammar
+  // We save the fixed string into a variable named 'text'
+  const text = fixGrammar(part, scenario.text);
 
   return {
     id: ++customerIdCounter,
     class: customerClass,
     symptom: {
-    text: `My ${part} ${grammaticallyCorrectText}...`, // "My bones have frozen..."
+      // FIX: Use 'text' here, not 'grammaticallyCorrectText'
+      text: `My ${part} ${text}...`,
       requiredTags: scenario.tags
     }
   };

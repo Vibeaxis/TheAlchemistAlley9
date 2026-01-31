@@ -98,7 +98,25 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                 "{customer.class.description}"
             </p>
         </div>
+{/* SYMPTOM BOX MODIFICATION */}
+      <div className="w-full bg-slate-950/90 border-l-4 border-amber-700 p-4 rounded shadow-xl backdrop-blur-md mt-auto mb-12 relative overflow-hidden">
+          
+          {/* The Text - Blurred by default */}
+          <p className={`text-amber-100/90 font-serif text-md leading-relaxed italic transition-all duration-500 ${isInspecting ? 'blur-0' : 'blur-sm select-none'}`}>
+            "{customer.symptom.text}"
+          </p>
 
+          {/* The "Haze" Overlay - Fades out when inspecting */}
+          <div className={`absolute inset-0 bg-slate-950/20 transition-opacity duration-300 pointer-events-none ${isInspecting ? 'opacity-0' : 'opacity-100'}`} />
+          
+          {!isInspecting && (
+             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-[10px] text-amber-700/50 uppercase tracking-widest font-black animate-pulse">
+                   Inspect Patient
+                </span>
+             </div>
+          )}
+      </div>
         <div className="w-full bg-slate-950/90 border-l-4 border-amber-700 p-4 rounded shadow-xl backdrop-blur-md mt-auto mb-12">
           <p className="text-amber-100/90 font-serif text-md leading-relaxed italic">
             "{customer.symptom.text}"
@@ -130,8 +148,8 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     </div>
   );
 };
-
-const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
+// Updated to accept 'onProcess'
+const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProcess }) => {
   const [isBrewing, setIsBrewing] = useState(false);
 
   const handleSafeBrew = () => {
@@ -180,23 +198,45 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue }) => {
              {isBrewing && <div className="absolute inset-0 w-full h-full opacity-50 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />}
              <div className="absolute top-0 w-full h-6 bg-white/10 blur-md transform scale-x-90" />
           </motion.div>
-          <div className="absolute inset-0 flex flex-col-reverse items-center justify-start pb-10 gap-2 z-10 pointer-events-none">
+          
+          {/* INGREDIENTS FLOATING */}
+          <div className="absolute inset-0 flex flex-col-reverse items-center justify-start pb-10 gap-2 z-10">
             <AnimatePresence>
               {selectedIngredients.map((ing, i) => (
                 <motion.div
-                  key={`${ing.name}-${i}`}
+                  // Use ID if available, otherwise index (fallback)
+                  key={ing.id || `${ing.name}-${i}`}
                   initial={{ y: -100, opacity: 0, scale: 0.5 }}
                   animate={isBrewing ? { y: 50, scale: 0, rotate: 360, opacity: 0 } : { y: 0, opacity: 1, scale: 1, rotate: Math.random() * 60 - 30 }}
                   exit={{ y: 50, opacity: 0, scale: 0 }}
                   transition={isBrewing ? { duration: 1 } : {}}
-                  className="text-4xl drop-shadow-2xl filter brightness-110"
+                  // ADDED: 'group' class to handle hover state for the button inside
+                  className="relative text-4xl drop-shadow-2xl filter brightness-110 cursor-pointer group"
                 >
                   {ing.icon}
+                  
+                  {/* NEW: CRUSH BUTTON (Only shows on hover if item is processable) */}
+                  {!ing.isProcessed && ing.processed && !isBrewing && (
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                        <button
+                            onClick={(e) => { 
+                                e.stopPropagation(); // Prevent bubbling 
+                                onProcess(ing.id);   // Call the crush function
+                            }}
+                            className="bg-stone-900/90 text-stone-200 text-[9px] font-black tracking-widest px-2 py-1 rounded border border-stone-600 hover:bg-amber-900 hover:border-amber-500 hover:text-white shadow-lg whitespace-nowrap"
+                        >
+                            CRUSH
+                        </button>
+                    </div>
+                  )}
+
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
         </div>
+        
+        {/* Whispers / Steam */}
         <div className="absolute -top-24 left-0 w-full h-40 flex flex-col items-center justify-end pointer-events-none z-0">
           <AnimatePresence mode='popLayout'>
             {whisperQueue.slice(-2).map((w) => (
@@ -398,6 +438,77 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
     </div>
   )
 }
+
+const Lens = ({ onInspect, isInspecting }) => {
+  return (
+    <motion.div
+      drag
+      dragConstraints={{ left: -200, right: 200, top: -200, bottom: 200 }}
+      dragElastic={0.1}
+      whileDrag={{ scale: 1.2, cursor: 'grabbing' }}
+      onDragStart={() => onInspect(true)}
+      onDragEnd={() => onInspect(false)}
+      className="absolute bottom-4 left-4 z-50 cursor-grab group"
+    >
+      {/* The Glass Visual */}
+      <div className="relative w-24 h-24">
+        {/* Handle */}
+        <div className="absolute -bottom-6 -right-6 w-16 h-4 bg-amber-900 rounded-full rotate-45 border-2 border-amber-950 z-0" />
+        
+        {/* Rim */}
+        <div className="absolute inset-0 rounded-full border-[6px] border-amber-600 bg-white/10 backdrop-blur-[2px] shadow-xl z-10 flex items-center justify-center overflow-hidden">
+             {/* Reflection/Glint */}
+             <div className="absolute top-2 left-4 w-8 h-4 bg-white/40 rounded-full rotate-[-15deg] blur-[1px]" />
+        </div>
+      </div>
+      
+      {/* Helper Text */}
+      <div className="absolute -bottom-8 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-amber-500 font-mono tracking-widest pointer-events-none">
+        DRAG TO INSPECT
+      </div>
+    </motion.div>
+  );
+};
+const Mortar = ({ onProcess }) => {
+  const [isGrinding, setIsGrinding] = useState(false);
+
+  // Expose a function to trigger the grind animation
+  const grind = () => {
+    setIsGrinding(true);
+    soundEngine.playGravel(0.5); // You'll need to add a simple grind sound or just use a click
+    setTimeout(() => setIsGrinding(false), 800);
+  };
+
+  return (
+    <div className="relative w-32 h-32 flex items-center justify-center group">
+       
+       {/* Pestle Animation */}
+       <motion.div 
+         animate={isGrinding ? { x: [0, 10, -10, 5, -5, 0], y: [0, 5, -5, 5, 0], rotate: [0, 10, -10, 0] } : {}}
+         transition={{ duration: 0.8 }}
+         className="absolute z-20 -top-4 right-2 text-6xl text-stone-400 drop-shadow-xl origin-bottom-left pointer-events-none"
+       >
+         {/* Simple Emoji or SVG for Pestle could go here, sticking to text for now */}
+         🥢 
+       </motion.div>
+
+       {/* Bowl */}
+       <div className="w-24 h-20 bg-stone-800 border-b-4 border-r-4 border-stone-950 rounded-b-full shadow-2xl flex items-center justify-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-stone-900/50" />
+          <div className="text-[10px] text-stone-600 font-black uppercase tracking-widest mt-2 z-10">
+             Mortar
+          </div>
+       </div>
+
+       {/* Hit Box for Dragging */}
+       {/* We identify this drop zone by class name or coordinates in the main loop */}
+       <div 
+         id="mortar-drop-zone" 
+         className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-stone-600/50 transition-colors"
+       />
+    </div>
+  );
+};
 // ==========================================
 // 3. MAIN GAME COMPONENT
 // ==========================================
@@ -420,7 +531,10 @@ const ApothecaryGame = () => {
   const [gold, setGold] = useState(100);
   const [reputation, setReputation] = useState(20);
   const [upgrades, setUpgrades] = useState({ reinforced: false, ventilation: false, merchant: false, mercury: false });
-
+// NEW STATE: The ingredient currently being dragged by the mouse
+const [draggingIngredient, setDraggingIngredient] = useState(null);
+const [isInspecting, setIsInspecting] = useState(false); // For the Lens
+const mortarRef = useRef(null); // To help with drop detection
   const [apprentice, setApprentice] = useState({ hired: false, npcId: null, npcName: null, npcClass: null });
   const [consultUsed, setConsultUsed] = useState(false);
   const [revealedCustomerTags, setRevealedCustomerTags] = useState([]);
@@ -583,24 +697,67 @@ const ApothecaryGame = () => {
     setTimeout(() => setGameMessage(''), 3000);
   };
 
+// 1. SELECTING (Clicking the Rack)
   const handleIngredientSelect = (ingredient) => {
     soundEngine.playClick(vol);
-    let newIngredients = [];
+    
+    // Check if we are removing an existing item by name (Toggle behavior)
     if (selectedIngredients.find(i => i.name === ingredient.name)) {
-      newIngredients = selectedIngredients.filter(i => i.name !== ingredient.name);
+      const newIngredients = selectedIngredients.filter(i => i.name !== ingredient.name);
       setSelectedIngredients(newIngredients);
-    } else if (selectedIngredients.length < 3) {
-      newIngredients = [...selectedIngredients, ingredient];
+    } 
+    // Otherwise, add it (if under limit)
+    else if (selectedIngredients.length < 3) {
+      // IMPORTANT: Spread the ingredient and add a unique ID.
+      // We need this ID so the Mortar knows exactly which item to transform.
+      const newIng = { ...ingredient, id: Date.now() + Math.random() };
+      
+      const newIngredients = [...selectedIngredients, newIng];
       setSelectedIngredients(newIngredients);
-      if (Math.random() > 0.7) addWhisper(WHISPERS_ADD[Math.floor(Math.random() * WHISPERS_ADD.length)]);
-    } else return;
 
-    if (newIngredients.length >= 2) {
-      const outcome = tagCombination(newIngredients);
+      if (Math.random() > 0.7) addWhisper(WHISPERS_ADD[Math.floor(Math.random() * WHISPERS_ADD.length)]);
+    } 
+    else return;
+
+    // Safety check for dangerous combos immediately upon adding
+    // (We use a temporary array because state hasn't updated yet)
+    const previewIngredients = [...selectedIngredients, ingredient]; 
+    if (previewIngredients.length >= 2) {
+      const outcome = tagCombination(previewIngredients);
       if (outcome.isFatal) {
         setTimeout(() => addWhisper(WHISPERS_DANGER[Math.floor(Math.random() * WHISPERS_DANGER.length)], 'danger'), 300);
       }
     }
+  };
+
+  // 2. PROCESSING (The new Mortar Logic)
+  // This function is passed to the Cauldron component
+  const handleProcessIngredient = (ingredientId) => {
+    // Find the item in our list
+    const index = selectedIngredients.findIndex(i => i.id === ingredientId);
+    if (index === -1) return;
+
+    const item = selectedIngredients[index];
+    
+    // If it has no 'processed' data, we can't crush it.
+    if (!item.processed) return; 
+
+    // Create the new "Crushed" version
+    const crushedItem = {
+        ...item, // Keep ID and other props
+        name: item.processed.name,
+        tags: item.processed.tags,
+        icon: item.processed.icon,
+        isProcessed: true // Flag to prevent double-crushing
+    };
+
+    // Update state
+    const newIngredients = [...selectedIngredients];
+    newIngredients[index] = crushedItem;
+    setSelectedIngredients(newIngredients);
+    
+    // Optional: Add a sound effect here
+    // soundEngine.playGrind(vol); 
   };
 
   const handleClearSelection = () => {
@@ -723,7 +880,7 @@ const ApothecaryGame = () => {
           </div>
         </div>
 
-    {/* 3. Game Content Area */}
+   {/* 3. Game Content Area */}
 <div className="flex-1 relative overflow-hidden flex flex-col">
     
     {/* Background Image Layer */}
@@ -732,10 +889,7 @@ const ApothecaryGame = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60" />
     </div>
 
-    {/* Cinematic Toast (Positioned Absolute Top Center) */}
-    <AnimatePresence>
-        {gameMessage && <CinematicAnnouncement text={gameMessage} type={messageType} />}
-    </AnimatePresence>
+    {/* Note: Floating Cinematic Toast REMOVED from here. It is now in the Right Column. */}
 
     <AnimatePresence mode='wait'>
         {phase === 'day' ? (
@@ -745,52 +899,79 @@ const ApothecaryGame = () => {
                 className="relative z-10 flex-1 flex flex-col"
             >
                 {/* A. The Stage */}
-                <div className="flex-1 grid grid-cols-12 gap-4 px-8 pb-4 min-h-0">
+                <div className="flex-1 grid grid-cols-12 gap-4 px-8 pb-4 min-h-0 items-end">
                     
-                    {/* LEFT COL: Customer (The Doorway) */}
-                    <div className="col-span-3 flex flex-col justify-end z-20 pb-8">
+                    {/* LEFT COL: Customer (The Entrance) */}
+                    <div className="col-span-3 flex flex-col justify-center h-full pb-12 z-20">
                         <AnimatePresence mode='wait'>
                             {currentCustomer && (
                                 <motion.div 
                                     key={currentCustomer.id} 
-                                    // CHANGE: Slide in from left (-50), Fade out to left (-50)
-                                    initial={{ x: -50, opacity: 0, filter: 'blur(10px)' }} 
+                                    // Slide in from left (-60), Fade/Blur out to left
+                                    initial={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
                                     animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }} 
-                                    exit={{ x: -50, opacity: 0, filter: 'blur(10px)' }} 
-                                    transition={{ duration: 0.5, ease: "circOut" }}
-                                    className="h-[500px] w-full max-w-[320px]"
+                                    exit={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
+                                    transition={{ type: "spring", bounce: 0, duration: 0.6 }}
+                                    className="w-full max-w-[320px]"
                                 >
                                     <CustomerCard 
                                         customer={currentCustomer} 
                                         observationHint={observationHint} 
                                         onMouseEnter={() => handleCustomerHover(currentCustomer)} 
                                         onMouseLeave={handleCustomerLeave} 
-                                        revealedTags={revealedCustomerTags} 
+                                        revealedTags={revealedCustomerTags}
+                                        // NEW: Pass inspection state for the blur effect
+                                        isInspecting={isInspecting} 
                                     />
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
 
-                    {/* CENTER COL: Cauldron (Centered) */}
-                    <div className="col-span-6 flex flex-col justify-end items-center pb-8 relative">
+                    {/* CENTER COL: Cauldron & Tools (The Desk) */}
+                    <div className="col-span-6 flex flex-col justify-end items-center pb-8 relative h-full">
+                        
+                        {/* 1. LENS (Bottom Left of Center) */}
+                        <div className="absolute bottom-4 left-0 z-40">
+                            <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
+                        </div>
+
+                        {/* 2. MORTAR (Bottom Right of Center) */}
+                        <div className="absolute bottom-4 right-0 z-40">
+                            <Mortar />
+                        </div>
+
+                        {/* 3. CAULDRON */}
                         <div className="w-full max-w-xl">
                             <Cauldron 
                                 selectedIngredients={selectedIngredients} 
                                 onBrew={handleBrew} 
                                 onClear={handleClearSelection} 
                                 whisperQueue={whisperQueue} 
+                                // NEW: Pass the crush handler
+                                onProcess={handleProcessIngredient} 
                             />
                         </div>
                     </div>
 
-                    {/* RIGHT COL: Atmosphere / Window (Filling the void) */}
-                    <div className="col-span-3 flex flex-col justify-center items-center pb-12 opacity-80">
+                    {/* RIGHT COL: Atmosphere & Results (The Environment) */}
+                    <div className="col-span-3 flex flex-col justify-start pt-12 h-full z-10">
+                         
+                         {/* Window (Always visible) */}
                          <ShopAtmosphere 
                             heat={heat} 
                             watchFocus={watchFocus} 
                             activeDistrict={activeDistrict} 
                          />
+
+                         {/* Result Log (Appears below window) */}
+                         <div className="h-32 flex items-start justify-center mt-4">
+                             <AnimatePresence mode='wait'>
+                                {gameMessage && (
+                                    <CinematicAnnouncement text={gameMessage} type={messageType} />
+                                )}
+                             </AnimatePresence>
+                         </div>
                     </div>
 
                 </div>

@@ -184,18 +184,66 @@ export const generateSymptom = () => {
 
 export const INGREDIENTS = [
   // RISK ITEMS
-  { name: 'Mercury', tags: ['Toxic', 'Heavy'], icon: '☿' },
-  { name: 'Nightshade', tags: ['Toxic', 'Dark'], icon: '🥀' },
+  { 
+    name: 'Mercury', 
+    tags: ['Toxic', 'Heavy'], 
+    icon: '☿',
+    // Crushing Mercury creates dangerous fumes (Good for combat/high risk)
+    processed: { name: 'Quicksilver Fumes', tags: ['Toxic', 'Explosive'], icon: '☁' }
+  },
+  { 
+    name: 'Nightshade', 
+    tags: ['Toxic', 'Dark'], 
+    icon: '🥀',
+    // Crushing extracts the sedative properties
+    processed: { name: 'Nightshade Dust', tags: ['Toxic', 'Calming'], icon: '✨' }
+  },
 
   // SAFE BASES
-  { name: 'Salt', tags: ['Purifying', 'Crystalline'], icon: '⚬' },
-  { name: 'Sage', tags: ['Purifying', 'Calming'], icon: '🌿' },
-  { name: 'Moonstone', tags: ['Cooling', 'Holy'], icon: '☽' },
+  { 
+    name: 'Salt', 
+    tags: ['Purifying', 'Crystalline'], 
+    icon: '⚬',
+    // Grinding salt makes it "Holy" (Classic trope)
+    processed: { name: 'Fine Salt', tags: ['Purifying', 'Holy'], icon: '⚪' }
+  },
+  { 
+    name: 'Sage', 
+    tags: ['Purifying', 'Calming'], 
+    icon: '🌿',
+    // Crushing releases life force
+    processed: { name: 'Sage Powder', tags: ['Purifying', 'Vital'], icon: '🍃' }
+  },
+  { 
+    name: 'Moonstone', 
+    tags: ['Cooling', 'Holy'], 
+    icon: '☽',
+    // Crushing it makes it crystalline powder
+    processed: { name: 'Moon Dust', tags: ['Crystalline', 'Cooling'], icon: '❄' }
+  },
 
-  // UTILITY (Fixed: Removed Toxic from these so you can actually cure people)
-  { name: 'Sulfur', tags: ['Hot', 'Vital'], icon: '🜍' },
-  { name: 'Bloodroot', tags: ['Vital', 'Purifying'], icon: '⚕' },
-  { name: 'Copper', tags: ['Hot', 'Heavy'], icon: '⚙' } // Fixed: Changed "Conductive" to "Hot" to make it useful
+  // UTILITY
+  { 
+    name: 'Sulfur', 
+    tags: ['Hot', 'Vital'], 
+    icon: '🜍',
+    // Brimstone is highly explosive
+    processed: { name: 'Brimstone Ash', tags: ['Hot', 'Explosive'], icon: '🌋' }
+  },
+  { 
+    name: 'Bloodroot', 
+    tags: ['Vital', 'Purifying'], 
+    icon: '⚕',
+    // Paste becomes toxic (The dose makes the poison)
+    processed: { name: 'Red Paste', tags: ['Vital', 'Toxic'], icon: '🩸' }
+  },
+  { 
+    name: 'Copper', 
+    tags: ['Hot', 'Heavy'], 
+    icon: '⚙',
+    // Filings become sharp/crystalline
+    processed: { name: 'Copper Filings', tags: ['Hot', 'Crystalline'], icon: '⛓' }
+  }
 ];
 
 let customerIdCounter = 0;

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Eye, MapPin, Siren, Coins, Lock, Crosshair, X, ArrowRight, Home, Search } from 'lucide-react';
 
 // YOUR IMPORTED IMAGE
-import mapHoloBg from '../assets/map_holo.jpg'; 
+import mapHoloBg from '../assets/map_holo.webp'; 
 const MAP_IMAGE_URL = mapHoloBg;
 
 // DEBUG MODE (Set to true to fix alignments)

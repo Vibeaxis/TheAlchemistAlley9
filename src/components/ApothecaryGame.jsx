@@ -54,122 +54,137 @@ const getTagColor = (tag) => {
   }
 };
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting }) => {
-  // 1. STATE: Track if we have uncovered the secrets
+  // 1. STATE: Latch the reveal
   const [hasRevealed, setHasRevealed] = React.useState(false);
   
-  // 2. EFFECT: Latch the reveal state when inspection starts
+  // 2. EFFECT: Trigger reveal
   React.useEffect(() => {
-    if (isInspecting) {
-        setHasRevealed(true);
-    }
+    if (isInspecting) setHasRevealed(true);
   }, [isInspecting]);
 
-  // 3. EFFECT: Reset when a new customer arrives
   React.useEffect(() => {
     setHasRevealed(false);
   }, [customer.id]);
 
   const Icon = customer.class.icon || Ghost;
   
-  // Generate District
-  const districts = ['Dregs', 'Market', 'Arcanum', 'Docks', 'Cathedral', 'Spire'];
+  // 3. FLAVOR: Mystical/Whimsical Origins
+  const districts = [
+    { name: 'The Dregs', flavor: 'Rat-Kin', color: 'text-emerald-400' },
+    { name: 'Market', flavor: 'Coin-Bound', color: 'text-amber-400' },
+    { name: 'Arcanum', flavor: 'Void-Touched', color: 'text-purple-400' },
+    { name: 'Docks', flavor: 'Salt-Born', color: 'text-cyan-400' },
+    { name: 'Cathedral', flavor: 'Light-Blinded', color: 'text-yellow-200' },
+    { name: 'Spire', flavor: 'High-Blood', color: 'text-rose-400' }
+  ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
-  const originDistrict = districts[districtIndex];
+  const origin = districts[districtIndex];
 
   return (
     <div
       className={`
         relative w-full h-full min-h-[460px] 
-        bg-slate-950 border-4 border-double border-slate-800 rounded-lg p-4 md:p-6 
-        flex flex-col items-center text-center shadow-2xl overflow-hidden group transition-all
+        bg-[#0b0f19] rounded-xl p-6
+        flex flex-col items-center text-center shadow-2xl overflow-hidden group transition-all duration-700
+        ${hasRevealed ? 'shadow-[0_0_30px_rgba(124,58,237,0.2)]' : ''}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Background Avatar */}
+      {/* 1. BORDER: Magical glowing border that activates on reveal */}
+      <div className={`absolute inset-0 rounded-xl border-4 border-double transition-colors duration-700 ${hasRevealed ? 'border-purple-500/50' : 'border-slate-800'}`} />
+      
+      {/* 2. BACKGROUND: Constellation / Rune Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+         {/* Avatar Shadow */}
          <img 
             src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
             alt="Shadow"
-            className="absolute -right-16 -bottom-10 w-[90%] h-[90%] object-contain opacity-20 filter grayscale brightness-0 drop-shadow-lg"
+            className="absolute -right-16 -bottom-10 w-[90%] h-[90%] object-contain opacity-10 filter grayscale brightness-50 contrast-125"
         />
+         {/* Magical Rune Background (Appears on reveal) */}
+         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl opacity-0 transition-opacity duration-1000 ${hasRevealed ? 'opacity-10' : ''}`}>
+            ✨
+         </div>
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent z-0 pointer-events-none" />
 
-      {/* Content Layer */}
+      {/* 3. CONTENT LAYER */}
       <div className="flex-1 flex flex-col justify-between items-center w-full relative z-10 h-full gap-4">
         
-        {/* Header Section */}
-        <div className="mt-2 flex flex-col items-center shrink-0">
-            <div className="p-3 rounded-full bg-slate-900/80 border-2 border-slate-700 shadow-lg mb-2 text-slate-400">
+        {/* HEADER: Info */}
+        <div className="mt-2 flex flex-col items-center shrink-0 w-full relative">
+            <div className="p-3 rounded-full bg-slate-950 border border-slate-700 shadow-lg mb-2 text-slate-400 z-10">
               <Icon size={28} />
             </div>
-            {/* Reduced text size slightly for mobile safety */}
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-200 leading-tight">
+            
+            <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-200 leading-tight z-10">
                 {customer.class.name}
             </h2>
-            <p className="text-slate-500 text-xs italic font-serif tracking-wider">
+            <p className="text-slate-500 text-xs italic font-serif tracking-wider z-10">
                 "{customer.class.description}"
             </p>
-        </div>
 
-        {/* THE SECRET STAMP (Reveals permanently after inspection) */}
-        <div 
-            className={`
-                absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                transition-all duration-700 ease-out pointer-events-none z-50
-                ${hasRevealed ? 'opacity-100 scale-100 rotate-[-12deg]' : 'opacity-0 scale-150 rotate-[0deg]'}
-            `}
-        >
-            <div className="border-4 border-red-800/80 p-3 rounded backdrop-blur-sm bg-black/40 shadow-2xl mix-blend-hard-light">
-                <div className="text-[10px] text-red-400 uppercase font-black tracking-widest leading-none mb-1">
-                    Residency Record
+            {/* --- THE REVEAL: INVISIBLE INK --- */}
+            {/* Sits in the top-right corner, fades in like magic writing */}
+            <div className={`absolute -top-2 -right-2 flex flex-col items-end transition-all duration-1000 ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                <div className="text-[10px] text-purple-400/80 font-serif italic tracking-widest">
+                   Soul Echo
                 </div>
-                <div className="text-xl md:text-2xl text-red-500 font-serif font-bold uppercase tracking-tight">
-                    {originDistrict}
+                <div className={`text-sm font-bold font-serif uppercase tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] ${origin.color}`}>
+                   {origin.name}
+                </div>
+                <div className="text-[9px] text-slate-500 uppercase tracking-widest scale-75 origin-right">
+                   ({origin.flavor})
                 </div>
             </div>
         </div>
 
-        {/* Symptom Text */}
-        <div className="w-full bg-slate-950/80 border-l-4 border-amber-700 p-4 rounded shadow-xl backdrop-blur-md mt-auto relative z-20">
+        {/* BODY: Symptom */}
+        <div className="w-full bg-slate-950/60 border-l-2 border-r-2 border-amber-900/30 p-4 rounded-sm shadow-inner backdrop-blur-sm mt-auto relative z-20">
           <p className="text-amber-100/90 font-serif text-sm md:text-base leading-relaxed italic">
             "{customer.symptom.text}"
           </p>
         </div>
 
-        {/* Observation Hint (Only shows AFTER reveal) */}
-        {/* We use min-h to prevent layout jump when it appears */}
-        <div className="h-8 w-full flex items-center justify-center shrink-0">
+        {/* FOOTER: Hint Area */}
+        <div className="h-10 w-full flex items-center justify-center shrink-0">
+            {/* Case 1: Hint Revealed */}
             <AnimatePresence>
             {observationHint && hasRevealed && (
                 <motion.div
-                    initial={{ opacity: 0, y: 10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, filter: 'blur(4px)' }} 
+                    animate={{ opacity: 1, filter: 'blur(0px)' }} 
+                    transition={{ duration: 1 }}
                     className="w-full text-center"
                 >
-                    <span className="text-[10px] text-amber-500 uppercase tracking-widest bg-black/90 px-3 py-1.5 rounded-full border border-amber-900/50 shadow-lg whitespace-nowrap">
-                        👁 {observationHint}
-                    </span>
+                    <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-purple-500/30 bg-purple-950/20 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+                        <span className="text-xs">✦</span>
+                        <span className="text-[10px] uppercase tracking-widest font-bold">
+                            {observationHint}
+                        </span>
+                        <span className="text-xs">✦</span>
+                    </div>
                 </motion.div>
             )}
             </AnimatePresence>
             
-            {/* Hint to use the Lens if NOT revealed yet */}
+            {/* Case 2: Prompt to Inspect */}
             {!hasRevealed && (
-                <span className="text-[9px] text-slate-600 uppercase tracking-widest animate-pulse">
-                    Inspect for records...
-                </span>
+                <div className="flex flex-col items-center gap-1 opacity-50 animate-pulse">
+                    <span className="text-[10px] text-indigo-300 uppercase tracking-[0.2em] font-light">
+                        Divining Aura...
+                    </span>
+                    <div className="h-px w-16 bg-indigo-500/50" />
+                </div>
             )}
         </div>
       </div>
 
-      {/* Diagnosis Tags (Top Right) */}
+      {/* TAGS (Top Right - shifted down slightly to clear the reveal text) */}
       {revealedTags && revealedTags.length > 0 && (
-        <div className="absolute top-2 right-2 flex flex-col gap-1 items-end z-20">
+        <div className="absolute top-16 right-0 flex flex-col gap-1 items-end z-20 w-full px-6 pointer-events-none">
           {revealedTags.map(t => (
-            <span key={t} className="text-[9px] bg-slate-900/90 border border-slate-700 px-1.5 py-0.5 rounded text-slate-400 font-mono shadow-sm">
+            <span key={t} className="text-[9px] bg-slate-900/80 border border-slate-700/50 px-2 py-0.5 rounded-full text-slate-400 font-serif shadow-sm backdrop-blur-md">
                 {t}
             </span>
           ))}

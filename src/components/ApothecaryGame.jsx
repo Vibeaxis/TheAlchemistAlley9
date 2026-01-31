@@ -283,11 +283,11 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     </div>
   );
 };
-const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProcess }) => {
+const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProcess, isProcessing }) => {
   const [isBrewing, setIsBrewing] = useState(false);
 
   const handleSafeBrew = () => {
-    if (isBrewing || selectedIngredients.length < 2) return;
+    if (isBrewing || isProcessing || selectedIngredients.length < 2) return;
     setIsBrewing(true);
     setTimeout(() => {
       onBrew();
@@ -298,135 +298,90 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProces
   const liquidHeight = Math.min((selectedIngredients.length / 3) * 80, 80);
   const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
   
-  // DARKER / RICHER LIQUIDS
-  const baseColor = isToxic 
-    ? 'from-[#450a0a] via-[#7f1d1d] to-[#991b1b]' // Blood Red
-    : 'from-[#0f172a] via-[#1e293b] to-[#334155]'; // Deep Ink/Water (Darker than before)
-
-  const brewingColor = isToxic
-    ? 'from-orange-700 via-red-600 to-amber-500' 
-    : 'from-emerald-800 via-teal-600 to-cyan-500';
+  const baseColor = isToxic ? 'from-[#450a0a] via-[#7f1d1d] to-[#991b1b]' : 'from-[#0f172a] via-[#1e293b] to-[#334155]';
+  const brewingColor = isToxic ? 'from-orange-700 via-red-600 to-amber-500' : 'from-emerald-800 via-teal-600 to-cyan-500';
 
   return (
     <div className="relative h-full flex flex-col items-center justify-end">
-      
-      {/* HEADER: Only shows Trash icon now (No Text) */}
+      {/* Clear Button */}
       <div className="w-full flex justify-end items-center mb-2 px-4 absolute top-0 left-0 z-30 h-8">
-        {selectedIngredients.length > 0 && !isBrewing && (
+        {selectedIngredients.length > 0 && !isBrewing && !isProcessing && (
           <button onClick={onClear} className="text-[#57534e] hover:text-red-400 transition-colors p-2 hover:bg-[#292524] rounded-full">
             <Trash2 size={16} />
           </button>
         )}
       </div>
 
-      {/* THE CAULDRON BODY */}
+      {/* Cauldron Body */}
       <motion.div 
         className="relative w-72 h-64 mb-6 z-10 group"
         animate={isBrewing ? { x: [-2, 2, -2, 2, 0], rotate: [0, -1, 1, 0] } : {}}
         transition={{ duration: 0.2, repeat: Infinity }}
       >
-        {/* 1. RIM (Cast Iron) - CHANGED from slate-800 to #292524 */}
         <div className="absolute top-0 left-0 w-full h-10 bg-[#292524] border-4 border-[#44403c] rounded-[100%] z-20 shadow-2xl" />
-        
-        {/* 2. BODY (Dark Iron) - CHANGED from slate-900 to #1c1917 */}
-             <div className="absolute top-5 left-2 right-2 bottom-0 bg-[#292524] border-x-4 border-b-4 border-[#44403c] rounded-b-[160px] overflow-hidden shadow-2xl">
-
-          {/* Lighting Highlight - Add this new div right inside the body */}
-  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/5 via-transparent to-black/40 pointer-events-none z-20" />
-          {/* Iron Texture Overlay */}
+        <div className="absolute top-5 left-2 right-2 bottom-0 bg-[#292524] border-x-4 border-b-4 border-[#44403c] rounded-b-[160px] overflow-hidden shadow-2xl">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/5 via-transparent to-black/40 pointer-events-none z-20" />
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none z-20 mix-blend-overlay" />
-
-          {/* LIQUID LAYER */}
-          <motion.div
-            initial={{ height: '0%' }}
-            animate={{ height: isBrewing ? '95%' : `${liquidHeight}%` }}
-            className={`absolute bottom-0 w-full transition-all duration-700 opacity-90 bg-gradient-to-t ${isBrewing ? brewingColor : baseColor}`}
-          >
+          
+          <motion.div initial={{ height: '0%' }} animate={{ height: isBrewing ? '95%' : `${liquidHeight}%` }} className={`absolute bottom-0 w-full transition-all duration-700 opacity-90 bg-gradient-to-t ${isBrewing ? brewingColor : baseColor}`}>
              {isBrewing && <div className="absolute inset-0 w-full h-full opacity-50 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />}
-             {/* Surface Glint */}
              <div className="absolute top-0 w-full h-4 bg-white/5 blur-md transform scale-x-90" />
           </motion.div>
           
-          {/* INGREDIENTS FLOATING */}
           <div className="absolute inset-0 flex flex-col-reverse items-center justify-start pb-10 gap-2 z-10">
             <AnimatePresence>
-              {selectedIngredients.map((ing, i) => (
-                <motion.div
-                  key={ing.id || `${ing.name}-${i}`}
-                  initial={{ y: -100, opacity: 0, scale: 0.5 }}
-                  animate={isBrewing ? { y: 50, scale: 0, rotate: 360, opacity: 0 } : { y: 0, opacity: 1, scale: 1, rotate: Math.random() * 60 - 30 }}
-                  exit={{ y: 50, opacity: 0, scale: 0 }}
-                  transition={isBrewing ? { duration: 1 } : {}}
-                  className="relative text-4xl drop-shadow-2xl filter brightness-110 cursor-pointer group"
-                >
-                  {ing.icon}
-                  {/* Crush Button Logic matches previous */}
-                  {!ing.isProcessed && ing.processed && !isBrewing && (
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onProcess(ing.id); }}
-                            className="bg-[#292524] text-amber-100 text-[9px] font-black tracking-widest px-2 py-1 rounded border border-amber-900/50 hover:bg-amber-900 whitespace-nowrap"
-                        >
-                            CRUSH
-                        </button>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
+              {selectedIngredients.map((ing, i) => {
+                 // --- SAFE ICON RENDERER ---
+                 const renderIcon = () => {
+                    if (!ing.icon) return null;
+                    if (typeof ing.icon === 'string') return ing.icon;
+                    if (typeof ing.icon === 'function') {
+                        const IconComp = ing.icon;
+                        return <IconComp size={32} />;
+                    }
+                    return ing.icon;
+                 };
+
+                 return (
+                    <motion.div
+                      key={ing.id || `${ing.name}-${i}`}
+                      initial={{ y: -100, opacity: 0, scale: 0.5 }}
+                      animate={isBrewing ? { y: 50, scale: 0, rotate: 360, opacity: 0 } : { y: 0, opacity: 1, scale: 1, rotate: Math.random() * 60 - 30 }}
+                      exit={{ y: 50, opacity: 0, scale: 0 }}
+                      transition={isBrewing ? { duration: 1 } : {}}
+                      className="relative text-4xl drop-shadow-2xl filter brightness-110 cursor-pointer group"
+                    >
+                      {renderIcon()}
+                      
+                      {!ing.isProcessed && ing.processed && !isBrewing && !isProcessing && (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                            <button onClick={(e) => { e.stopPropagation(); onProcess(ing.id); }} className="bg-[#292524] text-amber-100 text-[9px] font-black tracking-widest px-2 py-1 rounded border border-amber-900/50 hover:bg-amber-900 whitespace-nowrap">
+                                CRUSH
+                            </button>
+                        </div>
+                      )}
+                    </motion.div>
+                 );
+              })}
             </AnimatePresence>
           </div>
         </div>
-        
-        {/* Whispers Container */}
-        <div className="absolute -top-24 left-0 w-full h-40 flex flex-col items-center justify-end pointer-events-none z-0">
-          <AnimatePresence mode='popLayout'>
-            {whisperQueue.slice(-2).map((w) => (
-              <motion.div
-                key={w.id}
-                initial={{ opacity: 0, y: 40, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -30, scale: 1.1, filter: 'blur(4px)' }}
-                className={`text-xs font-serif italic tracking-widest px-3 py-1 mb-1 ${w.type === 'danger' ? 'text-red-400' : w.type === 'success' ? 'text-emerald-300' : 'text-slate-400'}`}
-              >
-                {w.text}
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
       </motion.div>
 
-      {/* BREW BUTTON */}
-      <button
-        onClick={handleSafeBrew}
-        disabled={selectedIngredients.length < 2 || isBrewing}
-        className={`
-            relative z-30 w-full max-w-xs py-5 
-            font-serif font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 
-            shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all 
-            active:translate-y-1 active:shadow-none flex items-center justify-center gap-3
-            ${isBrewing 
-                ? 'bg-[#1c1917] border-[#44403c] text-[#57534e] cursor-wait' 
-                : 'bg-gradient-to-b from-[#78350f] to-[#451a03] border-[#92400e] text-amber-100 hover:from-[#92400e] hover:to-[#78350f] hover:border-amber-500 hover:shadow-amber-900/20'
-            }
-        `}
-      >
+      <button onClick={handleSafeBrew} disabled={selectedIngredients.length < 2 || isBrewing || isProcessing} className={`relative z-30 w-full max-w-xs py-5 font-serif font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all active:translate-y-1 active:shadow-none flex items-center justify-center gap-3 ${isBrewing || isProcessing ? 'bg-[#1c1917] border-[#44403c] text-[#57534e] cursor-wait' : 'bg-gradient-to-b from-[#78350f] to-[#451a03] border-[#92400e] text-amber-100 hover:from-[#92400e] hover:to-[#78350f] hover:border-amber-500 hover:shadow-amber-900/20'}`}>
         {isBrewing ? <><Loader size={20} className="animate-spin" /><span>Distilling...</span></> : <span className="drop-shadow-md">Ignite & Brew</span>}
       </button>
     </div>
   );
 };
 
-
 const Workbench = ({ selectedIngredients, onIngredientSelect, theme, inventory }) => {
   const hudStyle = theme ? theme.hud : 'bg-slate-900 border-slate-700';
-
-  // Helper to check counts
   const countInCauldron = (ingName) => selectedIngredients.filter(i => i.name === ingName).length;
 
   return (
     <div className={`w-full h-32 relative px-4 flex items-center border-t shadow-[0_-5px_20px_rgba(0,0,0,0.3)] z-50 ${hudStyle}`}>
-      
-      {/* Wood Grain Texture */}
+      {/* Texture */}
       <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-soft-light" 
            style={{ backgroundImage: 'linear-gradient(to right, #78350f 1px, transparent 1px)', backgroundSize: '40px 100%' }} 
       />
@@ -434,26 +389,26 @@ const Workbench = ({ selectedIngredients, onIngredientSelect, theme, inventory }
       <div className="flex gap-2 overflow-x-auto overflow-y-hidden w-full h-full items-center pb-2 px-2 custom-scrollbar-horizontal relative z-10">
         {INGREDIENTS.map((ing) => {
           const cauldronCount = countInCauldron(ing.name);
-          // Check inventory. If finite and 0 (or undefined), you have none.
-          // BUT: We also need to know if it's "Unlocked" (Contract Established).
-          // For simplicity, let's say: 
-          // 1. Basic items always show.
-          // 2. Finite items show as "Locked" if inventory is 0? 
-          //    Actually, better: If inventory is 0, it shows as an empty slot/padlock. 
-          //    If inventory > 0, it shows the item.
-          //    Wait, that hides the "Goal".
-          
-          // BETTER LOGIC: Always show all 18 items.
-          // If inventory is 0 (and it's finite), button is disabled and greyed out.
-          
-          const ownedCount = inventory ? (inventory[ing.name] || 0) : (ing.finite ? 0 : 999);
-          const isFinite = ing.finite;
-          const remainingStock = isFinite ? ownedCount - cauldronCount : 999;
+          // Safety check: if inventory is missing, assume infinite (basics) or 0 (finite)
+          const ownedCount = inventory ? (inventory[ing.name] !== undefined ? inventory[ing.name] : (ing.finite ? 0 : 999)) : 999;
+          const remainingStock = ing.finite ? ownedCount - cauldronCount : 999;
           const isDisabled = remainingStock <= 0;
 
-          // If you have 0 stock of a finite item, does it look like a lock?
-          // Let's say if you NEVER bought it (stock 0), it looks darker.
-          
+          // --- ICON RENDERER ---
+          // This prevents the "Illegal Constructor" crash
+          const renderIcon = () => {
+             if (!ing.icon) return null;
+             // If it's a string (Emoji), render as text
+             if (typeof ing.icon === 'string') return ing.icon;
+             // If it's a Component function (Lucide), render as Element
+             if (typeof ing.icon === 'function') {
+                 const IconComp = ing.icon;
+                 return <IconComp size={32} />;
+             }
+             // If it's already an Element, return it
+             return ing.icon;
+          };
+
           return (
             <motion.button
               key={ing.name}
@@ -470,31 +425,23 @@ const Workbench = ({ selectedIngredients, onIngredientSelect, theme, inventory }
                 ${countInCauldron(ing.name) > 0 ? 'border-amber-500/50 bg-amber-900/20' : ''}
               `}
             >
-              {/* LOCK OVERLAY (If purely empty) */}
-              {isDisabled && isFinite && (
-                  <div className="absolute inset-0 flex items-center justify-center z-20">
-                      <Lock size={24} className="text-white/20" />
-                  </div>
-              )}
-
-              {/* STOCK BADGE */}
-              {isFinite && !isDisabled && (
+              {/* Count Badge */}
+              {ing.finite && !isDisabled && (
                   <div className="absolute top-1 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/50 text-emerald-400 border border-emerald-900/50 shadow-sm z-20">
                       {remainingStock}
                   </div>
               )}
 
-              {/* ICON */}
+              {/* Icon Container */}
               <div className={`text-3xl mb-2 transition-all filter drop-shadow-lg ${isDisabled ? 'blur-[1px] opacity-30' : ''}`}>
-                {ing.icon}
+                {renderIcon()}
               </div>
 
-              {/* Name Label */}
               <div className={`text-[9px] uppercase font-bold tracking-wider truncate max-w-full ${isDisabled ? 'text-stone-600' : 'text-stone-400 group-hover:text-stone-200'}`}>
                 {ing.name}
               </div>
 
-              {/* Tags (Tiny Dots) */}
+              {/* Dots */}
               {!isDisabled && (
                 <div className="flex gap-1 mt-1 opacity-50">
                     {ing.tags.slice(0, 2).map((tag, i) => (
@@ -950,25 +897,42 @@ const [isProcessing, setIsProcessing] = useState(false);
   };
 
 // 1. SELECTING (Clicking the Rack)
+ // 1. SELECTING (Clicking the Rack)
   const handleIngredientSelect = (ingredient) => {
+    // Basic interaction sound
     soundEngine.playClick(vol);
     
-    // Check if we are removing an existing item by name (Toggle behavior)
-    if (selectedIngredients.find(i => i.name === ingredient.name)) {
-      const newIngredients = selectedIngredients.filter(i => i.name !== ingredient.name);
+    // Check if we are removing an existing item (Toggle behavior)
+    const existingIndex = selectedIngredients.findIndex(i => i.name === ingredient.name);
+
+    if (existingIndex !== -1) {
+      // Remove it
+      const newIngredients = [...selectedIngredients];
+      newIngredients.splice(existingIndex, 1);
       setSelectedIngredients(newIngredients);
     } 
-    // Otherwise, add it (if under limit)
+    // Add it (if under limit)
     else if (selectedIngredients.length < 3) {
-      // IMPORTANT: Spread the ingredient and add a unique ID.
-      // We need this ID so the Mortar knows exactly which item to transform.
-      const newIng = { ...ingredient, id: Date.now() + Math.random() };
+      const newIng = { 
+          ...ingredient, 
+          // Ensure ID is a string to prevent key warnings/issues
+          id: `${ingredient.name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      };
       
-      const newIngredients = [...selectedIngredients, newIng];
-      setSelectedIngredients(newIngredients);
+      // Determine if we should play a "reaction" sound
+      // (Check against what's already in the pot, not the new item itself)
+      const isReactive = selectedIngredients.some(i => 
+          (i.tags.includes('Hot') && newIng.tags.includes('Cooling')) ||
+          (i.tags.includes('Cooling') && newIng.tags.includes('Hot')) ||
+          (i.tags.includes('Toxic') && newIng.tags.includes('Purifying'))
+      );
+
+      if (isReactive) soundEngine.playBubble(vol);
+
+      setSelectedIngredients(prev => [...prev, newIng]);
 
       if (Math.random() > 0.7) addWhisper(WHISPERS_ADD[Math.floor(Math.random() * WHISPERS_ADD.length)]);
-    } 
+    }
     else return;
 
     // Safety check for dangerous combos immediately upon adding

@@ -141,7 +141,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 
   const Icon = customer.class.icon || Ghost;
   
-  // Lore colors (These stay consistent as they represent the District, not the Theme)
+  // Lore colors (District IDs)
   const districts = [
     { name: 'The Dregs', flavor: 'Rat-Kin', color: 'text-emerald-500' },
     { name: 'Market', flavor: 'Coin-Bound', color: 'text-amber-500' },
@@ -153,7 +153,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
 
-  // Safety fallback if theme isn't passed immediately
+  // Theme fallback
   const t = theme || { 
       font: 'font-serif', 
       nav: 'bg-slate-900 border-slate-700', 
@@ -166,101 +166,103 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     <div
       className={`
         relative w-full h-full min-h-[460px] 
-        ${t.nav} /* DYNAMIC BACKGROUND based on theme */
-        rounded-xl overflow-hidden
-        flex flex-col items-center text-center shadow-2xl group transition-all duration-700
-        border-2
+        rounded-xl overflow-hidden flex flex-col shadow-2xl group transition-all duration-700 border-2
+        ${t.nav} /* Themed Background border color */
         ${hasRevealed ? `shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]` : 'border-opacity-60'}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* 1. TEXTURE: Subtle grain for tactile feel */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 mix-blend-multiply" 
-           style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} 
-      />
-
-      {/* 2. BACKGROUND & AVATAR - UNBLOCKED */}
-      <div className="absolute inset-0 z-0">
-         {/* THE FIX: Removed sepia/brightness filters. Increased opacity. */}
+      
+      {/* --- SECTION 1: TOP IMAGE AREA (45% Height) --- */}
+      <div className="relative h-[45%] shrink-0 overflow-hidden bg-black/20">
+         {/* The Avatar - Unblocked & Colorful */}
          <img 
             src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
             alt="Customer"
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] object-contain opacity-60 transition-all duration-700 group-hover:scale-105 group-hover:opacity-80"
+            // object-top ensures we see the face even if cropped
+            className="w-full h-full object-cover object-top opacity-90 transition-all duration-700 group-hover:scale-105 group-hover:opacity-100"
         />
-         {/* Gradient Overlay: Ensures text readability without hiding the art */}
-         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-10" />
+         
+         {/* Gradient Fade into the text area below */}
+         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
+
+         {/* REVEAL STAMP (Moved to top right corner of image) */}
+         <div className={`absolute top-3 right-3 flex flex-col items-end transition-all duration-1000 z-20 text-right ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+            <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm`}>
+               Soul Echo
+            </div>
+            <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/40 px-2 rounded-sm`}>
+               {origin.name}
+            </div>
+        </div>
       </div>
 
-      {/* 3. CONTENT LAYER */}
-      <div className={`flex-1 flex flex-col w-full relative z-20 h-full p-6 ${t.font}`}>
+
+      {/* --- SECTION 2: BOTTOM TEXT AREA (Remaining Height) --- */}
+      <div className={`flex-1 relative flex flex-col w-full p-4 ${t.font} ${t.nav} border-t ${t.accent}`}>
         
-        {/* HEADER */}
-        <div className="w-full relative flex flex-col items-center pt-2">
-            <div className={`${t.textSec} mb-2 drop-shadow-md opacity-80`}>
-              <Icon size={32} strokeWidth={1.5} />
-            </div>
-            
-            <h2 className={`text-3xl font-bold ${t.textMain} leading-none drop-shadow-lg tracking-wide`}>
-                {customer.class.name}
-            </h2>
-            <p className={`${t.textSec} text-xs italic tracking-wider mt-1 opacity-80`}>
-                "{customer.class.description}"
-            </p>
+        {/* Paper Texture Overlay (Only on text area) */}
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none z-0 mix-blend-multiply" 
+             style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} 
+        />
 
-            {/* REVEAL STAMP (Top Right) */}
-            <div className={`absolute -top-2 -right-2 flex flex-col items-end transition-all duration-1000 ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5`}>
-                   Soul Echo
+        <div className="relative z-10 flex-1 flex flex-col">
+            {/* HEADER */}
+            <div className="w-full flex flex-col items-center">
+                <div className={`${t.textSec} mb-1 opacity-80`}>
+                <Icon size={24} strokeWidth={1.5} />
                 </div>
-                <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${origin.color}`}>
-                   {origin.name}
-                </div>
+                <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide`}>
+                    {customer.class.name}
+                </h2>
+                <p className={`${t.textSec} text-xs italic tracking-wider mt-0.5 opacity-80`}>
+                    "{customer.class.description}"
+                </p>
             </div>
-        </div>
 
-        {/* BODY TEXT */}
-        <div className="flex-1 flex items-center justify-center py-4">
-          <p className={`${t.textMain} text-lg leading-relaxed italic drop-shadow-md opacity-90`}>
-            "{customer.symptom.text}"
-          </p>
-        </div>
+            {/* BODY QUOTE (Centered in remaining space) */}
+            <div className="flex-1 flex items-center justify-center py-2 px-2">
+                <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90`}>
+                    "{customer.symptom.text}"
+                </p>
+            </div>
 
-        {/* FOOTER */}
-        <div className="h-12 w-full flex items-center justify-center shrink-0">
-            <AnimatePresence>
-            {observationHint && hasRevealed && (
-                <motion.div
-                    initial={{ opacity: 0, filter: 'blur(4px)' }} 
-                    animate={{ opacity: 1, filter: 'blur(0px)' }} 
-                    transition={{ duration: 1 }}
-                    className="w-full text-center"
-                >
-                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 border-t border-b ${t.accent} bg-black/30 backdrop-blur-sm rounded-sm`}>
-                        <span className={`text-[10px] ${t.textMain} uppercase tracking-[0.2em] font-bold`}>
-                            ✦ {observationHint} ✦
+            {/* FOOTER (Hint / Divinate) */}
+            <div className="h-10 w-full flex items-end justify-center shrink-0">
+                <AnimatePresence>
+                {observationHint && hasRevealed && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        className="w-full text-center"
+                    >
+                        <div className={`inline-flex items-center gap-2 px-3 py-1 border-t border-b ${t.accent} bg-black/20 rounded-sm`}>
+                            <span className={`text-[9px] ${t.textMain} uppercase tracking-[0.2em] font-bold`}>
+                                ✦ {observationHint} ✦
+                            </span>
+                        </div>
+                    </motion.div>
+                )}
+                </AnimatePresence>
+                
+                {!hasRevealed && (
+                    <div className="flex flex-col items-center gap-1 opacity-40 group-hover:opacity-80 transition-opacity">
+                        <span className={`text-[8px] ${t.textSec} uppercase tracking-[0.25em]`}>
+                            Divinate Aura
                         </span>
+                        <div className={`h-px w-6 ${t.textSec} opacity-50`} />
                     </div>
-                </motion.div>
-            )}
-            </AnimatePresence>
-            
-            {!hasRevealed && (
-                <div className="flex flex-col items-center gap-2 opacity-40 group-hover:opacity-80 transition-opacity">
-                    <span className={`text-[9px] ${t.textSec} uppercase tracking-[0.25em]`}>
-                        Divinate Aura
-                    </span>
-                    <div className={`h-px w-8 ${t.textSec} opacity-50`} />
-                </div>
-            )}
+                )}
+            </div>
         </div>
       </div>
 
-      {/* TAGS (Top Left) */}
+      {/* TAGS (Floating Top Left - keeping these outside the flow) */}
       {revealedTags && revealedTags.length > 0 && (
-        <div className="absolute top-6 left-6 flex flex-col gap-1 items-start z-30 pointer-events-none">
+        <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none">
           {revealedTags.map(t => (
-            <span key={t} className={`text-[9px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm`}>
+            <span key={t} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/30 px-1.5 rounded-sm backdrop-blur-md`}>
                 {t}
             </span>
           ))}

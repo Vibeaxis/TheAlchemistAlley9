@@ -1522,6 +1522,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
         encounter={activeEncounter.data} 
         onResolve={handleEncounterResolve} 
     />
+)}
 
 <ReputationExchange 
     isOpen={isRepModalOpen} 

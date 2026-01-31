@@ -1112,8 +1112,7 @@ const mortarRef = useRef(null); // To help with drop detection
 
                             {/* CENTER COL: The Desk */}
                             <div className="col-span-6 flex flex-col justify-end items-center relative h-full">
-                                {/* Table Edge Shadow */}
-                                <div className="absolute bottom-0 left-[-20px] right-[-20px] h-16 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none z-0" />
+                               
 
                                 <div className="absolute bottom-1 left-4 z-40">
                                     <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />

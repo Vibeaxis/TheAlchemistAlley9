@@ -16,7 +16,7 @@ import TavernHub from '@/components/TavernHub';
 import SettingsMenu from '@/components/SettingsMenu';
 import { generateCustomer, calculateOutcome, tagCombination, INGREDIENTS } from '@/lib/gameLogic';
 import { initAudioContext, soundEngine } from '@/lib/SoundEngine';
-
+import alcBg from '../assets/alc_bg.jpg';
 // ==========================================
 // 1. INLINE VISUAL COMPONENTS
 // ==========================================
@@ -990,37 +990,61 @@ const handleBrew = () => {
           {gameMessage && <CinematicAnnouncement text={gameMessage} type={messageType} />}
         </AnimatePresence>
 
-        {/* Main Game Area */}
-        <div className="flex-1 overflow-hidden relative">
-          <AnimatePresence mode='wait'>
-            {phase === 'day' && (
-              <motion.div key="day-phase" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full grid grid-cols-12 gap-8 p-8">
-                <div className="col-span-4 h-full relative">
-                  <AnimatePresence mode='wait'>
-                    {currentCustomer && (
-                      <motion.div key={currentCustomer.id} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="h-full">
-                        <CustomerCard
-                          customer={currentCustomer}
-                          observationHint={observationHint}
-                          onMouseEnter={() => handleCustomerHover(currentCustomer)}
-                          onMouseLeave={handleCustomerLeave}
-                          revealedTags={revealedCustomerTags}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+      {/* Main Game Area */}
+      <div className="flex-1 overflow-hidden relative bg-slate-950">
+        <AnimatePresence mode='wait'>
+          {phase === 'day' && (
+            <motion.div 
+              key="day-phase" 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="h-full relative" // Changed from grid to relative container
+            >
+               {/* --- 2. BACKGROUND LAYER --- */}
+               <div className="absolute inset-0 z-0">
+                  <img 
+                    src={alcBg} 
+                    alt="Alchemist Alley" 
+                    className="w-full h-full object-cover opacity-80" // Adjust opacity if too bright
+                  />
+                  {/* Vignette / Dimmer overlay so UI pops */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/60" />
+               </div>
 
-                <div className="col-span-8 h-full flex flex-col gap-6">
-                  <div className="flex-1">
-                    <Cauldron selectedIngredients={selectedIngredients} onBrew={handleBrew} onClear={handleClearSelection} whisperQueue={whisperQueue} />
+               {/* --- 3. CONTENT GRID (Z-10 to sit on top) --- */}
+               <div className="relative z-10 h-full grid grid-cols-12 gap-8 p-8">
+                  
+                  {/* LEFT COL: Customer */}
+                  <div className="col-span-4 h-full relative">
+                    <AnimatePresence mode='wait'>
+                      {currentCustomer && (
+                        <motion.div key={currentCustomer.id} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="h-full">
+                          <CustomerCard
+                            customer={currentCustomer}
+                            observationHint={observationHint}
+                            onMouseEnter={() => handleCustomerHover(currentCustomer)}
+                            onMouseLeave={handleCustomerLeave}
+                            revealedTags={revealedCustomerTags}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <div className="h-auto">
-                    <Workbench selectedIngredients={selectedIngredients} onIngredientSelect={handleIngredientSelect} />
+
+                  {/* RIGHT COL: Workbench */}
+                  <div className="col-span-8 h-full flex flex-col gap-6">
+                    <div className="flex-1">
+                      <Cauldron selectedIngredients={selectedIngredients} onBrew={handleBrew} onClear={handleClearSelection} whisperQueue={whisperQueue} />
+                    </div>
+                    <div className="h-auto">
+                      <Workbench selectedIngredients={selectedIngredients} onIngredientSelect={handleIngredientSelect} />
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
+
+               </div>
+            </motion.div>
+          )}
 
             {phase === 'night' && (
               <motion.div key="night" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">

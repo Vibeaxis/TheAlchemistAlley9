@@ -14,7 +14,7 @@ import TitleScreen from '@/components/TitleScreen';
 import GameOverScreen from '@/components/GameOverScreen';
 import TavernHub from '@/components/TavernHub';
 import SettingsMenu from '@/components/SettingsMenu';
-import { generateCustomer, calculateOutcome, tagCombination, INGREDIENTS } from '@/lib/gameLogic';
+import { generateCustomer, calculateOutcome, tagCombination, INGREDIENTS, UPGRADES_LIST, APPRENTICE_MISSIONS } from '@/lib/gameLogic';
 import { initAudioContext, soundEngine } from '@/lib/SoundEngine';
 import alcBg from '../assets/alc_bg.jpg';
 

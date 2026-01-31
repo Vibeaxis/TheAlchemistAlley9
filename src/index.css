@@ -33,3 +33,10 @@ body {
   body, html {
     cursor: pointer; /* Forces the hand icon everywhere */
   }
+
+  /* Optional: If you want text selection to still look like text, keep this. 
+     If you want it to feel like a pure game (no text select cursor), remove this block. */
+  p, h1, h2, h3, h4, h5, h6, span {
+    cursor: default; 
+  }
+}

@@ -54,7 +54,7 @@ const getTagColor = (tag) => {
   }
 };
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting }) => {
-  // 1. STATE: Latch the reveal
+  // 1. STATE
   const [hasRevealed, setHasRevealed] = React.useState(false);
   
   // 2. EFFECT: Trigger reveal
@@ -68,7 +68,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 
   const Icon = customer.class.icon || Ghost;
   
-  // 3. FLAVOR: Mystical/Whimsical Origins
+  // 3. FLAVOR DATA
   const districts = [
     { name: 'The Dregs', flavor: 'Rat-Kin', color: 'text-emerald-400' },
     { name: 'Market', flavor: 'Coin-Bound', color: 'text-amber-400' },
@@ -84,72 +84,67 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     <div
       className={`
         relative w-full h-full min-h-[460px] 
-        bg-[#0b0f19] rounded-xl p-6
-        flex flex-col items-center text-center shadow-2xl overflow-hidden group transition-all duration-700
-        ${hasRevealed ? 'shadow-[0_0_30px_rgba(124,58,237,0.2)]' : ''}
+        bg-[#0b0f19] rounded-xl overflow-hidden
+        flex flex-col items-center text-center shadow-2xl group transition-all duration-700
+        ${hasRevealed ? 'shadow-[0_0_40px_rgba(124,58,237,0.15)]' : ''}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* 1. BORDER: Magical glowing border that activates on reveal */}
-      <div className={`absolute inset-0 rounded-xl border-4 border-double transition-colors duration-700 ${hasRevealed ? 'border-purple-500/50' : 'border-slate-800'}`} />
+      {/* 1. BORDER GLOW (Only appears on reveal) */}
+      <div className={`absolute inset-0 rounded-xl border-4 border-double z-20 pointer-events-none transition-colors duration-700 ${hasRevealed ? 'border-purple-500/40' : 'border-slate-800'}`} />
       
-      {/* 2. BACKGROUND: Constellation / Rune Layer */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-         {/* Avatar Shadow */}
+      {/* 2. BACKGROUND & AVATAR */}
+      <div className="absolute inset-0 z-0">
+         {/* The Avatar - Larger and clearer now */}
          <img 
             src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
             alt="Shadow"
-            className="absolute -right-16 -bottom-10 w-[90%] h-[90%] object-contain opacity-10 filter grayscale brightness-50 contrast-125"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] object-contain opacity-30 filter grayscale brightness-75 contrast-125 pointer-events-none"
         />
-         {/* Magical Rune Background (Appears on reveal) */}
-         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl opacity-0 transition-opacity duration-1000 ${hasRevealed ? 'opacity-10' : ''}`}>
-            ✨
-         </div>
+         {/* Cinematic Gradient: Fades from transparent (top) to black (bottom) so text is readable */}
+         <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-[#0b0f19]/80 to-transparent z-10" />
       </div>
 
       {/* 3. CONTENT LAYER */}
-      <div className="flex-1 flex flex-col justify-between items-center w-full relative z-10 h-full gap-4">
+      <div className="flex-1 flex flex-col w-full relative z-20 h-full p-6">
         
-        {/* HEADER: Info */}
-        <div className="mt-2 flex flex-col items-center shrink-0 w-full relative">
-            <div className="p-3 rounded-full bg-slate-950 border border-slate-700 shadow-lg mb-2 text-slate-400 z-10">
-              <Icon size={28} />
+        {/* HEADER: Name & Icon */}
+        <div className="w-full relative flex flex-col items-center pt-2">
+            <div className="text-slate-500 mb-2 drop-shadow-md">
+              <Icon size={32} strokeWidth={1.5} />
             </div>
             
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-200 leading-tight z-10">
+            <h2 className="text-3xl font-serif font-bold text-slate-100 leading-none drop-shadow-lg tracking-wide">
                 {customer.class.name}
             </h2>
-            <p className="text-slate-500 text-xs italic font-serif tracking-wider z-10">
+            <p className="text-slate-400 text-xs italic font-serif tracking-wider mt-1 opacity-80">
                 "{customer.class.description}"
             </p>
 
-            {/* --- THE REVEAL: INVISIBLE INK --- */}
-            {/* Sits in the top-right corner, fades in like magic writing */}
+            {/* --- INVISIBLE INK REVEAL (Top Right) --- */}
             <div className={`absolute -top-2 -right-2 flex flex-col items-end transition-all duration-1000 ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <div className="text-[10px] text-purple-400/80 font-serif italic tracking-widest">
+                <div className="text-[9px] text-purple-400/80 font-serif italic tracking-widest mb-0.5">
                    Soul Echo
                 </div>
-                <div className={`text-sm font-bold font-serif uppercase tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] ${origin.color}`}>
+                <div className={`text-sm font-bold font-serif uppercase tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] ${origin.color}`}>
                    {origin.name}
-                </div>
-                <div className="text-[9px] text-slate-500 uppercase tracking-widest scale-75 origin-right">
-                   ({origin.flavor})
                 </div>
             </div>
         </div>
 
-        {/* BODY: Symptom */}
-        <div className="w-full bg-slate-950/60 border-l-2 border-r-2 border-amber-900/30 p-4 rounded-sm shadow-inner backdrop-blur-sm mt-auto relative z-20">
-          <p className="text-amber-100/90 font-serif text-sm md:text-base leading-relaxed italic">
+        {/* BODY: Symptom Text (Centered, Cinematic) */}
+        {/* No box, just text floating in the void/gradient */}
+        <div className="flex-1 flex items-center justify-center py-4">
+          <p className="text-amber-100/90 font-serif text-lg leading-relaxed italic drop-shadow-md">
             "{customer.symptom.text}"
           </p>
         </div>
 
-        {/* FOOTER: Hint Area */}
-        <div className="h-10 w-full flex items-center justify-center shrink-0">
-            {/* Case 1: Hint Revealed */}
+        {/* FOOTER: Inspection Status */}
+        <div className="h-12 w-full flex items-center justify-center shrink-0">
             <AnimatePresence>
+            {/* Case 1: Hint Revealed */}
             {observationHint && hasRevealed && (
                 <motion.div
                     initial={{ opacity: 0, filter: 'blur(4px)' }} 
@@ -157,12 +152,10 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                     transition={{ duration: 1 }}
                     className="w-full text-center"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-purple-500/30 bg-purple-950/20 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
-                        <span className="text-xs">✦</span>
-                        <span className="text-[10px] uppercase tracking-widest font-bold">
-                            {observationHint}
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5">
+                        <span className="text-[10px] text-purple-300 uppercase tracking-[0.2em] font-bold drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
+                            ✦ {observationHint} ✦
                         </span>
-                        <span className="text-xs">✦</span>
                     </div>
                 </motion.div>
             )}
@@ -170,21 +163,21 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
             
             {/* Case 2: Prompt to Inspect */}
             {!hasRevealed && (
-                <div className="flex flex-col items-center gap-1 opacity-50 animate-pulse">
-                    <span className="text-[10px] text-indigo-300 uppercase tracking-[0.2em] font-light">
-                        Divining Aura...
+                <div className="flex flex-col items-center gap-2 opacity-40 group-hover:opacity-70 transition-opacity">
+                    <span className="text-[9px] text-indigo-200 uppercase tracking-[0.25em] font-light">
+                        Use Lens to Divinate
                     </span>
-                    <div className="h-px w-16 bg-indigo-500/50" />
+                    <div className="h-px w-8 bg-indigo-500/50" />
                 </div>
             )}
         </div>
       </div>
 
-      {/* TAGS (Top Right - shifted down slightly to clear the reveal text) */}
+      {/* TAGS (Top Left/Right - subtle) */}
       {revealedTags && revealedTags.length > 0 && (
-        <div className="absolute top-16 right-0 flex flex-col gap-1 items-end z-20 w-full px-6 pointer-events-none">
+        <div className="absolute top-6 left-6 flex flex-col gap-1 items-start z-30 pointer-events-none">
           {revealedTags.map(t => (
-            <span key={t} className="text-[9px] bg-slate-900/80 border border-slate-700/50 px-2 py-0.5 rounded-full text-slate-400 font-serif shadow-sm backdrop-blur-md">
+            <span key={t} className="text-[9px] text-slate-400 font-serif tracking-widest border-b border-slate-700/50">
                 {t}
             </span>
           ))}
@@ -433,53 +426,56 @@ const CinematicAnnouncement = ({ text, type }) => {
 const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
   // Determine window color based on heat/patrols
   const isWatched = watchFocus === activeDistrict;
+  
+  // Visual intensity
   const glowColor = isWatched 
-    ? 'shadow-[0_0_100px_rgba(220,38,38,0.4)] bg-red-900/10' // RED ALERT
+    ? 'shadow-[0_0_100px_rgba(220,38,38,0.5)] bg-red-950/20' // RED ALERT
     : heat > 50 
-      ? 'shadow-[0_0_80px_rgba(234,88,12,0.2)] bg-orange-900/5' // High Suspicion
+      ? 'shadow-[0_0_80px_rgba(234,88,12,0.3)] bg-orange-900/10' // High Suspicion
       : 'shadow-[0_0_50px_rgba(30,41,59,0.5)] bg-blue-950/20'; // Calm Night
 
   return (
-    <div className="h-full w-full flex flex-col gap-4 p-4 opacity-80 pointer-events-none select-none">
+    <div className="w-full flex flex-col gap-4 p-4 opacity-90 pointer-events-none select-none transition-all duration-1000">
+       
        {/* THE WINDOW */}
-       <div className={`relative w-full aspect-square border-8 border-slate-900 bg-black overflow-hidden rounded-t-full transition-all duration-1000 ${glowColor}`}>
+       <div className={`relative w-full aspect-square max-w-[200px] mx-auto border-8 border-slate-900 bg-black overflow-hidden rounded-t-full transition-all duration-1000 ${glowColor}`}>
           
-          {/* Rain/Atmosphere effect (Simple CSS Overlay) */}
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10" />
+          {/* 1. Atmosphere Overlay (The Glass Texture) */}
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 z-10" />
           
-          {/* The Grates */}
-          <div className="absolute inset-0 flex">
-             <div className="flex-1 border-r-4 border-slate-900/80"></div>
-             <div className="flex-1 border-r-4 border-slate-900/80"></div>
-             <div className="flex-1"></div>
-          </div>
-          <div className="absolute inset-0 flex flex-col">
-             <div className="flex-1 border-b-4 border-slate-900/80"></div>
-             <div className="flex-1"></div>
-          </div>
-
-          {/* Silhouette of a Guard (Only if watched) */}
+          {/* 2. THE GUARD (Replaces the Polygon) */}
+          {/* Placed BEFORE the grates so it looks like they are outside */}
           <AnimatePresence>
             {isWatched && (
-               <motion.div 
-                 initial={{ opacity: 0, x: 50 }}
-                 animate={{ opacity: 1, x: 0 }}
-                 exit={{ opacity: 0, x: 50 }}
-                 transition={{ duration: 2 }}
-                 className="absolute bottom-0 right-4 w-32 h-48 bg-black blur-[2px]"
-                 style={{ clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)' }} // Rough Head/Shoulders shape
+               <motion.img 
+                 // Static seed 'CityWatch' ensures it always looks like a helmeted guard
+                 src={`https://api.dicebear.com/9.x/adventurer/svg?seed=CityWatchPatrol&flip=true&backgroundColor=transparent`}
+                 alt="Patrol Shadow"
+                 // Slide in from the right side, slowly
+                 initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                 animate={{ opacity: 0.8, x: 0, scale: 1.1 }}
+                 exit={{ opacity: 0, x: 50, scale: 0.9 }}
+                 transition={{ duration: 2, ease: "easeInOut" }}
+                 // CSS Magic: brightness-0 makes it a silhouette, blur makes it look like it's behind glass
+                 className="absolute -bottom-6 -right-6 w-48 h-48 object-cover filter brightness-0 blur-[2px] grayscale z-0"
                />
             )}
           </AnimatePresence>
-       </div>
-       
-       {/* HEAT METER TEXT */}
-       <div className="text-center">
-          <div className="text-xs font-mono text-slate-500 uppercase tracking-widest">Suspicion Level</div>
-          <div className={`text-2xl font-black font-mono ${heat > 80 ? 'text-red-500 animate-pulse' : 'text-slate-400'}`}>
-            {heat}%
+
+          {/* 3. The Window Bars (Grates) - z-20 to sit ON TOP of the guard */}
+          <div className="absolute inset-0 flex z-20">
+             <div className="flex-1 border-r-4 border-slate-900/80"></div>
+             <div className="flex-1 border-r-4 border-slate-900/80"></div>
+             <div className="flex-1"></div>
+          </div>
+          <div className="absolute inset-0 flex flex-col z-20">
+             <div className="flex-1 border-b-4 border-slate-900/80"></div>
+             <div className="flex-1"></div>
           </div>
        </div>
+
+       {/* (Optional) Heat Text - Removed to keep it clean, as discussed, 
+           but you can add it back here if you really want the numbers. */}
     </div>
   )
 }

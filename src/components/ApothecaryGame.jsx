@@ -207,7 +207,6 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     </div>
   );
 };
-// Updated to accept 'onProcess'
 const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProcess }) => {
   const [isBrewing, setIsBrewing] = useState(false);
 
@@ -223,47 +222,51 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProces
   const liquidHeight = Math.min((selectedIngredients.length / 3) * 80, 80);
   const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
   
-  // NEW COLORS: Iron/Rust/Gold instead of Slate/Blue
-// Base liquid is now murky oil/blood/gold instead of water
-const baseColor = isToxic 
-  ? 'from-[#450a0a] via-[#7f1d1d] to-[#991b1b]' // Deep Blood Red
-  : 'from-[#0c4a6e] via-[#0284c7] to-[#38bdf8]'; // Keep blue for pure, or switch to Gold?
-  // Let's stick to Red/Blue for clarity, but darken them to look like chemicals.
+  // DARKER / RICHER LIQUIDS
+  const baseColor = isToxic 
+    ? 'from-[#450a0a] via-[#7f1d1d] to-[#991b1b]' // Blood Red
+    : 'from-[#0f172a] via-[#1e293b] to-[#334155]'; // Deep Ink/Water (Darker than before)
 
-const brewingColor = isToxic
-  ? 'from-orange-600 via-red-500 to-amber-400' // Fire & Poison
-  : 'from-emerald-600 via-teal-500 to-cyan-300'; // Magic & Aether
+  const brewingColor = isToxic
+    ? 'from-orange-700 via-red-600 to-amber-500' 
+    : 'from-emerald-800 via-teal-600 to-cyan-500';
 
   return (
     <div className="relative h-full flex flex-col items-center justify-end">
-      {/* Controls Header */}
-      <div className="w-full flex justify-between items-center mb-4 px-4 absolute top-0 left-0 z-30">
-        <h3 className="text-amber-500/50 text-xs uppercase tracking-widest flex items-center gap-2">
-          <Flame size={14} className={isBrewing ? "animate-bounce text-orange-500" : "animate-pulse"} /> 
-          {isBrewing ? "REACTION IN PROGRESS..." : "The Vessel"}
-        </h3>
+      
+      {/* HEADER: Only shows Trash icon now (No Text) */}
+      <div className="w-full flex justify-end items-center mb-2 px-4 absolute top-0 left-0 z-30 h-8">
         {selectedIngredients.length > 0 && !isBrewing && (
-          <button onClick={onClear} className="text-slate-500 hover:text-red-400 transition-colors p-2 hover:bg-slate-800 rounded-full">
+          <button onClick={onClear} className="text-[#57534e] hover:text-red-400 transition-colors p-2 hover:bg-[#292524] rounded-full">
             <Trash2 size={16} />
           </button>
         )}
       </div>
 
-      {/* The Pot Animation Container */}
+      {/* THE CAULDRON BODY */}
       <motion.div 
         className="relative w-72 h-64 mb-6 z-10 group"
         animate={isBrewing ? { x: [-2, 2, -2, 2, 0], rotate: [0, -1, 1, 0] } : {}}
         transition={{ duration: 0.2, repeat: Infinity }}
       >
-        <div className="absolute top-0 left-0 w-full h-10 bg-slate-800 border-4 border-slate-600 rounded-[100%] z-20 shadow-xl" />
-        <div className="absolute top-5 left-2 right-2 bottom-0 bg-slate-900 border-x-4 border-b-4 border-slate-700 rounded-b-[160px] overflow-hidden shadow-2xl">
+        {/* 1. RIM (Cast Iron) - CHANGED from slate-800 to #292524 */}
+        <div className="absolute top-0 left-0 w-full h-10 bg-[#292524] border-4 border-[#44403c] rounded-[100%] z-20 shadow-2xl" />
+        
+        {/* 2. BODY (Dark Iron) - CHANGED from slate-900 to #1c1917 */}
+        <div className="absolute top-5 left-2 right-2 bottom-0 bg-[#1c1917] border-x-4 border-b-4 border-[#292524] rounded-b-[160px] overflow-hidden shadow-2xl">
+          
+          {/* Iron Texture Overlay */}
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none z-20 mix-blend-overlay" />
+
+          {/* LIQUID LAYER */}
           <motion.div
             initial={{ height: '0%' }}
             animate={{ height: isBrewing ? '95%' : `${liquidHeight}%` }}
             className={`absolute bottom-0 w-full transition-all duration-700 opacity-90 bg-gradient-to-t ${isBrewing ? brewingColor : baseColor}`}
           >
              {isBrewing && <div className="absolute inset-0 w-full h-full opacity-50 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />}
-             <div className="absolute top-0 w-full h-6 bg-white/10 blur-md transform scale-x-90" />
+             {/* Surface Glint */}
+             <div className="absolute top-0 w-full h-4 bg-white/5 blur-md transform scale-x-90" />
           </motion.div>
           
           {/* INGREDIENTS FLOATING */}
@@ -271,39 +274,32 @@ const brewingColor = isToxic
             <AnimatePresence>
               {selectedIngredients.map((ing, i) => (
                 <motion.div
-                  // Use ID if available, otherwise index (fallback)
                   key={ing.id || `${ing.name}-${i}`}
                   initial={{ y: -100, opacity: 0, scale: 0.5 }}
                   animate={isBrewing ? { y: 50, scale: 0, rotate: 360, opacity: 0 } : { y: 0, opacity: 1, scale: 1, rotate: Math.random() * 60 - 30 }}
                   exit={{ y: 50, opacity: 0, scale: 0 }}
                   transition={isBrewing ? { duration: 1 } : {}}
-                  // ADDED: 'group' class to handle hover state for the button inside
                   className="relative text-4xl drop-shadow-2xl filter brightness-110 cursor-pointer group"
                 >
                   {ing.icon}
-                  
-                  {/* NEW: CRUSH BUTTON (Only shows on hover if item is processable) */}
+                  {/* Crush Button Logic matches previous */}
                   {!ing.isProcessed && ing.processed && !isBrewing && (
                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
                         <button
-                            onClick={(e) => { 
-                                e.stopPropagation(); // Prevent bubbling 
-                                onProcess(ing.id);   // Call the crush function
-                            }}
-                            className="bg-stone-900/90 text-stone-200 text-[9px] font-black tracking-widest px-2 py-1 rounded border border-stone-600 hover:bg-amber-900 hover:border-amber-500 hover:text-white shadow-lg whitespace-nowrap"
+                            onClick={(e) => { e.stopPropagation(); onProcess(ing.id); }}
+                            className="bg-[#292524] text-amber-100 text-[9px] font-black tracking-widest px-2 py-1 rounded border border-amber-900/50 hover:bg-amber-900 whitespace-nowrap"
                         >
                             CRUSH
                         </button>
                     </div>
                   )}
-
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
         </div>
         
-        {/* Whispers / Steam */}
+        {/* Whispers Container */}
         <div className="absolute -top-24 left-0 w-full h-40 flex flex-col items-center justify-end pointer-events-none z-0">
           <AnimatePresence mode='popLayout'>
             {whisperQueue.slice(-2).map((w) => (
@@ -321,20 +317,21 @@ const brewingColor = isToxic
         </div>
       </motion.div>
 
+      {/* BREW BUTTON */}
       <button
-  onClick={handleSafeBrew}
-  disabled={selectedIngredients.length < 2 || isBrewing}
-  className={`
-      relative z-30 w-full max-w-xs py-5 
-      font-serif font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 
-      shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all 
-      active:translate-y-1 active:shadow-none flex items-center justify-center gap-3
-      ${isBrewing 
-          ? 'bg-[#1c1917] border-[#44403c] text-[#57534e] cursor-wait' 
-          : 'bg-gradient-to-b from-[#78350f] to-[#451a03] border-[#92400e] text-amber-100 hover:from-[#92400e] hover:to-[#78350f] hover:border-amber-500 hover:shadow-amber-900/20'
-      }
-  `}
->
+        onClick={handleSafeBrew}
+        disabled={selectedIngredients.length < 2 || isBrewing}
+        className={`
+            relative z-30 w-full max-w-xs py-5 
+            font-serif font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 
+            shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all 
+            active:translate-y-1 active:shadow-none flex items-center justify-center gap-3
+            ${isBrewing 
+                ? 'bg-[#1c1917] border-[#44403c] text-[#57534e] cursor-wait' 
+                : 'bg-gradient-to-b from-[#78350f] to-[#451a03] border-[#92400e] text-amber-100 hover:from-[#92400e] hover:to-[#78350f] hover:border-amber-500 hover:shadow-amber-900/20'
+            }
+        `}
+      >
         {isBrewing ? <><Loader size={20} className="animate-spin" /><span>Distilling...</span></> : <span className="drop-shadow-md">Ignite & Brew</span>}
       </button>
     </div>
@@ -547,30 +544,39 @@ const Mortar = ({ onInteract }) => {
 
   const handleClick = () => {
     setIsGrinding(true);
-    if(onInteract) onInteract(); // Trigger the parent logic
+    if(onInteract) onInteract();
     setTimeout(() => setIsGrinding(false), 500);
   };
 
   return (
     <div 
       onClick={handleClick}
-      className="relative w-32 h-32 flex items-center justify-center group cursor-pointer hover:scale-105 transition-transform"
+      className="relative w-32 h-24 flex items-center justify-center group cursor-pointer transition-transform active:scale-95"
     >
-       {/* Pestle Animation */}
+       {/* PESTLE (The Stick) */}
+       {/* We animate this grinding in a circle */}
        <motion.div 
-         animate={isGrinding ? { x: [0, 5, -5, 0], y: [0, 10, 0], rotate: [0, -15, 10, 0] } : {}}
-         transition={{ duration: 0.4 }}
-         className="absolute z-20 -top-8 right-4 text-6xl drop-shadow-xl origin-bottom-left pointer-events-none"
+         animate={isGrinding ? { 
+            x: [0, 15, 0, -15, 0], 
+            y: [0, 5, 10, 5, 0],
+            rotate: [0, 10, 0, -10, 0] 
+         } : {}}
+         transition={{ duration: 0.5, ease: "linear" }}
+         className="absolute z-20 -top-6 right-2 origin-bottom-left pointer-events-none drop-shadow-2xl"
        >
-         🥢 
+         {/* Using a rotated bone or stick emoji acts as a decent pestle for now, 
+             or we can use a CSS shape. Let's stick to a simple rod shape for realism. */}
+         <div className="w-4 h-24 bg-[#57534e] border-2 border-[#292524] rounded-full shadow-xl rotate-[25deg]" />
        </motion.div>
 
-       {/* Bowl */}
-       <div className="w-24 h-20 bg-stone-800 border-b-4 border-r-4 border-stone-950 rounded-b-full shadow-2xl flex items-center justify-center relative overflow-hidden group-hover:bg-stone-700 transition-colors">
-          <div className="absolute inset-0 bg-stone-900/50" />
-          <div className="text-[10px] text-stone-500 font-black uppercase tracking-widest mt-4 z-10 select-none">
-             {isGrinding ? "CRUSHING..." : "MORTAR"}
-          </div>
+       {/* THE BOWL (Stone Texture) */}
+       <div className="absolute bottom-0 w-28 h-20 bg-[#1c1917] rounded-b-[4rem] rounded-t-[1rem] shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-b-4 border-r-4 border-[#0c0a09] overflow-hidden group-hover:brightness-110 transition-all">
+          
+          {/* Rim / Interior */}
+          <div className="absolute top-0 left-0 w-full h-8 bg-[#0c0a09]/80 rounded-[50%] shadow-inner border-b border-[#292524]/30" />
+          
+          {/* Highlight on the stone */}
+          <div className="absolute top-4 left-4 w-12 h-12 bg-white/5 rounded-full blur-xl" />
        </div>
     </div>
   );

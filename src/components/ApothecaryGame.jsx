@@ -303,8 +303,10 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProces
         <div className="absolute top-0 left-0 w-full h-10 bg-[#292524] border-4 border-[#44403c] rounded-[100%] z-20 shadow-2xl" />
         
         {/* 2. BODY (Dark Iron) - CHANGED from slate-900 to #1c1917 */}
-        <div className="absolute top-5 left-2 right-2 bottom-0 bg-[#1c1917] border-x-4 border-b-4 border-[#292524] rounded-b-[160px] overflow-hidden shadow-2xl">
-          
+             <div className="absolute top-5 left-2 right-2 bottom-0 bg-[#292524] border-x-4 border-b-4 border-[#44403c] rounded-b-[160px] overflow-hidden shadow-2xl">
+
+          {/* Lighting Highlight - Add this new div right inside the body */}
+  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-white/5 via-transparent to-black/40 pointer-events-none z-20" />
           {/* Iron Texture Overlay */}
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none z-20 mix-blend-overlay" />
 
@@ -1055,19 +1057,22 @@ const mortarRef = useRef(null); // To help with drop detection
         {/* 3. Game Content Area */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
             
-    {/* Background Image Layer */}
-<div className={`absolute inset-0 z-0 ${theme.bg}`}>
-    {/* 1. Brighter Image (0.7 opacity instead of 0.4) */}
+  {/* Background Image Layer */}
+{/* 1. Base Container is pure black to prevent bleed */}
+<div className="absolute inset-0 z-0 bg-[#050505]">
+    
+    {/* 2. The Room Image - No blending modes, just raw visibility */}
     <img 
         src={alcBg} 
         alt="Alchemist Alley" 
-        className="w-full h-full object-cover opacity-90 mix-blend-overlay" 
+        className="w-full h-full object-cover opacity-50" // Adjust this up to 0.6 or 0.7 if still too dark
     />
     
-    {/* 2. Lighter Theme Overlay */}
+    {/* 3. Theme Tint - Soft Light blending allows color without darkness */}
+    <div className={`absolute inset-0 ${theme.bg} mix-blend-soft-light opacity-60`} />
+
+    {/* 4. The Gradient Overlay - Handles the "Void" fade but leaves the center clear */}
     <div className={`absolute inset-0 bg-gradient-to-t ${theme.overlay}`} />
-
-
 </div>
 
             <AnimatePresence mode='wait'>

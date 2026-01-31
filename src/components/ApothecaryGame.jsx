@@ -406,65 +406,93 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProces
     </div>
   );
 };
-const Workbench = ({ selectedIngredients, onIngredientSelect, theme }) => {
+
+
+const Workbench = ({ selectedIngredients, onIngredientSelect, theme, inventory }) => {
   const hudStyle = theme ? theme.hud : 'bg-slate-900 border-slate-700';
+
+  // Helper to check counts
+  const countInCauldron = (ingName) => selectedIngredients.filter(i => i.name === ingName).length;
 
   return (
     <div className={`w-full h-32 relative px-4 flex items-center border-t shadow-[0_-5px_20px_rgba(0,0,0,0.3)] z-50 ${hudStyle}`}>
       
-      {/* Wood Grain Texture (Lighter) */}
+      {/* Wood Grain Texture */}
       <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-soft-light" 
            style={{ backgroundImage: 'linear-gradient(to right, #78350f 1px, transparent 1px)', backgroundSize: '40px 100%' }} 
       />
       
       <div className="flex gap-2 overflow-x-auto overflow-y-hidden w-full h-full items-center pb-2 px-2 custom-scrollbar-horizontal relative z-10">
         {INGREDIENTS.map((ing) => {
-          const count = selectedIngredients.filter(i => i.name === ing.name).length;
-          const isSelected = count > 0;
+          const cauldronCount = countInCauldron(ing.name);
+          // Check inventory. If finite and 0 (or undefined), you have none.
+          // BUT: We also need to know if it's "Unlocked" (Contract Established).
+          // For simplicity, let's say: 
+          // 1. Basic items always show.
+          // 2. Finite items show as "Locked" if inventory is 0? 
+          //    Actually, better: If inventory is 0, it shows as an empty slot/padlock. 
+          //    If inventory > 0, it shows the item.
+          //    Wait, that hides the "Goal".
+          
+          // BETTER LOGIC: Always show all 18 items.
+          // If inventory is 0 (and it's finite), button is disabled and greyed out.
+          
+          const ownedCount = inventory ? (inventory[ing.name] || 0) : (ing.finite ? 0 : 999);
+          const isFinite = ing.finite;
+          const remainingStock = isFinite ? ownedCount - cauldronCount : 999;
+          const isDisabled = remainingStock <= 0;
 
+          // If you have 0 stock of a finite item, does it look like a lock?
+          // Let's say if you NEVER bought it (stock 0), it looks darker.
+          
           return (
             <motion.button
               key={ing.name}
-              onClick={() => onIngredientSelect(ing)}
-              whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05, y: -2 }}
+              onClick={() => !isDisabled && onIngredientSelect(ing)}
+              disabled={isDisabled}
+              whileTap={!isDisabled ? { scale: 0.95 } : {}}
+              whileHover={!isDisabled ? { scale: 1.05, y: -2 } : {}}
               className={`
-                group relative shrink-0 w-28 h-24 flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-200
-                ${isSelected 
-                    ? 'bg-amber-900/40 border-amber-500/50 shadow-lg shadow-amber-900/20' 
-                    : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
+                group relative shrink-0 w-24 h-24 flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-200
+                ${isDisabled 
+                    ? 'bg-black/40 border-white/5 opacity-50 grayscale cursor-not-allowed' 
+                    : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
                 }
+                ${countInCauldron(ing.name) > 0 ? 'border-amber-500/50 bg-amber-900/20' : ''}
               `}
             >
-              {/* Counter Badge */}
-              <AnimatePresence>
-                {count > 0 && (
-                    <motion.div 
-                        initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                        className="absolute top-1 right-1 w-5 h-5 bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-md border border-amber-400"
-                    >
-                    {count}
-                    </motion.div>
-                )}
-              </AnimatePresence>
+              {/* LOCK OVERLAY (If purely empty) */}
+              {isDisabled && isFinite && (
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <Lock size={24} className="text-white/20" />
+                  </div>
+              )}
 
-              {/* ICON - NO COLOR FILTERS! */}
-              {/* We keep it grayscale only if NOT hovered and NOT selected */}
-              <div className={`text-4xl mb-2 transition-all filter ${isSelected || 'group-hover:grayscale-0'} ${!isSelected && 'grayscale-[0.5] contrast-75'}`}>
+              {/* STOCK BADGE */}
+              {isFinite && !isDisabled && (
+                  <div className="absolute top-1 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/50 text-emerald-400 border border-emerald-900/50 shadow-sm z-20">
+                      {remainingStock}
+                  </div>
+              )}
+
+              {/* ICON */}
+              <div className={`text-3xl mb-2 transition-all filter drop-shadow-lg ${isDisabled ? 'blur-[1px] opacity-30' : ''}`}>
                 {ing.icon}
               </div>
 
               {/* Name Label */}
-              <div className={`text-[10px] uppercase font-bold tracking-wider truncate max-w-full ${isSelected ? 'text-amber-200' : 'text-stone-500 group-hover:text-stone-300'}`}>
+              <div className={`text-[9px] uppercase font-bold tracking-wider truncate max-w-full ${isDisabled ? 'text-stone-600' : 'text-stone-400 group-hover:text-stone-200'}`}>
                 {ing.name}
               </div>
 
-              {/* Dots (Tags) */}
-              <div className="flex gap-1 mt-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
-                {ing.tags.map((tag, i) => (
-                   <div key={i} className={`w-1.5 h-1.5 rounded-full ${getTagColor(tag)} ring-1 ring-black/20`} title={tag}/>
-                ))}
-              </div>
+              {/* Tags (Tiny Dots) */}
+              {!isDisabled && (
+                <div className="flex gap-1 mt-1 opacity-50">
+                    {ing.tags.slice(0, 2).map((tag, i) => (
+                    <div key={i} className={`w-1 h-1 rounded-full ${tag === 'Toxic' ? 'bg-green-500' : tag === 'Hot' ? 'bg-red-500' : 'bg-slate-400'}`} />
+                    ))}
+                </div>
+              )}
             </motion.button>
           );
         })}

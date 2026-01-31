@@ -104,38 +104,33 @@ const LOCATIONS = {
   ethereal: ['mind', 'dreams', 'soul', 'shadow', 'thoughts', 'aura', 'memory', 'will'],
   elemental: ['breath', 'voice', 'touch', 'gaze', 'heartbeat']
 };
+export const SENSATIONS_MAP = [
+  // --- TIER 1: ELEMENTAL (Basic) ---
+  { category: 'elemental', text: 'burns with an unholy fire', tags: ['Cooling', 'Holy'] },
+  { category: 'elemental', text: 'feels like molten slag', tags: ['Cooling', 'Heavy'] },
+  { category: 'elemental', text: 'feels like solid ice', tags: ['Hot', 'Vital'] },
+  { category: 'elemental', text: 'shivers with a grave chill', tags: ['Hot', 'Holy'] },
 
-// --- 3. THE LOGIC MAP (Problem -> Required Tags) ---
-// This ensures that no matter what text is generated, the game knows exactly what tags solve it.
-const SENSATIONS_MAP = [
-  // --- TIER 1: ELEMENTAL (Basic Hot/Cold/Purify) ---
-  { text: 'burns with an unholy fire', tags: ['Cooling', 'Holy'] },
-  { text: 'is scorching from the inside out', tags: ['Cooling', 'Calming'] },
-  { text: 'feels like molten slag', tags: ['Cooling', 'Heavy'] },
-  { text: 'feels like solid ice', tags: ['Hot', 'Vital'] },
-  { text: 'shivers with a grave chill', tags: ['Hot', 'Holy'] },
-  { text: 'has frozen stiff', tags: ['Hot', 'Calming'] },
-  { text: 'oozes a foul sludge', tags: ['Purifying', 'Desiccated'] }, // Needs drying!
+  // --- TIER 2: PHYSICAL (Advanced) ---
+  { category: 'physical', text: 'oozes a foul sludge', tags: ['Purifying', 'Desiccated'] }, // Needs Skull
+  { category: 'physical', text: 'feels heavy as lead', tags: ['Purifying', 'Luminous'] }, // Needs Moss
+  { category: 'physical', text: 'is turning to dust', tags: ['Heavy', 'Vital'] },
+  { category: 'physical', text: 'vibrates uncontrollably', tags: ['Calming', 'Heavy'] },
+  
+  // --- TIER 3: ETHEREAL (Arcane/Void) ---
+  { category: 'ethereal', text: 'is clouded by dark shadows', tags: ['Luminous', 'Holy'] }, // Needs Feather/Moss
+  { category: 'ethereal', text: 'hears the call of the void', tags: ['Arcane', 'Calming'] }, // Needs Pepper/Time
+  { category: 'ethereal', text: 'is fading from existence', tags: ['Arcane', 'Heavy'] }, 
+  { category: 'ethereal', text: 'is drowning in dry air', tags: ['Vital', 'Cooling'] },
+  { category: 'ethereal', text: 'is weeping blood', tags: ['Desiccated', 'Calming'] }, // Needs Skull
 
-  // --- TIER 2: PHYSICAL (Heavy/Vital/Calming) ---
-  { text: 'feels heavy as lead', tags: ['Purifying', 'Luminous'] }, // Lighten the load
-  { text: 'is turning to dust', tags: ['Heavy', 'Vital'] },
-  { text: 'vibrates uncontrollably', tags: ['Calming', 'Heavy'] },
-  { text: 'feels thin and stretched', tags: ['Heavy', 'Vital'] },
-  { text: 'is petrifying into stone', tags: ['Hot', 'Vital'] },
-
-  // --- TIER 3: ETHEREAL (Holy/Arcane/Shadow) ---
-  { text: 'is clouded by dark shadows', tags: ['Luminous', 'Holy'] }, // Needs Light
-  { text: 'hears the call of the void', tags: ['Arcane', 'Calming'] }, // Needs Magic to fight Void
-  { text: 'is fading from existence', tags: ['Arcane', 'Heavy'] }, // Anchor them back
-  { text: 'feels disconnected from reality', tags: ['Arcane', 'Vital'] },
-  { text: 'is possessed by a weak spirit', tags: ['Holy', 'Arcane'] },
-
-  // --- TIER 4: COMPLEX (The New Stuff) ---
-  { text: 'is drowning in dry air', tags: ['Vital', 'Cooling'] }, 
-  { text: 'glows with a sickening light', tags: ['Shadow', 'Purifying'] }, // Needs Shadow to dim it (Future tag?)
-  { text: 'has forgotten how to beat', tags: ['Vital', 'Arcane'] }, // Magical Heart restart
-  { text: 'is weeping blood', tags: ['Desiccated', 'Calming'] } // Dry the tears
+  // --- TIER 4: NEW HIGH LEVEL SCENARIOS ---
+  { category: 'ethereal', text: 'is stuck in a time loop', tags: ['Arcane', 'Crystalline'] }, // Needs Time Sand
+  { category: 'physical', text: 'has stopped beating', tags: ['Electric', 'Vital'] }, // Needs Thunderstone
+  { category: 'elemental', text: 'is consumed by entropy', tags: ['Void', 'Holy'] }, // Needs Tentacle (to match void) + Holy to cure? 
+  // Actually, standard logic is "Opposites". 
+  // Entropy (Void) needs Holy + Vital (Phoenix Feather).
+  { category: 'ethereal', text: 'is screaming silently', tags: ['Dark', 'Calming'] } // Needs Grave Dust
 ];
 
 
@@ -182,21 +177,7 @@ export const generateSymptom = () => {
 };
 
 export const INGREDIENTS = [
-  // --- RISK ITEMS ---
-  { 
-    name: 'Mercury', 
-    tags: ['Toxic', 'Heavy'], 
-    icon: '☿',
-    processed: { name: 'Quicksilver Fumes', tags: ['Toxic', 'Explosive'], icon: '☁' }
-  },
-  { 
-    name: 'Nightshade', 
-    tags: ['Toxic', 'Dark'], 
-    icon: '🥀',
-    processed: { name: 'Nightshade Dust', tags: ['Toxic', 'Calming'], icon: '✨' }
-  },
-
-  // --- SAFE BASES ---
+  // --- TIER 1: BASICS (Infinite Stock) ---
   { 
     name: 'Salt', 
     tags: ['Purifying', 'Crystalline'], 
@@ -215,8 +196,6 @@ export const INGREDIENTS = [
     icon: '☽',
     processed: { name: 'Moon Dust', tags: ['Crystalline', 'Cooling'], icon: '❄' }
   },
-
-  // --- UTILITY ---
   { 
     name: 'Sulfur', 
     tags: ['Hot', 'Vital'], 
@@ -235,35 +214,129 @@ export const INGREDIENTS = [
     icon: '⚙',
     processed: { name: 'Copper Filings', tags: ['Hot', 'Crystalline'], icon: '⛓' }
   },
+  { 
+    name: 'Mercury', 
+    tags: ['Toxic', 'Heavy'], 
+    icon: '☿',
+    processed: { name: 'Quicksilver Fumes', tags: ['Toxic', 'Explosive'], icon: '☁' }
+  },
+  { 
+    name: 'Nightshade', 
+    tags: ['Toxic', 'Dark'], 
+    icon: '🥀',
+    processed: { name: 'Nightshade Dust', tags: ['Toxic', 'Calming'], icon: '✨' }
+  },
+  // Adding Water as a neutral base if needed, but skipping for now to keep grid tight.
 
-  // --- NEW UNLOCKABLES (Tier 2/3) ---
+  // --- TIER 2: RARE IMPORTS (Finite - Cost Gold) ---
   {
     name: 'Ghost Pepper',
     icon: '🌶️', 
-    tags: ['Hot', 'Arcane'], // Magical Heat
-    description: 'Burns across dimensions.',
+    tags: ['Hot', 'Arcane'],
+    finite: true,
+    cost: 40,
+    description: 'Burns across dimensions. Handle with gloves.',
     processed: { name: 'Spirit Dust', tags: ['Arcane', 'Purifying'], icon: '👻' }
   },
   {
     name: 'Sun-Bleached Skull',
     icon: '💀',
-    tags: ['Desiccated', 'Holy'], // Dry + Holy
-    description: 'Bone that has stared into the sun too long.',
+    tags: ['Desiccated', 'Holy'],
+    finite: true,
+    cost: 50,
+    description: 'Bone that has stared into the sun for a century.',
     processed: { name: 'Bone Meal', tags: ['Desiccated', 'Heavy'], icon: '🦴' }
   },
   {
     name: 'Bioluminescent Moss',
-    icon: '🍄', // Changed to mushroom/fungi icon for visual clarity
-    tags: ['Luminous', 'Vital'], // Light + Life
-    description: 'Glows with a heartbeat.',
+    icon: '🍄',
+    tags: ['Luminous', 'Vital'],
+    finite: true,
+    cost: 60,
+    description: 'Found deep in the caves of the Underdark.',
     processed: { name: 'Glowing Paste', tags: ['Luminous', 'Cooling'], icon: '🧪' }
+  },
+
+  // --- TIER 3: EXOTIC REAGENTS (Finite - High Cost) ---
+  {
+    name: 'Abyssal Tentacle',
+    icon: '🐙',
+    tags: ['Void', 'Toxic'],
+    finite: true,
+    cost: 100,
+    description: 'It still twitches when you look away.',
+    processed: { name: 'Void Ink', tags: ['Void', 'Dark'], icon: '⚫' }
+  },
+  {
+    name: 'Thunderstone',
+    icon: '⚡',
+    tags: ['Electric', 'Crystalline'],
+    finite: true,
+    cost: 120,
+    description: 'A crystallized lightning strike.',
+    processed: { name: 'Spark Powder', tags: ['Electric', 'Hot'], icon: '✨' }
+  },
+  {
+    name: 'Mandrake Root',
+    icon: '🥔',
+    tags: ['Vital', 'Toxic'], // Scream makes it dangerous
+    finite: true,
+    cost: 80,
+    description: 'Wear earplugs before chopping.',
+    processed: { name: 'Silence Extract', tags: ['Vital', 'Calming'], icon: '🤫' }
+  },
+
+  // --- TIER 4: LEGENDARY (Finite - Very High Cost) ---
+  {
+    name: 'Phoenix Feather',
+    icon: '🪶',
+    tags: ['Vital', 'Holy'],
+    finite: true,
+    cost: 200,
+    description: 'Warm to the touch. It smells like hope.',
+    processed: { name: 'Ash of Rebirth', tags: ['Holy', 'Arcane'], icon: '🔥' }
+  },
+  {
+    name: 'Grave Dust',
+    icon: '⚰️',
+    tags: ['Dark', 'Cooling'],
+    finite: true,
+    cost: 90,
+    description: 'Soil from the grave of a traitor.',
+    processed: { name: 'Shadow Essence', tags: ['Dark', 'Arcane'], icon: '👻' }
+  },
+  {
+    name: 'Time-Lost Sand',
+    icon: '⏳',
+    tags: ['Arcane', 'Crystalline'],
+    finite: true,
+    cost: 250,
+    description: 'Sand that flows upwards.',
+    processed: { name: 'Stasis Powder', tags: ['Arcane', 'Calming'], icon: '⏸️' }
   }
 ];
 
 let customerIdCounter = 0;
 
 // --- 2. GENERATOR LOGIC ---
-
+// Helper to fix "My bones is" -> "My bones are"
+const fixGrammar = (part, text) => {
+    const isPlural = ['eyes', 'bones', 'veins', 'dreams', 'thoughts', 'lungs'].includes(part);
+    
+    // Simple replacement rules
+    if (isPlural) {
+        if (text.startsWith('is ')) return text.replace('is ', 'are ');
+        if (text.startsWith('has ')) return text.replace('has ', 'have ');
+        if (text.startsWith('feels ')) return text.replace('feels ', 'feel ');
+        if (text.startsWith('burns ')) return text.replace('burns ', 'burn ');
+        if (text.startsWith('shivers ')) return text.replace('shivers ', 'shiver ');
+        if (text.startsWith('oozes ')) return text.replace('oozes ', 'ooze ');
+        if (text.startsWith('vibrates ')) return text.replace('vibrates ', 'vibrate ');
+        if (text.startsWith('glows ')) return text.replace('glows ', 'glow ');
+        if (text.startsWith('hears ')) return text.replace('hears ', 'hear ');
+    }
+    return text;
+};
 export const generateCustomer = () => {
   // 1. Pick Class
   const roll = Math.random();
@@ -280,7 +353,7 @@ export const generateCustomer = () => {
     id: ++customerIdCounter,
     class: customerClass,
     symptom: {
-      text: `My ${part} ${scenario.text}...`,
+    text: `My ${part} ${grammaticallyCorrectText}...`, // "My bones have frozen..."
       requiredTags: scenario.tags
     }
   };
@@ -345,12 +418,12 @@ export const calculateOutcome = (selectedIngredients, customer, upgrades = {}, a
 
   // --- FAIL STATE A: REALITY BREAK (Void/Arcane Overload) ---
   if (isUnstable) {
-    let repLoss = -15;
+    let repLoss = -5;
     let narrative = `The air screams as a Void Rift tears open! It swallows the potion (and the customer's eyebrows).`;
 
     // Upgrade: Void Anchor (Hypothetical future upgrade) or Reinforced Cauldron
     if (upgrades.reinforced) {
-      repLoss = -5;
+      repLoss = -2;
       narrative = `A Void Rift opens! But your Reinforced Cauldron contains the anomaly before it spreads.`;
     }
 
@@ -364,17 +437,17 @@ export const calculateOutcome = (selectedIngredients, customer, upgrades = {}, a
 
   // --- FAIL STATE B: TOXICITY (Poisoned) ---
   if (isToxic) {
-    let repLoss = -20;
+    let repLoss = -5;
     let narrative = `The ${customerClass.name} takes one sip, turns green, and collapses. The City Watch has been notified.`;
 
     // Upgrade: Antidote Stash (Saves the day)
     if (upgrades.antidoteStash) {
-      repLoss = -5;
+      repLoss = -2;
       narrative = `The brew was toxic! Thankfully, you administered an emergency antidote. The ${customerClass.name} leaves angry, but alive.`;
     }
     // Apprentice: Bouncer (Reduces penalty)
     else if (apprentice && apprentice.activeAbility?.type === 'security') {
-        repLoss = -10;
+        repLoss = -1;
         narrative = `The potion was poison! Your Apprentice rushed the ${customerClass.name} to a healer, mitigating the scandal.`;
     }
 

@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Beer, Moon, UserMinus, UserPlus, Coins, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Beer, Moon, UserMinus, UserPlus, Coins, ArrowRight, ShoppingBag, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { soundEngine } from '@/lib/SoundEngine';
 import { HIREABLE_NPCS } from '@/lib/NPCData';
 import { UPGRADES_LIST } from '@/lib/gameLogic';
+import ReagentVendor from './ReagentVendor'; // <--- Import the new component
 
 const TavernHub = ({
   gold,
@@ -16,10 +16,14 @@ const TavernHub = ({
   setApprentice,
   day,
   onRest,
-  volume = 1.0
+  volume = 1.0,
+  // NEW PROPS FOR REAGENTS
+  inventory, 
+  onBuyReagent
 }) => {
+  const [activeTab, setActiveTab] = useState('market'); // Default to Market for quick access
+
   const [randomHireables] = useState(() => {
-    // Select 3 random unique NPCs
     const shuffled = [...HIREABLE_NPCS].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
   });
@@ -43,7 +47,7 @@ const TavernHub = ({
   };
 
   const handleDismiss = () => {
-    soundEngine.playGold(volume); // Sound of refund
+    soundEngine.playGold(volume);
     setGold(g => g + 25);
     setApprentice({ hired: false, npcId: null, npcName: null, npcClass: null });
   };
@@ -63,186 +67,226 @@ const TavernHub = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-slate-900 text-amber-500 p-8 flex flex-col items-center"
+      className="min-h-screen bg-[#0c0a09] text-amber-500 flex flex-col items-center overflow-hidden"
     >
-      <div className="w-full max-w-7xl mx-auto space-y-12 pb-24">
-        
-        {/* Header */}
-        <div className="text-center space-y-4 pt-8">
-            <div className='inline-block p-4 bg-slate-800 rounded-full border border-amber-900/50 shadow-2xl'>
-                <Beer className='w-12 h-12 text-amber-600' />
+      {/* 1. HEADER (Fixed Top) */}
+      <div className="w-full bg-[#1c1917] border-b border-amber-900/30 p-4 flex justify-between items-center z-20 shadow-xl">
+         <div className="flex items-center gap-4">
+             <div className='p-3 bg-amber-900/20 rounded-lg border border-amber-900/50'>
+                <Beer className='w-6 h-6 text-amber-600' />
             </div>
-            <h1 className="text-5xl font-bold font-serif text-amber-500 tracking-tight">The Alchemist's Respite</h1>
-            <p className="text-amber-500/60 text-xl">Rest, trade, and hire help for the trials ahead.</p>
-            
-            <div className="flex justify-center gap-6 mt-4">
-                <div className="px-6 py-2 bg-slate-800 rounded-full border border-amber-500/30 flex items-center gap-2">
-                    <Coins className="text-amber-400 w-5 h-5" />
-                    <span className="text-xl font-bold text-amber-100">{gold}g</span>
-                </div>
-                <div className="px-6 py-2 bg-slate-800 rounded-full border border-indigo-500/30 flex items-center gap-2">
-                    <Moon className="text-indigo-400 w-5 h-5" />
-                    <span className="text-xl font-bold text-indigo-100">Night {day}</span>
-                </div>
+            <div>
+                <h1 className="text-xl font-bold font-serif text-amber-100 tracking-wide">The Alchemist's Respite</h1>
+                <p className="text-amber-700/60 text-xs uppercase tracking-widest">Safehouse • Night {day}</p>
             </div>
-        </div>
+         </div>
+         
+         <div className="flex items-center gap-4">
+             <div className="flex items-center gap-2 bg-black/40 px-4 py-2 rounded-lg border border-amber-900/50">
+                 <Coins className="text-amber-400 w-5 h-5" />
+                 <span className="text-lg font-bold font-mono text-amber-100">{gold} G</span>
+             </div>
+             <Button
+                size="lg"
+                onClick={onRest}
+                className="bg-amber-700 hover:bg-amber-600 text-white font-bold"
+            >
+                Start Day {day + 1} <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+         </div>
+      </div>
 
-        {/* 3 Columns Layout */}
-        <div className="grid lg:grid-cols-3 gap-8 items-start">
+      {/* 2. MAIN CONTENT AREA (Flex Grow) */}
+      <div className="flex-1 w-full max-w-7xl mx-auto flex gap-6 p-6 h-[calc(100vh-80px)]">
+         
+         {/* SIDEBAR NAVIGATION */}
+         <div className="w-64 shrink-0 flex flex-col gap-2">
+            <NavButton 
+                active={activeTab === 'market'} 
+                onClick={() => setActiveTab('market')} 
+                icon={ShoppingBag} 
+                label="Black Market" 
+                desc="Buy Rare Reagents"
+            />
+            <NavButton 
+                active={activeTab === 'upgrades'} 
+                onClick={() => setActiveTab('upgrades')} 
+                icon={Zap} 
+                label="Workshop" 
+                desc="Shop Upgrades"
+            />
+            <NavButton 
+                active={activeTab === 'hire'} 
+                onClick={() => setActiveTab('hire')} 
+                icon={UserPlus} 
+                label="Recruit" 
+                desc="Hire Apprentices"
+            />
             
-            {/* COLUMN 1: THE BAR (Upgrades) */}
-            <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-amber-400 border-b border-amber-500/30 pb-4 flex items-center gap-3">
-                    <Coins className="w-6 h-6" />
-                    The Bar (Black Market)
-                </h2>
-                <div className="space-y-4">
-                    {UPGRADES_LIST.map((item) => {
-                        const isPurchased = upgrades[item.id];
-                        const canAfford = gold >= item.cost;
-                        const Icon = item.icon;
-                        
-                        return (
-                            <motion.div 
-                                key={item.id}
-                                className={`p-4 rounded-xl border-2 transition-all ${
-                                    isPurchased 
-                                    ? 'bg-green-950/20 border-green-600/30' 
-                                    : canAfford 
-                                        ? 'bg-slate-800/50 border-amber-500/20 hover:border-amber-500/60' 
-                                        : 'bg-slate-900 border-slate-800 opacity-60'
-                                }`}
-                            >
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className={`font-bold ${isPurchased ? 'text-green-400' : 'text-slate-200'}`}>{item.name}</h3>
-                                    {isPurchased ? (
-                                        <span className="text-xs bg-green-900/50 text-green-400 px-2 py-1 rounded">OWNED</span>
-                                    ) : (
-                                        <span className="text-sm font-bold text-amber-400">{item.cost}g</span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-slate-400 mb-4">{item.description}</p>
-                                <Button
-                                    size="sm"
+            {/* Active Apprentice Card (Mini) */}
+            <div className="mt-auto bg-[#1c1917] p-4 rounded-xl border border-amber-900/30">
+                <h4 className="text-xs font-bold uppercase text-stone-500 mb-2">Active Apprentice</h4>
+                {apprentice.hired ? (
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-900/50 rounded-full flex items-center justify-center border border-indigo-500/30">
+                             {apprentice.icon ? <apprentice.icon size={20} className="text-indigo-400" /> : <Shield size={20} className="text-indigo-400" />}
+                        </div>
+                        <div>
+                            <div className="text-sm font-bold text-indigo-200">{apprentice.npcName}</div>
+                            <div className="text-[10px] text-indigo-400/60 uppercase">{apprentice.npcClass}</div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-xs text-stone-600 italic">None hired.</div>
+                )}
+            </div>
+         </div>
+
+         {/* CONTENT PANEL */}
+         <div className="flex-1 bg-[#141210] border border-[#292524] rounded-2xl shadow-2xl overflow-hidden relative">
+            
+            {/* TAB: BLACK MARKET (Reagents) */}
+            {activeTab === 'market' && (
+                <ReagentVendor 
+                    inventory={inventory} 
+                    onBuy={onBuyReagent} 
+                    playerGold={gold} 
+                />
+            )}
+
+            {/* TAB: WORKSHOP (Upgrades) */}
+            {activeTab === 'upgrades' && (
+                <div className="p-8 h-full overflow-y-auto custom-scrollbar">
+                    <h2 className="text-2xl font-bold text-amber-100 font-serif mb-6 flex items-center gap-2">
+                        <Zap className="text-amber-500" /> Workshop Upgrades
+                    </h2>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {UPGRADES_LIST.map((item) => {
+                            const isPurchased = upgrades[item.id];
+                            const canAfford = gold >= item.cost;
+                            const Icon = item.icon;
+                            return (
+                                <button 
+                                    key={item.id}
                                     onClick={() => handlePurchaseUpgrade(item.id, item.cost)}
                                     disabled={isPurchased || !canAfford}
-                                    className={`w-full ${isPurchased ? 'hidden' : ''} ${canAfford ? 'bg-amber-700 hover:bg-amber-600' : 'bg-slate-700'}`}
+                                    className={`
+                                        text-left p-4 rounded-xl border-2 transition-all group relative overflow-hidden
+                                        ${isPurchased 
+                                            ? 'bg-emerald-950/20 border-emerald-900/50 opacity-60' 
+                                            : canAfford 
+                                                ? 'bg-[#1c1917] border-amber-900/30 hover:border-amber-500 hover:shadow-lg' 
+                                                : 'bg-[#1c1917] border-[#292524] opacity-50 cursor-not-allowed'
+                                        }
+                                    `}
                                 >
-                                    <Icon className="w-4 h-4 mr-2" />
-                                    Buy
-                                </Button>
-                            </motion.div>
-                        );
-                    })}
+                                    <div className="flex justify-between items-start mb-1 relative z-10">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded bg-black/40 ${isPurchased ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                                <Icon size={20} />
+                                            </div>
+                                            <h3 className={`font-bold ${isPurchased ? 'text-emerald-500' : 'text-stone-200'}`}>{item.name}</h3>
+                                        </div>
+                                        <div className="font-mono font-bold text-sm">
+                                            {isPurchased ? <span className="text-emerald-500">OWNED</span> : <span className={canAfford ? "text-amber-400" : "text-stone-600"}>{item.cost} G</span>}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-stone-500 ml-[3.25rem] leading-relaxed relative z-10">{item.description}</p>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* COLUMN 2: THE TABLE (Apprentice) */}
-            <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-indigo-400 border-b border-indigo-500/30 pb-4 flex items-center gap-3">
-                    <Beer className="w-6 h-6" />
-                    The Apprentice Table
-                </h2>
-                
-                <div className="min-h-[300px] bg-slate-800/30 rounded-2xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+            {/* TAB: RECRUIT (Apprentices) */}
+            {activeTab === 'hire' && (
+                <div className="p-8 h-full overflow-y-auto custom-scrollbar flex flex-col">
+                    <h2 className="text-2xl font-bold text-indigo-200 font-serif mb-6 flex items-center gap-2">
+                        <UserPlus className="text-indigo-500" /> Recruit Help
+                    </h2>
+
                     {apprentice.hired ? (
-                        <div className="space-y-6 w-full relative z-10">
-                            <div className="w-24 h-24 bg-slate-800 rounded-full mx-auto border-4 border-indigo-500 flex items-center justify-center shadow-lg">
-                                {/* Use icon from state if available, otherwise generic */}
-                                {apprentice.icon ? <apprentice.icon className="w-12 h-12 text-indigo-400" /> : <Beer className="w-12 h-12 text-indigo-400" />}
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-bold text-indigo-100">{apprentice.npcName}</h3>
-                                <p className="text-indigo-400 font-mono text-sm uppercase tracking-widest">{apprentice.npcClass}</p>
-                            </div>
-                            
-                            <div className="bg-slate-900/80 p-4 rounded-lg text-left text-sm space-y-2 border border-slate-700">
-                                <p><span className="text-indigo-400 font-bold">Passive:</span> <span className="text-slate-300">{apprentice.passiveAbility?.description}</span></p>
-                                <p><span className="text-indigo-400 font-bold">Active:</span> <span className="text-slate-300">{apprentice.activeAbility?.description}</span></p>
-                            </div>
-
-                            <Button 
+                        <div className="flex-1 flex flex-col items-center justify-center text-center opacity-60">
+                             <div className="w-24 h-24 rounded-full bg-indigo-900/20 flex items-center justify-center mb-4">
+                                <Shield size={48} className="text-indigo-500" />
+                             </div>
+                             <h3 className="text-xl font-bold text-indigo-200">Staff Full</h3>
+                             <p className="text-sm text-indigo-400/60 mt-2 max-w-md">You already have an apprentice. Dismiss them to hire someone new.</p>
+                             <Button 
                                 variant="destructive" 
+                                className="mt-6 bg-red-900/30 text-red-400 border border-red-900 hover:bg-red-900"
                                 onClick={handleDismiss}
-                                className="w-full bg-red-900/50 hover:bg-red-900 border border-red-800 text-red-200"
                             >
-                                <UserMinus className="w-4 h-4 mr-2" />
-                                Dismiss (Refund 25g)
-                            </Button>
+                                Dismiss {apprentice.npcName}
+                             </Button>
                         </div>
                     ) : (
-                        <div className="text-slate-500 space-y-4">
-                            <UserPlus className="w-16 h-16 mx-auto opacity-20" />
-                            <p className="text-lg">No Apprentice Hired</p>
-                            <p className="text-sm max-w-xs mx-auto">Hire an apprentice from the crowd to gain unique bonuses during your workday.</p>
+                        <div className="grid grid-cols-1 gap-4">
+                            {randomHireables.map((npc) => {
+                                const NpcIcon = npc.icon;
+                                const canAfford = gold >= 50;
+                                return (
+                                    <div key={npc.id} className="bg-[#1c1917] border border-[#292524] p-4 rounded-xl flex gap-4 hover:border-indigo-500/30 transition-all group">
+                                        <div className={`w-14 h-14 rounded-full bg-black/40 flex items-center justify-center border border-white/5 ${npc.color} shrink-0`}>
+                                            <NpcIcon className="w-7 h-7" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-bold text-stone-200 text-lg">{npc.name}</h4>
+                                                    <span className="text-xs font-mono text-indigo-400 uppercase tracking-widest">{npc.class}</span>
+                                                </div>
+                                                <Button 
+                                                    size="sm"
+                                                    disabled={!canAfford}
+                                                    onClick={() => handleHire(npc)}
+                                                    className={`h-8 ${canAfford ? 'bg-indigo-700 hover:bg-indigo-600' : 'bg-stone-800'}`}
+                                                >
+                                                    Hire (50g)
+                                                </Button>
+                                            </div>
+                                            <p className="text-sm text-stone-500 mt-2 italic">"{npc.description}"</p>
+                                            <div className="mt-3 flex gap-4 text-xs">
+                                                <div className="flex items-center gap-1 text-stone-400">
+                                                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                                                    <b>Passive:</b> {npc.passiveAbility.description}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
-            </div>
-
-            {/* COLUMN 3: THE CROWD (Hiring) */}
-            <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-amber-400 border-b border-amber-500/30 pb-4 flex items-center gap-3">
-                    <UserPlus className="w-6 h-6" />
-                    The Crowd (Hire Help)
-                </h2>
-                
-                <div className="space-y-4">
-                    {randomHireables.map((npc) => {
-                         const NpcIcon = npc.icon;
-                         const canAfford = gold >= 50;
-                         
-                         return (
-                            <motion.div 
-                                key={npc.id}
-                                className="bg-slate-800/50 border border-slate-700 p-4 rounded-xl flex gap-4 hover:bg-slate-800 transition-colors group"
-                            >
-                                <div className={`w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center border border-slate-600 ${npc.color} shrink-0`}>
-                                    <NpcIcon className="w-6 h-6" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-start">
-                                        <h4 className="font-bold text-slate-200 truncate">{npc.name}</h4>
-                                        <span className="text-xs font-mono text-slate-500">{npc.class}</span>
-                                    </div>
-                                    <p className="text-xs text-slate-400 line-clamp-2 my-1">{npc.description}</p>
-                                    <div className="flex justify-between items-center mt-3">
-                                        <span className="text-sm font-bold text-amber-500">50g</span>
-                                        <Button
-                                            size="sm"
-                                            disabled={apprentice.hired || !canAfford}
-                                            onClick={() => handleHire(npc)}
-                                            className="bg-indigo-600 hover:bg-indigo-500 h-7 text-xs"
-                                        >
-                                            Hire
-                                        </Button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                         );
-                    })}
-                </div>
-            </div>
-
-        </div>
-
+            )}
+         </div>
       </div>
-
-      {/* Floating Action Button */}
-      <div className="fixed bottom-8 right-8">
-        <Button
-            size="lg"
-            onClick={onRest}
-            onMouseEnter={() => soundEngine.playHover(volume)}
-            className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-2xl shadow-amber-900/50 px-8 py-8 rounded-2xl text-xl font-bold transition-transform hover:scale-105"
-        >
-            Rest & Start Day {day + 1}
-            <ArrowRight className="w-6 h-6 ml-3" />
-        </Button>
-      </div>
-
     </motion.div>
   );
 };
+
+// Helper Sub-component for Nav Buttons
+const NavButton = ({ active, onClick, icon: Icon, label, desc }) => (
+    <button
+        onClick={onClick}
+        className={`
+            text-left p-4 rounded-xl transition-all flex items-center gap-4 group
+            ${active 
+                ? 'bg-amber-900/20 border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' 
+                : 'bg-transparent border border-transparent hover:bg-white/5'
+            }
+        `}
+    >
+        <div className={`p-2 rounded-lg ${active ? 'bg-amber-500 text-black' : 'bg-stone-800 text-stone-500 group-hover:text-stone-300'}`}>
+            <Icon size={20} />
+        </div>
+        <div>
+            <div className={`font-bold ${active ? 'text-amber-100' : 'text-stone-400 group-hover:text-stone-200'}`}>{label}</div>
+            <div className={`text-[10px] uppercase tracking-wider ${active ? 'text-amber-500' : 'text-stone-600'}`}>{desc}</div>
+        </div>
+    </button>
+);
 
 export default TavernHub;

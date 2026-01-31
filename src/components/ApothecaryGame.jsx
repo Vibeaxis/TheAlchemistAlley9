@@ -301,15 +301,16 @@ const getTagColor = (tag) => {
 };
 const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
   return (
-    <div className="bg-[#0c0a09]/90 border-t-2 border-[#292524] p-2 w-full shadow-2xl relative overflow-hidden">
+    <div className="w-full h-32 relative px-4 flex items-center">
       
-      {/* Background Texture - kept subtle */}
+      {/* Background decoration */}
       <div className="absolute inset-0 opacity-10 pointer-events-none" 
-           style={{ backgroundImage: 'linear-gradient(to right, #292524 1px, transparent 1px)', backgroundSize: '40px 100%' }} 
+           style={{ backgroundImage: 'linear-gradient(to right, #44403c 1px, transparent 1px)', backgroundSize: '60px 100%' }} 
       />
 
-      {/* THE ROW: Horizontal scroll, single line */}
-      <div className="relative z-10 flex flex-row gap-2 overflow-x-auto pb-2 custom-scrollbar items-center px-4">
+      {/* THE STRIP: Flex Row, No Wrap (until overflow), Horizontal Scroll */}
+      <div className="flex gap-2 overflow-x-auto overflow-y-hidden w-full h-full items-center pb-2 px-2 custom-scrollbar-horizontal">
+        
         {INGREDIENTS.map((ing) => {
           const count = selectedIngredients.filter(i => i.name === ing.name).length;
           const isSelected = count > 0;
@@ -319,46 +320,49 @@ const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
               key={ing.name}
               onClick={() => onIngredientSelect(ing)}
               whileTap={{ scale: 0.95 }}
-              /* H-24 keeps it very short. min-w-[160px] ensures they don't squish */
+              /* KEY CSS: 
+                 1. shrink-0: Prevents squishing. 
+                 2. w-28: Fixed width per item.
+                 3. h-24: Fixed height.
+              */
               className={`
-                group relative h-24 min-w-[160px] flex items-center gap-3 p-2 rounded-md border transition-all duration-200
+                group relative shrink-0 w-32 h-24 flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-200
                 ${isSelected 
-                    ? 'bg-amber-950/40 border-amber-500/60 shadow-inner' 
-                    : 'bg-[#1c1917] border-stone-800 hover:border-stone-600'
+                  ? 'bg-amber-950/60 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' 
+                  : 'bg-slate-900/50 border-slate-700 hover:bg-slate-800 hover:border-slate-500'
                 }
               `}
             >
-              {/* Count Badge */}
+              {/* Badge */}
               {count > 0 && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-600 text-white font-mono text-[10px] flex items-center justify-center rounded-sm z-20">
+                <div className="absolute top-1 right-1 w-5 h-5 bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center rounded shadow-sm">
                   {count}
                 </div>
               )}
 
-              {/* Icon: Smaller for the row */}
-              <div className={`text-3xl transition-all ${isSelected ? 'scale-110' : 'opacity-70 group-hover:opacity-100'}`}>
+              {/* Icon */}
+              <div className={`text-3xl mb-2 transition-transform ${isSelected ? 'scale-110 text-amber-100' : 'text-slate-400 group-hover:text-slate-200'}`}>
                 {ing.icon}
               </div>
 
-              {/* Info: Stacked Name and Tags */}
-              <div className="flex flex-col items-start overflow-hidden">
-                <span className={`text-[10px] font-black uppercase tracking-tighter truncate w-full text-left ${isSelected ? 'text-amber-200' : 'text-stone-500'}`}>
-                  {ing.name}
-                </span>
-                
-                <div className="flex flex-wrap gap-0.5 mt-1">
-                  {ing.tags.map(tag => (
-                    <span
-                      key={tag}
-                      className={`text-[7px] uppercase font-bold px-1 rounded-[1px] border ${getTagColor(tag)}`}
-                    >
-                      {tag[0]} {/* Only show first letter of tag to save massive space */}
-                    </span>
-                  ))}
-                </div>
+              {/* Label */}
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 group-hover:text-white truncate max-w-full">
+                {ing.name}
               </div>
+
+              {/* Micro-Tags (Dots instead of text to save space) */}
+              <div className="flex gap-1 mt-1.5">
+                {ing.tags.map((tag, i) => (
+                   <div 
+                     key={i} 
+                     className={`w-1.5 h-1.5 rounded-full ${getTagColor(tag).replace('text-', 'bg-').replace('border-', '')}`} 
+                     title={tag}
+                   />
+                ))}
+              </div>
+
             </motion.button>
-          )
+          );
         })}
       </div>
     </div>
@@ -993,14 +997,14 @@ const handleBrew = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/60" />
                </div>
 
-   {/* --- 3. CONTENT GRID --- */}
-<div className="relative z-10 h-full flex flex-col p-6 gap-4">
+{/* --- 3. MAIN GAME SCENE --- */}
+<div className="relative z-10 h-full flex flex-col"> {/* NO PADDING HERE */}
   
-  {/* TOP SECTION: Customer and Cauldron */}
-  <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">
+  {/* A. THE STAGE (Customer & Cauldron) - Flex-1 takes all available height */}
+  <div className="flex-1 flex p-8 gap-8 min-h-0 relative">
     
-    {/* LEFT: Customer Card (Tarot spot) */}
-    <div className="col-span-3">
+    {/* LEFT: Customer / Tarot Card */}
+    <div className="w-[320px] shrink-0 flex flex-col justify-start z-20">
       <AnimatePresence mode='wait'>
         {currentCustomer && (
           <motion.div 
@@ -1008,7 +1012,7 @@ const handleBrew = () => {
             initial={{ x: -20, opacity: 0 }} 
             animate={{ x: 0, opacity: 1 }} 
             exit={{ x: -20, opacity: 0 }}
-            className="w-full max-w-[300px]" // Constrain width for tarot feel
+            className="w-full"
           >
             <CustomerCard
               customer={currentCustomer}
@@ -1022,31 +1026,31 @@ const handleBrew = () => {
       </AnimatePresence>
     </div>
 
-    {/* CENTER/RIGHT: Cauldron Space */}
-    <div className="col-span-9 flex items-center justify-center relative">
-      <div className="w-full max-w-xl"> {/* Constrains cauldron size slightly */}
-        <Cauldron 
-          selectedIngredients={selectedIngredients} 
-          onBrew={handleBrew} 
-          onClear={handleClearSelection} 
-          whisperQueue={whisperQueue} 
-        />
-      </div>
-      
-      {/* PRO-TIP: Your "Result Toast" can be absolutely positioned 
-          in the top-right of this div (relative to this container).
-      */}
+    {/* CENTER: The Cauldron - Centered and pushed down slightly */}
+    <div className="flex-1 flex items-center justify-center relative">
+       {/* Max width prevents it from getting comically large on wide screens */}
+       <div className="w-full max-w-xl transform translate-y-8"> 
+          <Cauldron 
+            selectedIngredients={selectedIngredients} 
+            onBrew={handleBrew} 
+            onClear={handleClearSelection} 
+            whisperQueue={whisperQueue} 
+          />
+       </div>
+
+       {/* RESULT TOAST: Positioned absolutely in top-right of the "stage" */}
+       <div className="absolute top-0 right-0 w-64">
+           {/* Your Toast Component Goes Here */}
+       </div>
     </div>
   </div>
 
-  {/* BOTTOM SECTION: Full-Width Reagent Rack */}
-  <div className="h-auto pt-4 border-t border-slate-800/50 bg-black/20 backdrop-blur-sm -mx-6 px-6">
-    <div className="max-w-7xl mx-auto">
-      <Workbench 
+  {/* B. THE HUD (Reagent Rack) - Fixed Height, Full Width, Pinned Bottom */}
+  <div className="h-auto shrink-0 z-30 w-full bg-gradient-to-t from-black via-slate-950 to-slate-900/80 border-t border-slate-800 backdrop-blur-md">
+     <Workbench 
         selectedIngredients={selectedIngredients} 
         onIngredientSelect={handleIngredientSelect} 
-      />
-    </div>
+     />
   </div>
 
 </div>

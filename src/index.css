@@ -15,3 +15,17 @@ body {
 * {
   box-sizing: border-box;
 }
+/* Custom horizontal scrollbar for the rack */
+.custom-scrollbar-horizontal::-webkit-scrollbar {
+  height: 6px; /* Very thin */
+}
+.custom-scrollbar-horizontal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+.custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+  background: #4b5563; /* Slate-600 */
+  border-radius: 10px;
+}
+.custom-scrollbar-horizontal::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b; /* Amber-500 */
+}

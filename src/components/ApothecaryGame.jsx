@@ -1199,6 +1199,7 @@ const mortarRef = useRef(null); // To help with drop detection
                                 selectedIngredients={selectedIngredients} 
                                 onIngredientSelect={handleIngredientSelect} 
                                 theme={theme}
+                                inventory={inventory} // <--- Pass State
                             />
                         </div>
 

@@ -79,10 +79,8 @@ const getTagColor = (tag) => {
   }
 };
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting }) => {
-  // 1. STATE
   const [hasRevealed, setHasRevealed] = React.useState(false);
   
-  // 2. EFFECT: Trigger reveal
   React.useEffect(() => {
     if (isInspecting) setHasRevealed(true);
   }, [isInspecting]);
@@ -93,14 +91,14 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 
   const Icon = customer.class.icon || Ghost;
   
-  // 3. FLAVOR DATA
+  // Use themed district colors (Warm/Gold/Purple instead of neon)
   const districts = [
-    { name: 'The Dregs', flavor: 'Rat-Kin', color: 'text-emerald-400' },
-    { name: 'Market', flavor: 'Coin-Bound', color: 'text-amber-400' },
+    { name: 'The Dregs', flavor: 'Rat-Kin', color: 'text-emerald-500' },
+    { name: 'Market', flavor: 'Coin-Bound', color: 'text-amber-500' },
     { name: 'Arcanum', flavor: 'Void-Touched', color: 'text-purple-400' },
-    { name: 'Docks', flavor: 'Salt-Born', color: 'text-cyan-400' },
-    { name: 'Cathedral', flavor: 'Light-Blinded', color: 'text-yellow-200' },
-    { name: 'Spire', flavor: 'High-Blood', color: 'text-rose-400' }
+    { name: 'Docks', flavor: 'Salt-Born', color: 'text-cyan-600' },
+    { name: 'Cathedral', flavor: 'Light-Blinded', color: 'text-yellow-400' },
+    { name: 'Spire', flavor: 'High-Blood', color: 'text-rose-500' }
   ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
@@ -109,67 +107,66 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     <div
       className={`
         relative w-full h-full min-h-[460px] 
-        bg-[#0b0f19] rounded-xl overflow-hidden
+        bg-[#14100e] rounded-xl overflow-hidden
         flex flex-col items-center text-center shadow-2xl group transition-all duration-700
-        ${hasRevealed ? 'shadow-[0_0_40px_rgba(124,58,237,0.15)]' : ''}
+        border-2 border-[#2c241b]
+        ${hasRevealed ? 'shadow-[0_0_40px_rgba(245,158,11,0.1)] border-amber-900/50' : ''}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* 1. BORDER GLOW (Only appears on reveal) */}
-      <div className={`absolute inset-0 rounded-xl border-4 border-double z-20 pointer-events-none transition-colors duration-700 ${hasRevealed ? 'border-purple-500/40' : 'border-slate-800'}`} />
-      
+      {/* 1. TEXTURE: Paper Grain Overlay */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0" 
+           style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} 
+      />
+
       {/* 2. BACKGROUND & AVATAR */}
       <div className="absolute inset-0 z-0">
-         {/* The Avatar - Larger and clearer now */}
          <img 
             src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
             alt="Shadow"
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] object-contain opacity-30 filter grayscale brightness-75 contrast-125 pointer-events-none"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] object-contain opacity-20 filter sepia brightness-50 contrast-125 pointer-events-none"
         />
-         {/* Cinematic Gradient: Fades from transparent (top) to black (bottom) so text is readable */}
-         <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-[#0b0f19]/80 to-transparent z-10" />
+         <div className="absolute inset-0 bg-gradient-to-t from-[#14100e] via-[#14100e]/80 to-transparent z-10" />
       </div>
 
       {/* 3. CONTENT LAYER */}
-      <div className="flex-1 flex flex-col w-full relative z-20 h-full p-6">
+      <div className="flex-1 flex flex-col w-full relative z-20 h-full p-6 font-serif">
         
-        {/* HEADER: Name & Icon */}
+        {/* HEADER */}
         <div className="w-full relative flex flex-col items-center pt-2">
-            <div className="text-slate-500 mb-2 drop-shadow-md">
+            <div className="text-amber-900/60 mb-2 drop-shadow-md">
               <Icon size={32} strokeWidth={1.5} />
             </div>
             
-            <h2 className="text-3xl font-serif font-bold text-slate-100 leading-none drop-shadow-lg tracking-wide">
+            <h2 className="text-3xl font-bold text-amber-100/90 leading-none drop-shadow-lg tracking-wide">
                 {customer.class.name}
             </h2>
-            <p className="text-slate-400 text-xs italic font-serif tracking-wider mt-1 opacity-80">
+            <p className="text-amber-700/60 text-xs italic tracking-wider mt-1">
                 "{customer.class.description}"
             </p>
 
-            {/* --- INVISIBLE INK REVEAL (Top Right) --- */}
+            {/* REVEAL (Top Right) */}
             <div className={`absolute -top-2 -right-2 flex flex-col items-end transition-all duration-1000 ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <div className="text-[9px] text-purple-400/80 font-serif italic tracking-widest mb-0.5">
+                <div className="text-[9px] text-amber-800/80 italic tracking-widest mb-0.5">
                    Soul Echo
                 </div>
-                <div className={`text-sm font-bold font-serif uppercase tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] ${origin.color}`}>
+                <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] ${origin.color}`}>
                    {origin.name}
                 </div>
             </div>
         </div>
 
-        {/* BODY: Symptom Text (Centered, Cinematic) */}
-        {/* No box, just text floating in the void/gradient */}
+        {/* BODY TEXT */}
         <div className="flex-1 flex items-center justify-center py-4">
-          <p className="text-amber-100/90 font-serif text-lg leading-relaxed italic drop-shadow-md">
+          <p className="text-amber-100/80 text-lg leading-relaxed italic drop-shadow-md">
             "{customer.symptom.text}"
           </p>
         </div>
 
-        {/* FOOTER: Inspection Status */}
+        {/* FOOTER */}
         <div className="h-12 w-full flex items-center justify-center shrink-0">
             <AnimatePresence>
-            {/* Case 1: Hint Revealed */}
             {observationHint && hasRevealed && (
                 <motion.div
                     initial={{ opacity: 0, filter: 'blur(4px)' }} 
@@ -177,8 +174,8 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                     transition={{ duration: 1 }}
                     className="w-full text-center"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5">
-                        <span className="text-[10px] text-purple-300 uppercase tracking-[0.2em] font-bold drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 border-t border-b border-amber-900/30">
+                        <span className="text-[10px] text-amber-500 uppercase tracking-[0.2em] font-bold">
                             ✦ {observationHint} ✦
                         </span>
                     </div>
@@ -186,23 +183,22 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
             )}
             </AnimatePresence>
             
-            {/* Case 2: Prompt to Inspect */}
             {!hasRevealed && (
-                <div className="flex flex-col items-center gap-2 opacity-40 group-hover:opacity-70 transition-opacity">
-                    <span className="text-[9px] text-indigo-200 uppercase tracking-[0.25em] font-light">
-                        Use Lens to Divinate
+                <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
+                    <span className="text-[9px] text-amber-700 uppercase tracking-[0.25em]">
+                        Divinate Aura
                     </span>
-                    <div className="h-px w-8 bg-indigo-500/50" />
+                    <div className="h-px w-8 bg-amber-800/50" />
                 </div>
             )}
         </div>
       </div>
 
-      {/* TAGS (Top Left/Right - subtle) */}
+      {/* TAGS */}
       {revealedTags && revealedTags.length > 0 && (
         <div className="absolute top-6 left-6 flex flex-col gap-1 items-start z-30 pointer-events-none">
           {revealedTags.map(t => (
-            <span key={t} className="text-[9px] text-slate-400 font-serif tracking-widest border-b border-slate-700/50">
+            <span key={t} className="text-[9px] text-amber-700/60 font-bold tracking-widest border-b border-amber-900/20">
                 {t}
             </span>
           ))}
@@ -227,8 +223,16 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProces
   const liquidHeight = Math.min((selectedIngredients.length / 3) * 80, 80);
   const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
   
-  const baseColor = isToxic ? 'from-red-950 via-red-900 to-red-800' : 'from-emerald-950 via-emerald-900 to-emerald-800';
-  const brewingColor = isToxic ? 'from-red-600 via-orange-500 to-yellow-400' : 'from-emerald-500 via-teal-400 to-cyan-300';
+  // NEW COLORS: Iron/Rust/Gold instead of Slate/Blue
+// Base liquid is now murky oil/blood/gold instead of water
+const baseColor = isToxic 
+  ? 'from-[#450a0a] via-[#7f1d1d] to-[#991b1b]' // Deep Blood Red
+  : 'from-[#0c4a6e] via-[#0284c7] to-[#38bdf8]'; // Keep blue for pure, or switch to Gold?
+  // Let's stick to Red/Blue for clarity, but darken them to look like chemicals.
+
+const brewingColor = isToxic
+  ? 'from-orange-600 via-red-500 to-amber-400' // Fire & Poison
+  : 'from-emerald-600 via-teal-500 to-cyan-300'; // Magic & Aether
 
   return (
     <div className="relative h-full flex flex-col items-center justify-end">
@@ -318,19 +322,19 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProces
       </motion.div>
 
       <button
-        onClick={handleSafeBrew}
-        disabled={selectedIngredients.length < 2 || isBrewing}
-        className={`
-            relative z-30 w-full max-w-xs py-5 
-            font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 
-            shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all 
-            active:translate-y-1 active:shadow-none flex items-center justify-center gap-3
-            ${isBrewing 
-                ? 'bg-slate-800 border-slate-600 text-slate-400 cursor-wait' 
-                : 'bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 border-amber-900 text-amber-100 disabled:opacity-40 disabled:grayscale'
-            }
-        `}
-      >
+  onClick={handleSafeBrew}
+  disabled={selectedIngredients.length < 2 || isBrewing}
+  className={`
+      relative z-30 w-full max-w-xs py-5 
+      font-serif font-black text-lg uppercase tracking-[0.25em] rounded-sm border-2 
+      shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all 
+      active:translate-y-1 active:shadow-none flex items-center justify-center gap-3
+      ${isBrewing 
+          ? 'bg-[#1c1917] border-[#44403c] text-[#57534e] cursor-wait' 
+          : 'bg-gradient-to-b from-[#78350f] to-[#451a03] border-[#92400e] text-amber-100 hover:from-[#92400e] hover:to-[#78350f] hover:border-amber-500 hover:shadow-amber-900/20'
+      }
+  `}
+>
         {isBrewing ? <><Loader size={20} className="animate-spin" /><span>Distilling...</span></> : <span className="drop-shadow-md">Ignite & Brew</span>}
       </button>
     </div>

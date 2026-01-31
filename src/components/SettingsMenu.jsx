@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Volume2, Monitor, Sun, RotateCcw, X, Check } from 'lucide-react';
+import { Settings, Volume2, Monitor, Sun, RotateCcw, X, Check, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { soundEngine } from '@/lib/SoundEngine';
 
@@ -14,17 +13,17 @@ const SettingsMenu = ({
   currentScale,
   onScaleChange,
   currentGamma,
-  onGammaChange
+  onGammaChange,
+  // NEW PROPS FOR THEME
+  currentThemeId,
+  onThemeChange,
+  availableThemes // Pass the THEMES object here
 }) => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const handleVolumeChangeInternal = (e) => {
     const newVal = parseInt(e.target.value);
     onVolumeChange(newVal);
-    // Preview sound (debounced logic is better but simple instant feedback works for sliders if not spamming)
-    // We'll just play a quick click occasionally or rely on the user letting go? 
-    // Let's play a very short blip if needed, but standard UI usually just updates.
-    // The prompt says "with real-time preview sound".
     if (Math.random() > 0.8) soundEngine.playHover(newVal / 100);
   };
 
@@ -36,13 +35,13 @@ const SettingsMenu = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-slate-900 border-2 border-amber-500/50 rounded-2xl p-6 w-full max-w-md shadow-2xl relative"
+          className="bg-slate-900 border-2 border-amber-500/50 rounded-2xl p-6 w-full max-w-md shadow-2xl relative max-h-[90vh] overflow-y-auto"
         >
           <button 
             onClick={onClose}
@@ -51,12 +50,48 @@ const SettingsMenu = ({
             <X className="w-6 h-6" />
           </button>
 
-          <div className="flex items-center gap-3 mb-8 border-b border-amber-500/20 pb-4">
+          <div className="flex items-center gap-3 mb-6 border-b border-amber-500/20 pb-4">
             <Settings className="w-8 h-8 text-amber-500" />
             <h2 className="text-2xl font-bold text-amber-100">Settings</h2>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
+            
+            {/* --- NEW: THEME TOGGLE --- */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm font-medium text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Palette className="w-4 h-4 text-amber-500" />
+                  <span>Visual Theme</span>
+                </div>
+                <span className="text-amber-500 font-mono uppercase text-xs">{currentThemeId}</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {availableThemes && Object.values(availableThemes).map((theme) => (
+                    <button
+                        key={theme.id}
+                        onClick={() => {
+                            onThemeChange(theme.id);
+                            soundEngine.playClick(currentVolume / 100);
+                        }}
+                        className={`
+                            relative px-4 py-3 rounded-lg border transition-all duration-200 flex items-center justify-center gap-2 uppercase font-bold text-xs tracking-widest
+                            ${currentThemeId === theme.id 
+                                ? 'bg-amber-600 border-amber-400 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]' 
+                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-slate-200'}
+                        `}
+                    >
+                        {/* Small preview dot of the bg color */}
+                        <div className={`w-3 h-3 rounded-full border border-white/20 ${theme.id === 'default' ? 'bg-slate-900' : 'bg-[#1c1917]'}`} />
+                        {theme.id}
+                    </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="w-full h-px bg-slate-800" />
+
             {/* Audio Volume */}
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm font-medium text-slate-300">
@@ -72,7 +107,6 @@ const SettingsMenu = ({
                 max="100"
                 value={currentVolume}
                 onChange={handleVolumeChangeInternal}
-                onMouseUp={() => soundEngine.playClick(currentVolume / 100)}
                 className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
             </div>
@@ -117,27 +151,27 @@ const SettingsMenu = ({
             </div>
 
             {/* Hard Reset */}
-            <div className="pt-6 border-t border-slate-700">
+            <div className="pt-6 border-t border-slate-700/50">
               {!showResetConfirm ? (
                 <Button 
                   onClick={() => setShowResetConfirm(true)}
                   variant="outline"
-                  className="w-full border-red-900/50 text-red-400 hover:bg-red-950/30 hover:text-red-300 hover:border-red-500"
+                  className="w-full border-red-900/30 text-red-400 hover:bg-red-950/20 hover:text-red-300 hover:border-red-500/50"
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Hard Reset Game
                 </Button>
               ) : (
-                <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4 text-center space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                  <p className="text-sm text-red-200 font-semibold">Are you sure? This will delete all progress.</p>
+                <div className="bg-red-950/20 border border-red-900/30 rounded-lg p-4 text-center space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                  <p className="text-sm text-red-200 font-semibold">Delete all progress?</p>
                   <div className="flex gap-2 justify-center">
                     <Button 
                       size="sm" 
                       onClick={onReset}
-                      className="bg-red-600 hover:bg-red-700 text-white"
+                      className="bg-red-700 hover:bg-red-600 text-white"
                     >
                       <Check className="w-4 h-4 mr-1" />
-                      Yes, Reset
+                      Reset
                     </Button>
                     <Button 
                       size="sm" 

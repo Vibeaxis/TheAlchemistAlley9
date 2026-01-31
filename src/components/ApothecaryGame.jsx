@@ -1042,13 +1042,16 @@ const handleBrew = () => {
             onClick={() => setShowMap(false)} 
           >
        
-
 <motion.div 
-  initial={{ scale: 0.9, y: 20 }}
-  animate={{ scale: 1, y: 0 }}
-  exit={{ scale: 0.9, y: 20 }}
-  // CHANGE: 'max-w-7xl' -> 'w-[95vw] max-w-none'
-  className="w-[95vw] max-w-none h-[90vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-xl overflow-hidden relative flex flex-col"
+  initial={{ scale: 0.95, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  exit={{ scale: 0.95, opacity: 0 }}
+  /* 1. w-full max-w-6xl:  Limits width so it doesn't span the whole monitor 
+     2. aspect-video:      Locks the box to 16:9 (Matches your image exactly)
+     3. h-auto:            Let the height grow naturally based on width (No more black bars)
+     4. shadow-[0_0_50px...]: Adds a deep shadow to separate it from the desk
+  */
+  className="relative w-full max-w-6xl aspect-video h-auto bg-[#1c1917] border border-[#44403c] shadow-[0_0_50px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden flex flex-col"
   onClick={(e) => e.stopPropagation()} 
 >
 

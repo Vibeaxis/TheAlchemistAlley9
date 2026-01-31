@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Beer, Moon, UserMinus, UserPlus, Coins, ArrowRight, ShoppingBag, Shield, Zap } from 'lucide-react';
+import { Beer, UserPlus, Coins, ArrowRight, ShoppingBag, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { soundEngine } from '@/lib/SoundEngine';
 import { HIREABLE_NPCS } from '@/lib/NPCData';
 import { UPGRADES_LIST } from '@/lib/gameLogic';
-import ReagentVendor from './ReagentVendor'; // <--- Import the new component
+import ReagentVendor from './ReagentVendor';
+
+// --- HELPER: SAFE ICON RENDERER ---
+// This prevents the "Illegal Constructor" error by checking if the icon 
+// is a String (Emoji) or a Component (Lucide)
+const RenderIcon = ({ icon: Icon, className }) => {
+    if (!Icon) return <Shield className={className} />; // Fallback
+    
+    // If it's a string (Emoji), render as text in a span
+    if (typeof Icon === 'string') {
+        return <span className={`${className} flex items-center justify-center text-lg leading-none not-italic`}>{Icon}</span>;
+    }
+    
+    // If it's a Component (Lucide), render as JSX
+    return <Icon className={className} />;
+};
 
 const TavernHub = ({
   gold,
@@ -17,14 +32,15 @@ const TavernHub = ({
   day,
   onRest,
   volume = 1.0,
-  // NEW PROPS FOR REAGENTS
   inventory, 
   onBuyReagent
 }) => {
-  const [activeTab, setActiveTab] = useState('market'); // Default to Market for quick access
+  const [activeTab, setActiveTab] = useState('market');
 
   const [randomHireables] = useState(() => {
-    const shuffled = [...HIREABLE_NPCS].sort(() => 0.5 - Math.random());
+    // Safety check for empty list
+    const list = HIREABLE_NPCS || [];
+    const shuffled = [...list].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
   });
 
@@ -49,7 +65,8 @@ const TavernHub = ({
   const handleDismiss = () => {
     soundEngine.playGold(volume);
     setGold(g => g + 25);
-    setApprentice({ hired: false, npcId: null, npcName: null, npcClass: null });
+    // Reset icon to null to prevent stale state issues
+    setApprentice({ hired: false, npcId: null, npcName: null, npcClass: null, icon: null });
   };
 
   const handlePurchaseUpgrade = (upgradeId, cost) => {
@@ -69,7 +86,7 @@ const TavernHub = ({
       exit={{ opacity: 0 }}
       className="min-h-screen bg-[#0c0a09] text-amber-500 flex flex-col items-center overflow-hidden"
     >
-      {/* 1. HEADER (Fixed Top) */}
+      {/* 1. HEADER */}
       <div className="w-full bg-[#1c1917] border-b border-amber-900/30 p-4 flex justify-between items-center z-20 shadow-xl">
          <div className="flex items-center gap-4">
              <div className='p-3 bg-amber-900/20 rounded-lg border border-amber-900/50'>
@@ -86,50 +103,29 @@ const TavernHub = ({
                  <Coins className="text-amber-400 w-5 h-5" />
                  <span className="text-lg font-bold font-mono text-amber-100">{gold} G</span>
              </div>
-             <Button
-                size="lg"
-                onClick={onRest}
-                className="bg-amber-700 hover:bg-amber-600 text-white font-bold"
-            >
+             <Button size="lg" onClick={onRest} className="bg-amber-700 hover:bg-amber-600 text-white font-bold">
                 Start Day {day + 1} <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
          </div>
       </div>
 
-      {/* 2. MAIN CONTENT AREA (Flex Grow) */}
+      {/* 2. MAIN CONTENT AREA */}
       <div className="flex-1 w-full max-w-7xl mx-auto flex gap-6 p-6 h-[calc(100vh-80px)]">
          
          {/* SIDEBAR NAVIGATION */}
          <div className="w-64 shrink-0 flex flex-col gap-2">
-            <NavButton 
-                active={activeTab === 'market'} 
-                onClick={() => setActiveTab('market')} 
-                icon={ShoppingBag} 
-                label="Black Market" 
-                desc="Buy Rare Reagents"
-            />
-            <NavButton 
-                active={activeTab === 'upgrades'} 
-                onClick={() => setActiveTab('upgrades')} 
-                icon={Zap} 
-                label="Workshop" 
-                desc="Shop Upgrades"
-            />
-            <NavButton 
-                active={activeTab === 'hire'} 
-                onClick={() => setActiveTab('hire')} 
-                icon={UserPlus} 
-                label="Recruit" 
-                desc="Hire Apprentices"
-            />
+            <NavButton active={activeTab === 'market'} onClick={() => setActiveTab('market')} icon={ShoppingBag} label="Black Market" desc="Buy Rare Reagents" />
+            <NavButton active={activeTab === 'upgrades'} onClick={() => setActiveTab('upgrades')} icon={Zap} label="Workshop" desc="Shop Upgrades" />
+            <NavButton active={activeTab === 'hire'} onClick={() => setActiveTab('hire')} icon={UserPlus} label="Recruit" desc="Hire Apprentices" />
             
             {/* Active Apprentice Card (Mini) */}
             <div className="mt-auto bg-[#1c1917] p-4 rounded-xl border border-amber-900/30">
                 <h4 className="text-xs font-bold uppercase text-stone-500 mb-2">Active Apprentice</h4>
                 {apprentice.hired ? (
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-900/50 rounded-full flex items-center justify-center border border-indigo-500/30">
-                             {apprentice.icon ? <apprentice.icon size={20} className="text-indigo-400" /> : <Shield size={20} className="text-indigo-400" />}
+                        <div className="w-10 h-10 bg-indigo-900/50 rounded-full flex items-center justify-center border border-indigo-500/30 overflow-hidden">
+                             {/* SAFE RENDER */}
+                             <RenderIcon icon={apprentice.icon} className="w-5 h-5 text-indigo-400" />
                         </div>
                         <div>
                             <div className="text-sm font-bold text-indigo-200">{apprentice.npcName}</div>
@@ -145,26 +141,21 @@ const TavernHub = ({
          {/* CONTENT PANEL */}
          <div className="flex-1 bg-[#141210] border border-[#292524] rounded-2xl shadow-2xl overflow-hidden relative">
             
-            {/* TAB: BLACK MARKET (Reagents) */}
+            {/* TAB: BLACK MARKET */}
             {activeTab === 'market' && (
-                <ReagentVendor 
-                    inventory={inventory} 
-                    onBuy={onBuyReagent} 
-                    playerGold={gold} 
-                />
+                <ReagentVendor inventory={inventory} onBuy={onBuyReagent} playerGold={gold} />
             )}
 
-            {/* TAB: WORKSHOP (Upgrades) */}
+            {/* TAB: WORKSHOP */}
             {activeTab === 'upgrades' && (
                 <div className="p-8 h-full overflow-y-auto custom-scrollbar">
                     <h2 className="text-2xl font-bold text-amber-100 font-serif mb-6 flex items-center gap-2">
                         <Zap className="text-amber-500" /> Workshop Upgrades
                     </h2>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {UPGRADES_LIST.map((item) => {
+                        {(UPGRADES_LIST || []).map((item) => {
                             const isPurchased = upgrades[item.id];
                             const canAfford = gold >= item.cost;
-                            const Icon = item.icon;
                             return (
                                 <button 
                                     key={item.id}
@@ -183,7 +174,8 @@ const TavernHub = ({
                                     <div className="flex justify-between items-start mb-1 relative z-10">
                                         <div className="flex items-center gap-3">
                                             <div className={`p-2 rounded bg-black/40 ${isPurchased ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                                <Icon size={20} />
+                                                {/* SAFE RENDER */}
+                                                <RenderIcon icon={item.icon} className="w-5 h-5" />
                                             </div>
                                             <h3 className={`font-bold ${isPurchased ? 'text-emerald-500' : 'text-stone-200'}`}>{item.name}</h3>
                                         </div>
@@ -199,7 +191,7 @@ const TavernHub = ({
                 </div>
             )}
 
-            {/* TAB: RECRUIT (Apprentices) */}
+            {/* TAB: RECRUIT */}
             {activeTab === 'hire' && (
                 <div className="p-8 h-full overflow-y-auto custom-scrollbar flex flex-col">
                     <h2 className="text-2xl font-bold text-indigo-200 font-serif mb-6 flex items-center gap-2">
@@ -208,8 +200,8 @@ const TavernHub = ({
 
                     {apprentice.hired ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-center opacity-60">
-                             <div className="w-24 h-24 rounded-full bg-indigo-900/20 flex items-center justify-center mb-4">
-                                <Shield size={48} className="text-indigo-500" />
+                             <div className="w-24 h-24 rounded-full bg-indigo-900/20 flex items-center justify-center mb-4 overflow-hidden border border-indigo-500/30">
+                                <RenderIcon icon={apprentice.icon} className="w-12 h-12 text-indigo-500" />
                              </div>
                              <h3 className="text-xl font-bold text-indigo-200">Staff Full</h3>
                              <p className="text-sm text-indigo-400/60 mt-2 max-w-md">You already have an apprentice. Dismiss them to hire someone new.</p>
@@ -224,12 +216,12 @@ const TavernHub = ({
                     ) : (
                         <div className="grid grid-cols-1 gap-4">
                             {randomHireables.map((npc) => {
-                                const NpcIcon = npc.icon;
                                 const canAfford = gold >= 50;
                                 return (
                                     <div key={npc.id} className="bg-[#1c1917] border border-[#292524] p-4 rounded-xl flex gap-4 hover:border-indigo-500/30 transition-all group">
-                                        <div className={`w-14 h-14 rounded-full bg-black/40 flex items-center justify-center border border-white/5 ${npc.color} shrink-0`}>
-                                            <NpcIcon className="w-7 h-7" />
+                                        <div className={`w-14 h-14 rounded-full bg-black/40 flex items-center justify-center border border-white/5 ${npc.color} shrink-0 overflow-hidden`}>
+                                            {/* SAFE RENDER */}
+                                            <RenderIcon icon={npc.icon} className="w-7 h-7" />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex justify-between items-start">
@@ -247,12 +239,6 @@ const TavernHub = ({
                                                 </Button>
                                             </div>
                                             <p className="text-sm text-stone-500 mt-2 italic">"{npc.description}"</p>
-                                            <div className="mt-3 flex gap-4 text-xs">
-                                                <div className="flex items-center gap-1 text-stone-400">
-                                                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                                                    <b>Passive:</b> {npc.passiveAbility.description}
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -272,7 +258,7 @@ const NavButton = ({ active, onClick, icon: Icon, label, desc }) => (
     <button
         onClick={onClick}
         className={`
-            text-left p-4 rounded-xl transition-all flex items-center gap-4 group
+            text-left p-4 rounded-xl transition-all flex items-center gap-4 group w-full
             ${active 
                 ? 'bg-amber-900/20 border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' 
                 : 'bg-transparent border border-transparent hover:bg-white/5'

@@ -726,7 +726,7 @@ const mortarRef = useRef(null); // To help with drop detection
   const [heat, setHeat] = useState(0);
   const [watchFocus, setWatchFocus] = useState('market'); 
   const [activeDistrict, setActiveDistrict] = useState('dregs');
-
+const [isProcessing, setIsProcessing] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [gameMessage, setGameMessage] = useState('');
@@ -1010,7 +1010,10 @@ const mortarRef = useRef(null); // To help with drop detection
     setTimeout(() => setGameMessage(''), 1000);
   };
 const handleBrew = () => {
-    // 1. Basic Validation
+    // 1. SPAM PREVENTION LOCK
+    if (isProcessing) return;
+
+    // 2. BASIC VALIDATION
     if (selectedIngredients.length < 2) {
       soundEngine.playFail(vol);
       setGameMessage('Mixture Unstable');
@@ -1019,10 +1022,9 @@ const handleBrew = () => {
       return;
     }
 
-    // 2. INVENTORY VALIDATION (New)
-    // Ensure we actually own the finite ingredients selected
+    // 3. INVENTORY VALIDATION
     const canBrew = selectedIngredients.every(ing => {
-        if (!ing.finite) return true; // Infinite items are always fine
+        if (!ing.finite) return true;
         return (inventory[ing.name] || 0) > 0;
     });
 
@@ -1034,7 +1036,10 @@ const handleBrew = () => {
         return;
     }
 
-    // 3. DEDUCT INVENTORY (New)
+    // --- LOCK THE GAME ---
+    setIsProcessing(true); // <--- LOCKS BUTTON
+
+    // 4. DEDUCT INVENTORY
     const newInventory = { ...inventory };
     selectedIngredients.forEach(ing => {
         if (ing.finite) {
@@ -1043,10 +1048,9 @@ const handleBrew = () => {
     });
     setInventory(newInventory);
 
-    // --- EXISTING LOGIC BELOW ---
-    
     soundEngine.playBubble(vol);
 
+    // ... (Your Heat Logic Here) ...
     // Heat Logic
     const isExplosive = selectedIngredients.some(i => i.tags.includes('Explosive'));
     const isToxic = selectedIngredients.some(i => i.tags.includes('Toxic'));
@@ -1075,8 +1079,11 @@ const handleBrew = () => {
         setMessageType(isWatched ? 'danger' : 'warning');
         setTimeout(() => setGameMessage(''), 3000);
     }
+    // ... (End Heat Logic) ...
 
+    // Outcome Calculation
     const outcome = calculateOutcome(selectedIngredients, currentCustomer, upgrades, apprentice.hired ? apprentice : null);
+    
     setGameStats(prev => ({ ...prev, totalGold: prev.totalGold + outcome.goldReward, customersServed: prev.customersServed + 1 }));
     setGold(prev => Math.max(0, prev + outcome.goldReward));
     setReputation(prev => Math.max(0, prev + outcome.reputationChange));
@@ -1103,8 +1110,13 @@ const handleBrew = () => {
     const nextCount = customersServed + 1;
     setCustomersServed(nextCount);
 
+    // --- RESET AND UNLOCK ---
     setTimeout(() => {
       setGameMessage('');
+      
+      // RESET LOCK HERE
+      setIsProcessing(false); // <--- UNLOCKS BUTTON for next turn
+      
       if (reputation > 0) {
         if (nextCount >= 5) setPhase('night');
         else {
@@ -1115,7 +1127,7 @@ const handleBrew = () => {
         }
       }
     }, 4000);
-  };
+};
 
   // --- Render Gates ---
   if (gameState === 'TITLE') return <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}><TitleScreen onStart={handleStartGame} onOpenSettings={() => setSettingsOpen(true)} /><SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} /></div>;

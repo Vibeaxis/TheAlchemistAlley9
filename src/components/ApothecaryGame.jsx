@@ -745,7 +745,36 @@ const mortarRef = useRef(null); // To help with drop detection
     const savedGamma = localStorage.getItem('alchemistGamma');
     if (savedGamma !== null) setGamma(parseFloat(savedGamma));
   }, []);
+// --- ADD THIS MISSING STATE ---
+  const [inventory, setInventory] = useState(() => {
+    const initial = {};
+    INGREDIENTS.forEach(ing => {
+      // If it's finite (Rare), start with 0. 
+      // If it's basic (Salt, Sage), start with 999 (Infinite).
+      if (ing.finite) {
+        initial[ing.name] = 0; 
+      } else {
+        initial[ing.name] = 999; 
+      }
+    });
+    // Optional: Give them a free sample of Mercury to start
+    initial['Mercury'] = 1; 
+    return initial;
+  });
 
+  // --- ADD THIS BUY HANDLER (Passed to TavernHub) ---
+  const handleBuyReagent = (ingredient) => {
+    if (gold >= ingredient.cost) {
+        soundEngine.playTransaction(); // Ensure you have this sound or remove this line
+        setGold(prev => prev - ingredient.cost);
+        setInventory(prev => ({
+            ...prev,
+            [ingredient.name]: (prev[ingredient.name] || 0) + 1
+        }));
+    } else {
+        soundEngine.playFail(); // Optional fail sound
+    }
+  };
   const vol = audioVolume / 100;
   const handleVolumeChange = (val) => { setAudioVolume(val); localStorage.setItem('alchemistAudioVolume', val); };
   const handleScaleChange = (val) => { setUiScale(val); localStorage.setItem('alchemistUIScale', val); };
@@ -980,8 +1009,8 @@ const mortarRef = useRef(null); // To help with drop detection
     setGameMessage('Bench Cleared');
     setTimeout(() => setGameMessage(''), 1000);
   };
-
-  const handleBrew = () => {
+const handleBrew = () => {
+    // 1. Basic Validation
     if (selectedIngredients.length < 2) {
       soundEngine.playFail(vol);
       setGameMessage('Mixture Unstable');
@@ -989,6 +1018,33 @@ const mortarRef = useRef(null); // To help with drop detection
       setTimeout(() => setGameMessage(''), 2000);
       return;
     }
+
+    // 2. INVENTORY VALIDATION (New)
+    // Ensure we actually own the finite ingredients selected
+    const canBrew = selectedIngredients.every(ing => {
+        if (!ing.finite) return true; // Infinite items are always fine
+        return (inventory[ing.name] || 0) > 0;
+    });
+
+    if (!canBrew) {
+        soundEngine.playFail(vol);
+        setGameMessage('Missing Reagents!');
+        setMessageType('warning');
+        setTimeout(() => setGameMessage(''), 2000);
+        return;
+    }
+
+    // 3. DEDUCT INVENTORY (New)
+    const newInventory = { ...inventory };
+    selectedIngredients.forEach(ing => {
+        if (ing.finite) {
+            newInventory[ing.name] = Math.max(0, newInventory[ing.name] - 1);
+        }
+    });
+    setInventory(newInventory);
+
+    // --- EXISTING LOGIC BELOW ---
+    
     soundEngine.playBubble(vol);
 
     // Heat Logic

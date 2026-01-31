@@ -424,45 +424,39 @@ const CinematicAnnouncement = ({ text, type }) => {
   );
 };
 const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
-  // Determine window color based on heat/patrols
   const isWatched = watchFocus === activeDistrict;
   
-  // Visual intensity
   const glowColor = isWatched 
-    ? 'shadow-[0_0_100px_rgba(220,38,38,0.5)] bg-red-950/20' // RED ALERT
+    ? 'shadow-[0_0_100px_rgba(220,38,38,0.5)] bg-red-950/20' 
     : heat > 50 
-      ? 'shadow-[0_0_80px_rgba(234,88,12,0.3)] bg-orange-900/10' // High Suspicion
-      : 'shadow-[0_0_50px_rgba(30,41,59,0.5)] bg-blue-950/20'; // Calm Night
+      ? 'shadow-[0_0_80px_rgba(234,88,12,0.3)] bg-orange-900/10'
+      : 'shadow-[0_0_50px_rgba(30,41,59,0.5)] bg-blue-950/20';
 
   return (
-    <div className="w-full flex flex-col gap-4 p-4 opacity-90 pointer-events-none select-none transition-all duration-1000">
+    <div className="w-full flex flex-col gap-4 p-4 opacity-90 pointer-events-none select-none transition-all duration-1000 items-center">
        
-       {/* THE WINDOW */}
-       <div className={`relative w-full aspect-square max-w-[200px] mx-auto border-8 border-slate-900 bg-black overflow-hidden rounded-t-full transition-all duration-1000 ${glowColor}`}>
+       {/* THE WINDOW - Increased size constraints */}
+       <div className={`relative w-full aspect-square max-w-[280px] border-8 border-slate-900 bg-black overflow-hidden rounded-t-full transition-all duration-1000 ${glowColor}`}>
           
-          {/* 1. Atmosphere Overlay (The Glass Texture) */}
+          {/* 1. Atmosphere Overlay */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 z-10" />
           
-          {/* 2. THE GUARD (Replaces the Polygon) */}
-          {/* Placed BEFORE the grates so it looks like they are outside */}
+          {/* 2. THE GUARD */}
           <AnimatePresence>
             {isWatched && (
                <motion.img 
-                 // Static seed 'CityWatch' ensures it always looks like a helmeted guard
                  src={`https://api.dicebear.com/9.x/adventurer/svg?seed=CityWatchPatrol&flip=true&backgroundColor=transparent`}
                  alt="Patrol Shadow"
-                 // Slide in from the right side, slowly
                  initial={{ opacity: 0, x: 50, scale: 0.9 }}
                  animate={{ opacity: 0.8, x: 0, scale: 1.1 }}
                  exit={{ opacity: 0, x: 50, scale: 0.9 }}
                  transition={{ duration: 2, ease: "easeInOut" }}
-                 // CSS Magic: brightness-0 makes it a silhouette, blur makes it look like it's behind glass
-                 className="absolute -bottom-6 -right-6 w-48 h-48 object-cover filter brightness-0 blur-[2px] grayscale z-0"
+                 className="absolute -bottom-6 -right-6 w-56 h-56 object-cover filter brightness-0 blur-[2px] grayscale z-0"
                />
             )}
           </AnimatePresence>
 
-          {/* 3. The Window Bars (Grates) - z-20 to sit ON TOP of the guard */}
+          {/* 3. The Window Bars */}
           <div className="absolute inset-0 flex z-20">
              <div className="flex-1 border-r-4 border-slate-900/80"></div>
              <div className="flex-1 border-r-4 border-slate-900/80"></div>
@@ -473,9 +467,6 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
              <div className="flex-1"></div>
           </div>
        </div>
-
-       {/* (Optional) Heat Text - Removed to keep it clean, as discussed, 
-           but you can add it back here if you really want the numbers. */}
     </div>
   )
 }
@@ -959,94 +950,95 @@ const mortarRef = useRef(null); // To help with drop detection
     <AnimatePresence mode='wait'>
         {phase === 'day' ? (
             <motion.div 
-                key="day-phase" 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
-                className="relative z-10 flex-1 flex flex-col"
-            >
-                {/* A. The Stage */}
-                <div className="flex-1 grid grid-cols-12 gap-4 px-8 pb-4 min-h-0 items-end">
-                    
-                    {/* LEFT COL: Customer (The Entrance) */}
-                    <div className="col-span-3 flex flex-col justify-center h-full pb-12 z-20">
-                        <AnimatePresence mode='wait'>
-                            {currentCustomer && (
-                                <motion.div 
-                                    key={currentCustomer.id} 
-                                    // Slide in from left (-60), Fade/Blur out to left
-                                    initial={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
-                                    animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }} 
-                                    exit={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
-                                    transition={{ type: "spring", bounce: 0, duration: 0.6 }}
-                                    className="w-full max-w-[320px]"
-                                >
-                                    <CustomerCard 
-                                        customer={currentCustomer} 
-                                        observationHint={observationHint} 
-                                        onMouseEnter={() => handleCustomerHover(currentCustomer)} 
-                                        onMouseLeave={handleCustomerLeave} 
-                                        revealedTags={revealedCustomerTags}
-                                        // NEW: Pass inspection state for the blur effect
-                                        isInspecting={isInspecting} 
-                                    />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+    key="day-phase" 
+    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+    className="relative z-10 flex-1 flex flex-col"
+>
+    {/* A. The Stage */}
+    <div className="flex-1 grid grid-cols-12 px-8 min-h-0 items-end">
+        
+        {/* LEFT COL: Customer (The Doorway) */}
+        {/* Added border-r to simulate a wall/doorframe separation */}
+        <div className="col-span-3 flex flex-col justify-center h-full pb-12 z-20 border-r border-black/40 shadow-[10px_0_20px_rgba(0,0,0,0.5)] pr-8">
+            <AnimatePresence mode='wait'>
+                {currentCustomer && (
+                    <motion.div 
+                        key={currentCustomer.id} 
+                        initial={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
+                        animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }} 
+                        exit={{ x: -60, opacity: 0, filter: 'blur(5px)' }} 
+                        transition={{ type: "spring", bounce: 0, duration: 0.6 }}
+                        className="w-full max-w-[320px]"
+                    >
+                        <CustomerCard 
+                            customer={currentCustomer} 
+                            observationHint={observationHint} 
+                            onMouseEnter={() => handleCustomerHover(currentCustomer)} 
+                            onMouseLeave={handleCustomerLeave} 
+                            revealedTags={revealedCustomerTags}
+                            isInspecting={isInspecting} 
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
 
-                    {/* CENTER COL: Cauldron & Tools (The Desk) */}
-                    <div className="col-span-6 flex flex-col justify-end items-center pb-8 relative h-full">
-                        
-                        {/* 1. LENS (Bottom Left of Center) */}
-                        <div className="absolute bottom-4 left-0 z-40">
-                            <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
-                        </div>
+        {/* CENTER COL: The Desk Surface */}
+        <div className="col-span-6 flex flex-col justify-end items-center relative h-full">
+            
+            {/* Visual Trick: "Table Surface" Gradient at the bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/60 to-transparent pointer-events-none z-0" />
 
-                      {/* 2. MORTAR (Bottom Right of Center) */}
-<div className="absolute bottom-4 right-0 z-40">
-    <Mortar onInteract={handleMortarClick} />
-</div>
+            {/* 1. LENS (Sitting FLUSH on the table - bottom-0) */}
+            <div className="absolute bottom-2 left-4 z-40">
+                <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
+            </div>
 
-                        {/* 3. CAULDRON */}
-                        <div className="w-full max-w-xl">
-                            <Cauldron 
-                                selectedIngredients={selectedIngredients} 
-                                onBrew={handleBrew} 
-                                onClear={handleClearSelection} 
-                                whisperQueue={whisperQueue} 
-                                // NEW: Pass the crush handler
-                                onProcess={handleProcessIngredient} 
-                            />
-                        </div>
-                    </div>
+            {/* 2. MORTAR (Sitting FLUSH on the table - bottom-0) */}
+            <div className="absolute bottom-2 right-4 z-40">
+                <Mortar onInteract={handleMortarClick} />
+            </div>
 
-                    {/* RIGHT COL: Atmosphere & Results (The Environment) */}
-                    <div className="col-span-3 flex flex-col justify-start pt-12 h-full z-10">
-                         
-                         {/* Window (Always visible) */}
-                         <ShopAtmosphere 
-                            heat={heat} 
-                            watchFocus={watchFocus} 
-                            activeDistrict={activeDistrict} 
-                         />
+            {/* 3. CAULDRON */}
+            <div className="w-full max-w-xl z-10 mb-2"> {/* mb-2 gives it just a tiny lift off the raw edge */}
+                <Cauldron 
+                    selectedIngredients={selectedIngredients} 
+                    onBrew={handleBrew} 
+                    onClear={handleClearSelection} 
+                    whisperQueue={whisperQueue} 
+                    onProcess={handleProcessIngredient} 
+                />
+            </div>
+        </div>
 
-                         {/* Result Log (Appears below window) */}
-                         <div className="h-32 flex items-start justify-center mt-4">
-                             <AnimatePresence mode='wait'>
-                                {gameMessage && (
-                                    <CinematicAnnouncement text={gameMessage} type={messageType} />
-                                )}
-                             </AnimatePresence>
-                         </div>
-                    </div>
+        {/* RIGHT COL: Atmosphere & Results */}
+        <div className="col-span-3 flex flex-col justify-start pt-12 h-full z-10 pl-4">
+                
+                {/* Window */}
+                <ShopAtmosphere 
+                heat={heat} 
+                watchFocus={watchFocus} 
+                activeDistrict={activeDistrict} 
+                />
 
+                {/* Result Log */}
+                <div className="flex-1 flex items-start justify-center mt-8">
+                    <AnimatePresence mode='wait'>
+                    {gameMessage && (
+                        <CinematicAnnouncement text={gameMessage} type={messageType} />
+                    )}
+                    </AnimatePresence>
                 </div>
+        </div>
 
-                {/* B. The HUD (Workbench) */}
-                <div className="shrink-0 z-20">
-                    <Workbench selectedIngredients={selectedIngredients} onIngredientSelect={handleIngredientSelect} />
-                </div>
+    </div>
 
-            </motion.div>
+    {/* B. The HUD (Workbench) - This acts as the physical front edge of the table */}
+    <div className="shrink-0 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+        <Workbench selectedIngredients={selectedIngredients} onIngredientSelect={handleIngredientSelect} />
+    </div>
+
+</motion.div>
         ) : (
                     <motion.div key="night" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full z-20 relative bg-slate-950">
                         <TavernHub gold={gold} setGold={setGold} upgrades={upgrades} setUpgrades={setUpgrades} apprentice={apprentice} setApprentice={setApprentice} day={day} onRest={handleRest} volume={vol} />

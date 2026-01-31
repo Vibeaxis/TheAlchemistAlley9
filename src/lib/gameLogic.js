@@ -1,6 +1,6 @@
 import { 
   Crown, Hand, Shield, Skull, ShieldCheck, Wind, Coins, FlaskConical, 
-  Music, Sword, Book, Hammer, Anchor, Cross // <--- Added new icons
+  Music, Sword, Book, Hammer, Anchor, Cross, Leaf // <--- Added new icons
 } from 'lucide-react';
 // --- NEW: COVERT MISSIONS ---
 export const APPRENTICE_MISSIONS = [

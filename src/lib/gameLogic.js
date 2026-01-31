@@ -182,89 +182,82 @@ export const generateSymptom = () => {
 };
 
 export const INGREDIENTS = [
-  // RISK ITEMS
+  // --- RISK ITEMS ---
   { 
     name: 'Mercury', 
     tags: ['Toxic', 'Heavy'], 
     icon: '☿',
-    // Crushing Mercury creates dangerous fumes (Good for combat/high risk)
     processed: { name: 'Quicksilver Fumes', tags: ['Toxic', 'Explosive'], icon: '☁' }
   },
   { 
     name: 'Nightshade', 
     tags: ['Toxic', 'Dark'], 
     icon: '🥀',
-    // Crushing extracts the sedative properties
     processed: { name: 'Nightshade Dust', tags: ['Toxic', 'Calming'], icon: '✨' }
   },
 
-  // SAFE BASES
+  // --- SAFE BASES ---
   { 
     name: 'Salt', 
     tags: ['Purifying', 'Crystalline'], 
     icon: '⚬',
-    // Grinding salt makes it "Holy" (Classic trope)
     processed: { name: 'Fine Salt', tags: ['Purifying', 'Holy'], icon: '⚪' }
   },
   { 
     name: 'Sage', 
     tags: ['Purifying', 'Calming'], 
     icon: '🌿',
-    // Crushing releases life force
     processed: { name: 'Sage Powder', tags: ['Purifying', 'Vital'], icon: '🍃' }
   },
   { 
     name: 'Moonstone', 
     tags: ['Cooling', 'Holy'], 
     icon: '☽',
-    // Crushing it makes it crystalline powder
     processed: { name: 'Moon Dust', tags: ['Crystalline', 'Cooling'], icon: '❄' }
   },
 
-  // UTILITY
+  // --- UTILITY ---
   { 
     name: 'Sulfur', 
     tags: ['Hot', 'Vital'], 
     icon: '🜍',
-    // Brimstone is highly explosive
     processed: { name: 'Brimstone Ash', tags: ['Hot', 'Explosive'], icon: '🌋' }
   },
   { 
     name: 'Bloodroot', 
     tags: ['Vital', 'Purifying'], 
     icon: '⚕',
-    // Paste becomes toxic (The dose makes the poison)
     processed: { name: 'Red Paste', tags: ['Vital', 'Toxic'], icon: '🩸' }
   },
   { 
     name: 'Copper', 
     tags: ['Hot', 'Heavy'], 
     icon: '⚙',
-    // Filings become sharp/crystalline
     processed: { name: 'Copper Filings', tags: ['Hot', 'Crystalline'], icon: '⛓' }
-  }
-  // Add these to your INGREDIENTS constant
-{
+  },
+
+  // --- NEW UNLOCKABLES (Tier 2/3) ---
+  {
     name: 'Ghost Pepper',
-    icon: '🌶️', // Or a ghostly SVG
+    icon: '🌶️', 
     tags: ['Hot', 'Arcane'], // Magical Heat
     description: 'Burns across dimensions.',
-    processed: { name: 'Spirit Dust', tags: ['Arcane', 'Purifying'] } // Crushing removes heat, keeps magic
-},
-{
+    processed: { name: 'Spirit Dust', tags: ['Arcane', 'Purifying'], icon: '👻' }
+  },
+  {
     name: 'Sun-Bleached Skull',
     icon: '💀',
     tags: ['Desiccated', 'Holy'], // Dry + Holy
     description: 'Bone that has stared into the sun too long.',
-    processed: { name: 'Bone Meal', tags: ['Desiccated', 'Heavy'] } // Crushing makes it heavy powder
-},
-{
+    processed: { name: 'Bone Meal', tags: ['Desiccated', 'Heavy'], icon: '🦴' }
+  },
+  {
     name: 'Bioluminescent Moss',
-    icon: '🌿',
+    icon: '🍄', // Changed to mushroom/fungi icon for visual clarity
     tags: ['Luminous', 'Vital'], // Light + Life
     description: 'Glows with a heartbeat.',
-    processed: { name: 'Glowing Paste', tags: ['Luminous', 'Cooling'] }
-}
+    processed: { name: 'Glowing Paste', tags: ['Luminous', 'Cooling'], icon: '🧪' }
+  }
 ];
 
 let customerIdCounter = 0;

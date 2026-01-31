@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, AlertCircle, Sun, Moon, Skull, Crown, X } from 'lucide-react';
+import { Calendar, AlertCircle, Sun, Moon, Skull, Crown, X, Coins } from 'lucide-react';
 
 const EVENTS = {
   3: { name: 'Market Day', desc: 'Merchant spawn rate doubled.', icon: Coins, color: 'text-amber-400' },

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, BookOpen, Search, Settings,
   Shield, Crown, Coins, Skull, Ghost,
-  FlaskConical, Flame, Trash2, Loader, Map as MapIcon, X, Siren
+  FlaskConical, Flame, Trash2, Loader, Map as MapIcon, X, Siren, ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CityMap from '@/components/CityMap'; // Ensure this path is correct

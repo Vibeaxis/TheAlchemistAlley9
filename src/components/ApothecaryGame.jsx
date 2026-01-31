@@ -388,16 +388,14 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProces
   );
 };
 const Workbench = ({ selectedIngredients, onIngredientSelect, theme }) => {
-  // If no theme passed, fallback to default (safety)
   const hudStyle = theme ? theme.hud : 'bg-slate-900 border-slate-700';
-  const textMain = theme ? theme.textMain : 'text-slate-200';
 
   return (
-    <div className={`w-full h-32 relative px-4 flex items-center border-t backdrop-blur-md ${hudStyle}`}>
+    <div className={`w-full h-32 relative px-4 flex items-center border-t shadow-[0_-5px_20px_rgba(0,0,0,0.3)] z-50 ${hudStyle}`}>
       
-      {/* Texture: Optional "Wood Grain" opacity */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay" 
-           style={{ backgroundImage: 'linear-gradient(to right, #451a03 1px, transparent 1px)', backgroundSize: '40px 100%' }} 
+      {/* Wood Grain Texture (Lighter) */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-soft-light" 
+           style={{ backgroundImage: 'linear-gradient(to right, #78350f 1px, transparent 1px)', backgroundSize: '40px 100%' }} 
       />
       
       <div className="flex gap-2 overflow-x-auto overflow-y-hidden w-full h-full items-center pb-2 px-2 custom-scrollbar-horizontal relative z-10">
@@ -410,28 +408,42 @@ const Workbench = ({ selectedIngredients, onIngredientSelect, theme }) => {
               key={ing.name}
               onClick={() => onIngredientSelect(ing)}
               whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               className={`
-                group relative shrink-0 w-32 h-24 flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-200
+                group relative shrink-0 w-28 h-24 flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-200
                 ${isSelected 
-                    ? 'bg-amber-900/60 border-amber-500 shadow-lg' 
-                    : 'bg-black/40 border-amber-900/20 hover:bg-amber-900/20 hover:border-amber-700/50'
+                    ? 'bg-amber-900/40 border-amber-500/50 shadow-lg shadow-amber-900/20' 
+                    : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
                 }
               `}
             >
-              {count > 0 && (
-                <div className="absolute top-1 right-1 w-5 h-5 bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center rounded shadow-sm">
-                  {count}
-                </div>
-              )}
-              <div className={`text-3xl mb-2 transition-transform ${isSelected ? 'scale-110 text-amber-100' : 'text-amber-700 group-hover:text-amber-400'}`}>
+              {/* Counter Badge */}
+              <AnimatePresence>
+                {count > 0 && (
+                    <motion.div 
+                        initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                        className="absolute top-1 right-1 w-5 h-5 bg-amber-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-md border border-amber-400"
+                    >
+                    {count}
+                    </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ICON - NO COLOR FILTERS! */}
+              {/* We keep it grayscale only if NOT hovered and NOT selected */}
+              <div className={`text-4xl mb-2 transition-all filter ${isSelected || 'group-hover:grayscale-0'} ${!isSelected && 'grayscale-[0.5] contrast-75'}`}>
                 {ing.icon}
               </div>
-              <div className={`text-[10px] uppercase font-bold tracking-wider truncate max-w-full ${isSelected ? 'text-amber-100' : 'text-amber-900/60 group-hover:text-amber-500'}`}>
+
+              {/* Name Label */}
+              <div className={`text-[10px] uppercase font-bold tracking-wider truncate max-w-full ${isSelected ? 'text-amber-200' : 'text-stone-500 group-hover:text-stone-300'}`}>
                 {ing.name}
               </div>
-              <div className="flex gap-1 mt-1.5">
+
+              {/* Dots (Tags) */}
+              <div className="flex gap-1 mt-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
                 {ing.tags.map((tag, i) => (
-                   <div key={i} className={`w-1.5 h-1.5 rounded-full ${getTagColor(tag)}`} title={tag}/>
+                   <div key={i} className={`w-1.5 h-1.5 rounded-full ${getTagColor(tag)} ring-1 ring-black/20`} title={tag}/>
                 ))}
               </div>
             </motion.button>
@@ -1043,23 +1055,21 @@ const mortarRef = useRef(null); // To help with drop detection
         {/* 3. Game Content Area */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
             
-          {/* Background Image Layer */}
-<div className={`absolute inset-0 z-0 ${theme.bg}`}> {/* Apply theme BG color to container */}
+    {/* Background Image Layer */}
+<div className={`absolute inset-0 z-0 ${theme.bg}`}>
+    {/* 1. Brighter Image (0.7 opacity instead of 0.4) */}
     <img 
         src={alcBg} 
         alt="Alchemist Alley" 
-        className="w-full h-full object-cover opacity-40 mix-blend-overlay" 
+        className="w-full h-full object-cover opacity-70 mix-blend-overlay" 
     />
     
-    {/* 1. DYNAMIC FLOOR FADE (Removes the blue tint!) */}
-    {/* We use the theme's specific gradient here */}
+    {/* 2. Lighter Theme Overlay */}
     <div className={`absolute inset-0 bg-gradient-to-t ${theme.overlay}`} />
 
-    {/* 2. Right Void Fade (Keep black for the window contrast) */}
-    <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-black to-transparent" />
-    
-    {/* 3. Left Shadow Fade (Keep black for door contrast) */}
-    <div className="absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-black/90 to-transparent" />
+    {/* 3. Reduced Void Fades (Less "Tunnel Vision") */}
+    <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-black/80 to-transparent" />
+    <div className="absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-black/80 to-transparent" />
 </div>
 
             <AnimatePresence mode='wait'>

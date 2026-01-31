@@ -144,8 +144,7 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
 };
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme }) => {
   const [hasRevealed, setHasRevealed] = React.useState(false);
-  // Use the safe renderer
-  const iconSource = customer.class.icon;
+  
   React.useEffect(() => {
     if (isInspecting) setHasRevealed(true);
   }, [isInspecting]);
@@ -154,7 +153,8 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     setHasRevealed(false);
   }, [customer.id]);
 
-  const Icon = customer.class.icon || Ghost;
+  // Use the safe renderer
+  const iconSource = customer.class.icon; 
   
   // Lore colors
   const districts = [
@@ -182,35 +182,31 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
       className={`
         relative w-full h-full min-h-[460px] 
         rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2
-        ${t.nav} /* Background Color */
+        ${t.nav} 
         ${hasRevealed ? `shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]` : 'border-opacity-60'}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       
-      {/* 1. BACKGROUND TEXTURE (Full Card) */}
+      {/* 1. BACKGROUND TEXTURE */}
       <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" 
            style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} 
       />
 
-      {/* 2. AVATAR (Centered, Upper Half, No Crop) */}
-      {/* We position it absolute so it sits behind the text panel */}
+      {/* 2. AVATAR */}
       <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10">
          <div className="relative w-full h-full flex justify-center">
-            {/* Glow behind head */}
             <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
-            
             <img 
                 src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
                 alt="Customer"
-                // object-contain prevents the "Scalping" crop issue
                 className="h-full w-auto object-contain drop-shadow-xl opacity-90 transition-all duration-700 group-hover:scale-105 group-hover:-translate-y-2 group-hover:opacity-100"
             />
          </div>
       </div>
 
-      {/* 3. SOUL ECHO STAMP (Floating Top Right) */}
+      {/* 3. STAMP */}
       <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-1000 z-10 text-right ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
         <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>
             Soul Echo
@@ -220,18 +216,16 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
         </div>
       </div>
 
-      {/* 4. TEXT PANEL (Bottom 45% - Covers the body, leaves the head) */}
+      {/* 4. TEXT PANEL */}
       <div className={`absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-4 border-t ${t.accent} bg-gradient-to-t from-black via-black/95 to-transparent`}>
-        
-        {/* Solid backing for text readability */}
         <div className={`absolute inset-0 opacity-90 ${t.nav} -z-10`} />
 
         <div className={`relative z-30 flex-1 flex flex-col ${t.font}`}>
             {/* HEADER */}
             <div className="w-full flex flex-col items-center -mt-8">
-                {/* Floating Icon Badge */}
                 <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg mb-2`}>
-                    <Icon size={24} strokeWidth={1.5} className={t.textMain} />
+                    {/* SAFE RENDER HERE */}
+                    <SafeIcon icon={iconSource} size={24} strokeWidth={1.5} className={t.textMain} />
                 </div>
                 
                 <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>
@@ -242,7 +236,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                 </p>
             </div>
 
-            {/* SYMPTOM TEXT */}
+            {/* SYMPTOM */}
             <div className="flex-1 flex items-center justify-center py-2">
                 <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm`}>
                     "{customer.symptom.text}"
@@ -276,7 +270,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
         </div>
       </div>
 
-      {/* TAGS (Floating Top Left) */}
+      {/* TAGS */}
       {revealedTags && revealedTags.length > 0 && (
         <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none">
           {revealedTags.map(t => (

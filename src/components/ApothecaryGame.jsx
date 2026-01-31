@@ -299,29 +299,17 @@ const getTagColor = (tag) => {
     default: return 'bg-slate-800 text-slate-400 border-slate-600';
   }
 };
-
 const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
   return (
-    <div className="bg-[#0c0a09] border-2 border-[#292524] rounded-xl p-4 h-full flex flex-col shadow-2xl relative overflow-hidden">
+    <div className="bg-[#0c0a09]/90 border-t-2 border-[#292524] p-2 w-full shadow-2xl relative overflow-hidden">
       
-      {/* Background Texture (Subtle Wood Grain) */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none" 
-           style={{ backgroundImage: 'linear-gradient(to right, #292524 1px, transparent 1px), linear-gradient(to bottom, #292524 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
+      {/* Background Texture - kept subtle */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none" 
+           style={{ backgroundImage: 'linear-gradient(to right, #292524 1px, transparent 1px)', backgroundSize: '40px 100%' }} 
       />
 
-      {/* Header */}
-      <div className="relative z-10 flex justify-between items-end mb-4 border-b border-stone-800 pb-2">
-        <h3 className="text-stone-500 text-xs font-black uppercase tracking-[0.2em] flex gap-2 items-center">
-          <FlaskConical size={14} className="text-amber-700" /> 
-          Reagent Rack
-        </h3>
-        <span className="text-[10px] text-stone-600 font-mono">
-            {selectedIngredients.length} Items on Table
-        </span>
-      </div>
-
-      {/* THE GRID: 2 cols on mobile, 3 on tablet, 4 on desktop */}
-      <div className="relative z-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pr-1 custom-scrollbar">
+      {/* THE ROW: Horizontal scroll, single line */}
+      <div className="relative z-10 flex flex-row gap-2 overflow-x-auto pb-2 custom-scrollbar items-center px-4">
         {INGREDIENTS.map((ing) => {
           const count = selectedIngredients.filter(i => i.name === ing.name).length;
           const isSelected = count > 0;
@@ -331,51 +319,44 @@ const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
               key={ing.name}
               onClick={() => onIngredientSelect(ing)}
               whileTap={{ scale: 0.95 }}
+              /* H-24 keeps it very short. min-w-[160px] ensures they don't squish */
               className={`
-                group relative min-h-[140px] flex flex-col items-center justify-between p-3 rounded-lg border-2 transition-all duration-200
+                group relative h-24 min-w-[160px] flex items-center gap-3 p-2 rounded-md border transition-all duration-200
                 ${isSelected 
-                    ? 'bg-amber-950/30 border-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.2)]' 
-                    : 'bg-[#1c1917] border-[#292524] hover:bg-[#292524] hover:border-stone-500'
+                    ? 'bg-amber-950/40 border-amber-500/60 shadow-inner' 
+                    : 'bg-[#1c1917] border-stone-800 hover:border-stone-600'
                 }
               `}
             >
-              {/* Selection Glow Overlay */}
-              {isSelected && (
-                <div className="absolute inset-0 bg-gradient-to-t from-amber-500/10 to-transparent pointer-events-none" />
-              )}
-
-              {/* Count Badge (Floating) */}
+              {/* Count Badge */}
               {count > 0 && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-amber-500 text-amber-950 font-black text-xs flex items-center justify-center rounded-full shadow-lg z-20 animate-in zoom-in duration-200">
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-600 text-white font-mono text-[10px] flex items-center justify-center rounded-sm z-20">
                   {count}
                 </div>
               )}
 
-              {/* Top Section: Icon & Name */}
-              <div className="flex flex-col items-center gap-2 mt-1">
-                 <div className={`text-4xl transition-all duration-300 ${isSelected ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]' : 'opacity-80 grayscale-[0.3] group-hover:grayscale-0'}`}>
-                    {ing.icon}
-                 </div>
-                 <span className={`text-[10px] font-black uppercase tracking-wider text-center ${isSelected ? 'text-amber-100' : 'text-stone-500 group-hover:text-stone-300'}`}>
-                    {ing.name}
-                 </span>
+              {/* Icon: Smaller for the row */}
+              <div className={`text-3xl transition-all ${isSelected ? 'scale-110' : 'opacity-70 group-hover:opacity-100'}`}>
+                {ing.icon}
               </div>
 
-              {/* Bottom Section: Tags */}
-              <div className="w-full flex flex-wrap gap-1 justify-center mt-2">
-                {ing.tags.map(tag => (
-                  <span
-                    key={tag}
-                    className={`
-                      text-[9px] uppercase font-bold tracking-tight px-1.5 py-0.5 rounded border
-                      ${getTagColor(tag)}
-                    `}
-                  >
-                    {tag}
-                  </span>
-                ))}
+              {/* Info: Stacked Name and Tags */}
+              <div className="flex flex-col items-start overflow-hidden">
+                <span className={`text-[10px] font-black uppercase tracking-tighter truncate w-full text-left ${isSelected ? 'text-amber-200' : 'text-stone-500'}`}>
+                  {ing.name}
+                </span>
+                
+                <div className="flex flex-wrap gap-0.5 mt-1">
+                  {ing.tags.map(tag => (
+                    <span
+                      key={tag}
+                      className={`text-[7px] uppercase font-bold px-1 rounded-[1px] border ${getTagColor(tag)}`}
+                    >
+                      {tag[0]} {/* Only show first letter of tag to save massive space */}
+                    </span>
+                  ))}
+                </div>
               </div>
-
             </motion.button>
           )
         })}

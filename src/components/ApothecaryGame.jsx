@@ -17,7 +17,9 @@ import SettingsMenu from '@/components/SettingsMenu';
 import { generateCustomer, calculateOutcome, tagCombination, INGREDIENTS, UPGRADES_LIST, APPRENTICE_MISSIONS } from '@/lib/gameLogic';
 import { initAudioContext, soundEngine } from '@/lib/SoundEngine';
 import alcBg from '../assets/alc_bg.jpg';
-
+// 1. IMPORT
+import ReputationExchange from '@/components/ReputationExchange';
+import WorldCalendar from '@/components/WorldCalendar';
 // ==========================================
 // 1. INLINE VISUAL COMPONENTS (FIXED)
 // ==========================================
@@ -709,6 +711,22 @@ const [isProcessing, setIsProcessing] = useState(false);
   const theme = THEMES[currentThemeId];
   // Tracks the result of the night's mission to show in the morning
 const [missionReport, setMissionReport] = useState(null);
+
+
+
+
+// 2. STATE
+const [isRepModalOpen, setIsRepModalOpen] = useState(false);
+const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+const [activeBuffs, setActiveBuffs] = useState({}); // Stores temp buffs like 'marketing'
+
+// 3. HELPER FOR BUFFS
+const addBuff = (id, duration) => {
+    setActiveBuffs(prev => ({ ...prev, [id]: duration }));
+};
+
+
+
   // --- Effects & Handlers ---
   useEffect(() => {
     const savedVol = localStorage.getItem('alchemistAudioVolume');
@@ -1257,15 +1275,43 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       {/* 1. Scale Container */}
       <div className="flex-1 flex flex-col" style={{ transform: `scale(${uiScale / 100})`, transformOrigin: 'top center', filter: `brightness(${gamma})` }}>
         
-        {/* 2. Top Navigation (Themed) */}
-        <div className={`h-16 border-b ${theme.nav} flex items-center justify-between px-8 shrink-0 z-40 relative backdrop-blur-md`}>
-          <div className="flex items-center gap-6">
-            <div className={`flex items-center gap-2 ${theme.textMain}`}><Coins size={18} /> <span className="text-xl font-bold font-mono">{gold}</span></div>
-            <div className={`flex items-center gap-2 ${theme.textSec}`}><Shield size={18} /> <span className="text-xl font-bold font-mono">{reputation}</span></div>
-            <div className={`w-px h-6 bg-current opacity-20 mx-2`} />
-            <div className={`text-sm tracking-widest uppercase opacity-60`}>Day {day} • {customersServed}/5</div>
-          </div>
-          
+       {/* 2. Top Navigation (Themed) */}
+<div className={`h-16 border-b ${theme.nav} flex items-center justify-between px-8 shrink-0 z-40 relative backdrop-blur-md`}>
+  <div className="flex items-center gap-6">
+    
+    {/* GOLD - (Visual only for now, but feels interactive) */}
+    <div className={`flex items-center gap-2 ${theme.textMain} cursor-default select-none hover:scale-105 transition-transform`}>
+        <Coins size={18} /> 
+        <span className="text-xl font-bold font-mono">{gold}</span>
+    </div>
+
+    {/* REPUTATION - Click to Open Exchange */}
+    <div 
+        className={`flex items-center gap-2 ${theme.textSec} cursor-pointer select-none hover:text-blue-400 hover:scale-105 transition-all`}
+        onClick={() => { soundEngine.playClick(vol); setIsRepModalOpen(true); }}
+    >
+        <Shield size={18} /> 
+        <span className="text-xl font-bold font-mono">{reputation}</span>
+    </div>
+
+    {/* Divider */}
+    <div className={`w-px h-6 bg-current opacity-20 mx-2`} />
+
+    {/* CALENDAR - Click to Open Forecast */}
+    <div 
+        className={`text-sm tracking-widest uppercase opacity-60 cursor-pointer select-none hover:opacity-100 hover:text-amber-200 transition-all`}
+        onClick={() => { soundEngine.playClick(vol); setIsCalendarOpen(true); }}
+    >
+        Day {day} • {customersServed}/5
+    </div>
+
+  </div>
+
+  {/* Keep your existing Settings/Grimoire buttons on the right side here */}
+  <div className="flex items-center gap-4">
+      {/* ... your existing buttons ... */}
+  </div>
+</div>
           <div className="flex gap-2 items-center">
             {/* Map Button (Custom styling to match theme) */}
             <button onClick={() => setShowMap(true)} className={`relative p-2 rounded-md shadow-lg flex items-center gap-2 transition-all mr-2 overflow-hidden border ${watchFocus === activeDistrict ? 'bg-red-950/80 border-red-500 text-red-200 animate-pulse' : `${theme.nav} hover:text-amber-200`}`}>
@@ -1402,6 +1448,24 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       </div>
 
       {/* Modals */}
+
+
+<ReputationExchange 
+    isOpen={isRepModalOpen} 
+    onClose={() => setIsRepModalOpen(false)}
+    gold={gold} setGold={setGold}
+    reputation={reputation} setReputation={setReputation}
+    heat={heat} setHeat={setHeat}
+    upgrades={upgrades} setUpgrades={setUpgrades}
+    addBuff={addBuff}
+/>
+
+<WorldCalendar 
+    isOpen={isCalendarOpen} 
+    onClose={() => setIsCalendarOpen(false)}
+    day={day}
+/>
+
       <BlackBook isOpen={isBlackBookOpen} onClose={() => setIsBlackBookOpen(false)} discoveredIngredients={discoveredIngredients} brewHistory={brewHistory} />
       <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={currentThemeId}        // <--- Add this
   onThemeChange={setCurrentThemeId}      // <--- Add this

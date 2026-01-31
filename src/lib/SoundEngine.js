@@ -1,4 +1,3 @@
-
 // Web Audio API Sound Engine
 // Uses procedural synthesis to avoid external asset dependencies
 
@@ -63,7 +62,6 @@ export const soundEngine = {
     osc.frequency.setValueAtTime(150, now);
     
     // Mechanical click envelope - Reduced volume (50% base)
-    // Passing peakLevel = 0.5 * masterVolume
     const peak = 0.5 * masterVolume;
     applyEnvelope(gain.gain, now, 0.01, 0.05, 0.0, 0.04, 0.5, peak);
 
@@ -98,6 +96,37 @@ export const soundEngine = {
     osc.stop(now + 0.4);
   },
 
+  // --- ADDED: TRANSACTION SOUND (Cha-Ching) ---
+  playTransaction: (masterVolume = 1.0) => {
+    if (!audioContext) return;
+    const now = audioContext.currentTime;
+    
+    // Helper for a single coin sound
+    const playCoin = (delay, freq) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        
+        osc.type = 'square'; // Square wave for retro coin sound
+        osc.frequency.setValueAtTime(freq, now + delay);
+        
+        const baseGain = 0.05;
+        const scaledGain = baseGain * masterVolume;
+        
+        gain.gain.setValueAtTime(scaledGain, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(masterGainNode);
+        
+        osc.start(now + delay);
+        osc.stop(now + delay + 0.1);
+    };
+
+    // Play two notes quickly
+    playCoin(0, 1200);
+    playCoin(0.05, 1600);
+  },
+
   playBubble: (masterVolume = 1.0) => {
     if (!audioContext) return;
     const now = audioContext.currentTime;
@@ -127,29 +156,27 @@ export const soundEngine = {
   playSuccess: (masterVolume = 1.0) => {
     if (!audioContext) return;
     const now = audioContext.currentTime;
-    const notes = [261.63, 329.63, 392.00]; // C Major arpeggio
+    const notes = [261.63, 329.63, 392.00, 523.25]; // C Major arpeggio + High C
     
     notes.forEach((freq, i) => {
       const osc = audioContext.createOscillator();
       const gain = audioContext.createGain();
-      const startTime = now + i * 0.1;
+      const startTime = now + i * 0.08; // Faster arpeggio
 
       osc.type = 'triangle';
       osc.frequency.value = freq;
       
-      // Reverb-like decay
-      // Scale peak gain
       const peakGain = 0.1 * masterVolume;
 
       gain.gain.setValueAtTime(0, startTime);
       gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.8);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.6);
 
       osc.connect(gain);
       gain.connect(masterGainNode);
 
       osc.start(startTime);
-      osc.stop(startTime + 0.8);
+      osc.stop(startTime + 0.6);
     });
   },
 
@@ -160,20 +187,43 @@ export const soundEngine = {
     const gain = audioContext.createGain();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(80, now);
-    osc.frequency.linearRampToValueAtTime(60, now + 0.5); // Pitch drop
+    osc.frequency.setValueAtTime(150, now); // Lower start
+    osc.frequency.linearRampToValueAtTime(50, now + 0.4); // Deeper drop
 
-    // Dissonant buzz
-    const baseGain = 0.1;
+    const baseGain = 0.15;
     const scaledGain = baseGain * masterVolume;
 
     gain.gain.setValueAtTime(scaledGain, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
     osc.connect(gain);
     gain.connect(masterGainNode);
 
     osc.start(now);
-    osc.stop(now + 0.5);
+    osc.stop(now + 0.4);
+  },
+
+  // --- ADDED: GRIND SOUND (For Mortar) ---
+  playGrind: (masterVolume = 1.0) => {
+    if (!audioContext) return;
+    const now = audioContext.currentTime;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    osc.type = 'sawtooth'; // Rougher texture
+    osc.frequency.setValueAtTime(60, now);
+    osc.frequency.linearRampToValueAtTime(40, now + 0.2); // Pitch variation
+
+    const baseGain = 0.08;
+    const scaledGain = baseGain * masterVolume;
+
+    gain.gain.setValueAtTime(scaledGain, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+
+    osc.connect(gain);
+    gain.connect(masterGainNode);
+
+    osc.start(now);
+    osc.stop(now + 0.2);
   }
 };

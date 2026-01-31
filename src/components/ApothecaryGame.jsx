@@ -141,7 +141,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 
   const Icon = customer.class.icon || Ghost;
   
-  // Lore colors (District IDs)
+  // Lore colors
   const districts = [
     { name: 'The Dregs', flavor: 'Rat-Kin', color: 'text-emerald-500' },
     { name: 'Market', flavor: 'Coin-Bound', color: 'text-amber-500' },
@@ -166,70 +166,76 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
     <div
       className={`
         relative w-full h-full min-h-[460px] 
-        rounded-xl overflow-hidden flex flex-col shadow-2xl group transition-all duration-700 border-2
-        ${t.nav} /* Themed Background border color */
+        rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2
+        ${t.nav} /* Background Color */
         ${hasRevealed ? `shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]` : 'border-opacity-60'}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       
-      {/* --- SECTION 1: TOP IMAGE AREA (45% Height) --- */}
-      <div className="relative h-[45%] shrink-0 overflow-hidden bg-black/20">
-         {/* The Avatar - Unblocked & Colorful */}
-         <img 
-            src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
-            alt="Customer"
-            // object-top ensures we see the face even if cropped
-            className="w-full h-full object-cover object-top opacity-90 transition-all duration-700 group-hover:scale-105 group-hover:opacity-100"
-        />
-         
-         {/* Gradient Fade into the text area below */}
-         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
+      {/* 1. BACKGROUND TEXTURE (Full Card) */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" 
+           style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} 
+      />
 
-         {/* REVEAL STAMP (Moved to top right corner of image) */}
-         <div className={`absolute top-3 right-3 flex flex-col items-end transition-all duration-1000 z-20 text-right ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-            <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm`}>
-               Soul Echo
-            </div>
-            <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/40 px-2 rounded-sm`}>
-               {origin.name}
-            </div>
+      {/* 2. AVATAR (Centered, Upper Half, No Crop) */}
+      {/* We position it absolute so it sits behind the text panel */}
+      <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10">
+         <div className="relative w-full h-full flex justify-center">
+            {/* Glow behind head */}
+            <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
+            
+            <img 
+                src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
+                alt="Customer"
+                // object-contain prevents the "Scalping" crop issue
+                className="h-full w-auto object-contain drop-shadow-xl opacity-90 transition-all duration-700 group-hover:scale-105 group-hover:-translate-y-2 group-hover:opacity-100"
+            />
+         </div>
+      </div>
+
+      {/* 3. SOUL ECHO STAMP (Floating Top Right) */}
+      <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-1000 z-10 text-right ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+        <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>
+            Soul Echo
+        </div>
+        <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/60 px-2 rounded-sm backdrop-blur-md border border-white/10`}>
+            {origin.name}
         </div>
       </div>
 
-
-      {/* --- SECTION 2: BOTTOM TEXT AREA (Remaining Height) --- */}
-      <div className={`flex-1 relative flex flex-col w-full p-4 ${t.font} ${t.nav} border-t ${t.accent}`}>
+      {/* 4. TEXT PANEL (Bottom 45% - Covers the body, leaves the head) */}
+      <div className={`absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-4 border-t ${t.accent} bg-gradient-to-t from-black via-black/95 to-transparent`}>
         
-        {/* Paper Texture Overlay (Only on text area) */}
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none z-0 mix-blend-multiply" 
-             style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} 
-        />
+        {/* Solid backing for text readability */}
+        <div className={`absolute inset-0 opacity-90 ${t.nav} -z-10`} />
 
-        <div className="relative z-10 flex-1 flex flex-col">
+        <div className={`relative z-30 flex-1 flex flex-col ${t.font}`}>
             {/* HEADER */}
-            <div className="w-full flex flex-col items-center">
-                <div className={`${t.textSec} mb-1 opacity-80`}>
-                <Icon size={24} strokeWidth={1.5} />
+            <div className="w-full flex flex-col items-center -mt-8">
+                {/* Floating Icon Badge */}
+                <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg mb-2`}>
+                    <Icon size={24} strokeWidth={1.5} className={t.textMain} />
                 </div>
-                <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide`}>
+                
+                <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>
                     {customer.class.name}
                 </h2>
-                <p className={`${t.textSec} text-xs italic tracking-wider mt-0.5 opacity-80`}>
+                <p className={`${t.textSec} text-xs italic tracking-wider mt-1 opacity-80`}>
                     "{customer.class.description}"
                 </p>
             </div>
 
-            {/* BODY QUOTE (Centered in remaining space) */}
-            <div className="flex-1 flex items-center justify-center py-2 px-2">
-                <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90`}>
+            {/* SYMPTOM TEXT */}
+            <div className="flex-1 flex items-center justify-center py-2">
+                <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm`}>
                     "{customer.symptom.text}"
                 </p>
             </div>
 
-            {/* FOOTER (Hint / Divinate) */}
-            <div className="h-10 w-full flex items-end justify-center shrink-0">
+            {/* FOOTER */}
+            <div className="h-8 w-full flex items-end justify-center shrink-0">
                 <AnimatePresence>
                 {observationHint && hasRevealed && (
                     <motion.div
@@ -237,32 +243,29 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                         animate={{ opacity: 1, y: 0 }} 
                         className="w-full text-center"
                     >
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 border-t border-b ${t.accent} bg-black/20 rounded-sm`}>
-                            <span className={`text-[9px] ${t.textMain} uppercase tracking-[0.2em] font-bold`}>
-                                ✦ {observationHint} ✦
-                            </span>
-                        </div>
+                        <span className={`inline-block px-3 py-1 text-[9px] ${t.textMain} uppercase tracking-[0.2em] font-bold border-t border-b ${t.accent} bg-black/20`}>
+                            ✦ {observationHint} ✦
+                        </span>
                     </motion.div>
                 )}
                 </AnimatePresence>
                 
                 {!hasRevealed && (
-                    <div className="flex flex-col items-center gap-1 opacity-40 group-hover:opacity-80 transition-opacity">
+                    <div className="flex flex-col items-center gap-1 opacity-30 group-hover:opacity-60 transition-opacity">
                         <span className={`text-[8px] ${t.textSec} uppercase tracking-[0.25em]`}>
                             Divinate Aura
                         </span>
-                        <div className={`h-px w-6 ${t.textSec} opacity-50`} />
                     </div>
                 )}
             </div>
         </div>
       </div>
 
-      {/* TAGS (Floating Top Left - keeping these outside the flow) */}
+      {/* TAGS (Floating Top Left) */}
       {revealedTags && revealedTags.length > 0 && (
         <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none">
           {revealedTags.map(t => (
-            <span key={t} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/30 px-1.5 rounded-sm backdrop-blur-md`}>
+            <span key={t} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/60 px-2 py-0.5 rounded-sm backdrop-blur-md`}>
                 {t}
             </span>
           ))}

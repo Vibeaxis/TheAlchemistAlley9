@@ -144,7 +144,8 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
 };
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme }) => {
   const [hasRevealed, setHasRevealed] = React.useState(false);
-  
+  // Use the safe renderer
+  const iconSource = customer.class.icon;
   React.useEffect(() => {
     if (isInspecting) setHasRevealed(true);
   }, [isInspecting]);

@@ -262,9 +262,17 @@ const TavernHub = ({
   );
 };
 const NavButton = ({ active, onClick, icon, label, desc }) => (
-    <button onClick={onClick} className={...}>
+    <button
+        onClick={onClick}
+        className={`
+            text-left p-4 rounded-xl transition-all flex items-center gap-4 group w-full
+            ${active 
+                ? 'bg-amber-900/20 border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' 
+                : 'bg-transparent border border-transparent hover:bg-white/5'
+            }
+        `}
+    >
         <div className={`p-2 rounded-lg ${active ? 'bg-amber-500 text-black' : 'bg-stone-800 text-stone-500 group-hover:text-stone-300'}`}>
-            {/* USE THE HELPER HERE */}
             <RenderIcon icon={icon} size={20} />
         </div>
         <div>

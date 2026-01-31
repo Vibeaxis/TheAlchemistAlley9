@@ -21,7 +21,32 @@ import alcBg from '../assets/alc_bg.jpg';
 // ==========================================
 // 1. INLINE VISUAL COMPONENTS (FIXED)
 // ==========================================
-
+const THEMES = {
+  // The Old Look (for reference/unlockable)
+  'default': {
+    id: 'default',
+    font: 'font-sans',
+    bg: 'bg-slate-950',
+    nav: 'bg-slate-900/80 border-slate-800',
+    hud: 'bg-slate-900 border-slate-700',
+    textMain: 'text-amber-500',
+    textSec: 'text-blue-400',
+    accent: 'border-slate-700',
+    button: 'hover:bg-slate-800 text-slate-400 hover:text-white'
+  },
+  // THE NEW LOOK (Golden/Wood/Paper)
+  'grimoire': {
+    id: 'grimoire',
+    font: 'font-serif', // Everything becomes serif
+    bg: 'bg-[#0c0a09]', // Warm Black (Stone)
+    nav: 'bg-[#1c1917]/90 border-amber-900/30', // Dark Wood
+    hud: 'bg-[#1c1917] border-amber-900/30', // Dark Wood HUD
+    textMain: 'text-amber-500', // Gold
+    textSec: 'text-amber-700', // Dark Bronze/Leather
+    accent: 'border-amber-900/30',
+    button: 'hover:bg-amber-900/20 text-amber-800 hover:text-amber-500'
+  }
+};
 const TagBadge = ({ tag }) => {
   const colors = {
     'Toxic': 'bg-green-900/40 text-green-400 border-green-800',
@@ -311,15 +336,20 @@ const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProces
     </div>
   );
 };
+const Workbench = ({ selectedIngredients, onIngredientSelect, theme }) => {
+  // If no theme passed, fallback to default (safety)
+  const hudStyle = theme ? theme.hud : 'bg-slate-900 border-slate-700';
+  const textMain = theme ? theme.textMain : 'text-slate-200';
 
-// --- FIX: WORKBENCH IS NOW A HORIZONTAL STRIP ---
-const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
   return (
-    <div className="w-full h-32 relative px-4 flex items-center border-t border-slate-800 bg-slate-950/80 backdrop-blur-md">
-      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(to right, #44403c 1px, transparent 1px)', backgroundSize: '60px 100%' }} />
+    <div className={`w-full h-32 relative px-4 flex items-center border-t backdrop-blur-md ${hudStyle}`}>
       
-      {/* Horizontal Flex Container */}
-      <div className="flex gap-2 overflow-x-auto overflow-y-hidden w-full h-full items-center pb-2 px-2 custom-scrollbar-horizontal">
+      {/* Texture: Optional "Wood Grain" opacity */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay" 
+           style={{ backgroundImage: 'linear-gradient(to right, #451a03 1px, transparent 1px)', backgroundSize: '40px 100%' }} 
+      />
+      
+      <div className="flex gap-2 overflow-x-auto overflow-y-hidden w-full h-full items-center pb-2 px-2 custom-scrollbar-horizontal relative z-10">
         {INGREDIENTS.map((ing) => {
           const count = selectedIngredients.filter(i => i.name === ing.name).length;
           const isSelected = count > 0;
@@ -329,10 +359,12 @@ const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
               key={ing.name}
               onClick={() => onIngredientSelect(ing)}
               whileTap={{ scale: 0.95 }}
-              /* shrink-0 ensures they don't get crushed. Fixed width/height */
               className={`
                 group relative shrink-0 w-32 h-24 flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-200
-                ${isSelected ? 'bg-amber-950/60 border-amber-500 shadow-lg' : 'bg-slate-900/50 border-slate-700 hover:bg-slate-800 hover:border-slate-500'}
+                ${isSelected 
+                    ? 'bg-amber-900/60 border-amber-500 shadow-lg' 
+                    : 'bg-black/40 border-amber-900/20 hover:bg-amber-900/20 hover:border-amber-700/50'
+                }
               `}
             >
               {count > 0 && (
@@ -340,13 +372,12 @@ const Workbench = ({ selectedIngredients, onIngredientSelect }) => {
                   {count}
                 </div>
               )}
-              <div className={`text-3xl mb-2 transition-transform ${isSelected ? 'scale-110 text-amber-100' : 'text-slate-400 group-hover:text-slate-200'}`}>
+              <div className={`text-3xl mb-2 transition-transform ${isSelected ? 'scale-110 text-amber-100' : 'text-amber-700 group-hover:text-amber-400'}`}>
                 {ing.icon}
               </div>
-              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 group-hover:text-white truncate max-w-full">
+              <div className={`text-[10px] uppercase font-bold tracking-wider truncate max-w-full ${isSelected ? 'text-amber-100' : 'text-amber-900/60 group-hover:text-amber-500'}`}>
                 {ing.name}
               </div>
-              {/* Dot Tags */}
               <div className="flex gap-1 mt-1.5">
                 {ing.tags.map((tag, i) => (
                    <div key={i} className={`w-1.5 h-1.5 rounded-full ${getTagColor(tag)}`} title={tag}/>
@@ -577,7 +608,9 @@ const mortarRef = useRef(null); // To help with drop detection
   const [messageType, setMessageType] = useState('normal');
   const [whisperQueue, setWhisperQueue] = useState([]);
   const [observationHint, setObservationHint] = useState(null);
-
+// NEW: Theme State (Defaulting to Grimoire)
+  const [currentThemeId, setCurrentThemeId] = useState('grimoire');
+  const theme = THEMES[currentThemeId];
   // --- Effects & Handlers ---
   useEffect(() => {
     const savedVol = localStorage.getItem('alchemistAudioVolume');
@@ -907,34 +940,37 @@ const mortarRef = useRef(null); // To help with drop detection
   if (gameState === 'TITLE') return <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}><TitleScreen onStart={handleStartGame} onOpenSettings={() => setSettingsOpen(true)} /><SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} /></div>;
   if (gameState === 'GAMEOVER') return <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}><GameOverScreen stats={gameStats} onReturnToTitle={() => setGameState('TITLE')} /></div>;
 
-  // --- MAIN RENDER (REFACTORED LAYOUT) ---
-  // --- MAIN RENDER ---
+ // --- UPDATED MAIN RENDER ---
   return (
-    <div className='min-h-screen bg-slate-950 text-amber-500 font-sans selection:bg-amber-900 selection:text-white overflow-hidden flex flex-col'>
+    <div className={`min-h-screen ${theme.bg} ${theme.textMain} ${theme.font} selection:bg-amber-900 selection:text-white overflow-hidden flex flex-col`}>
       
       {/* 1. Scale Container */}
       <div className="flex-1 flex flex-col" style={{ transform: `scale(${uiScale / 100})`, transformOrigin: 'top center', filter: `brightness(${gamma})` }}>
         
-        {/* 2. Top Navigation */}
-        <div className="h-16 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between px-8 shrink-0 z-40 relative">
+        {/* 2. Top Navigation (Themed) */}
+        <div className={`h-16 border-b ${theme.nav} flex items-center justify-between px-8 shrink-0 z-40 relative backdrop-blur-md`}>
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-amber-500"><Coins size={18} /> <span className="text-xl font-bold font-mono">{gold}</span></div>
-            <div className="flex items-center gap-2 text-blue-400"><Shield size={18} /> <span className="text-xl font-bold font-mono">{reputation}</span></div>
-            <div className="w-px h-6 bg-slate-700 mx-2" />
-            <div className="text-slate-500 text-sm font-mono tracking-widest uppercase">Day {day} • {customersServed}/5</div>
+            <div className={`flex items-center gap-2 ${theme.textMain}`}><Coins size={18} /> <span className="text-xl font-bold font-mono">{gold}</span></div>
+            <div className={`flex items-center gap-2 ${theme.textSec}`}><Shield size={18} /> <span className="text-xl font-bold font-mono">{reputation}</span></div>
+            <div className={`w-px h-6 bg-current opacity-20 mx-2`} />
+            <div className={`text-sm tracking-widest uppercase opacity-60`}>Day {day} • {customersServed}/5</div>
           </div>
+          
           <div className="flex gap-2 items-center">
-            <button onClick={() => setShowMap(true)} className={`relative p-2 rounded-md shadow-lg flex items-center gap-2 transition-all mr-2 overflow-hidden ${watchFocus === activeDistrict ? 'bg-red-950/80 border border-red-500 text-red-200 animate-pulse' : 'bg-slate-900 border border-slate-700 hover:text-amber-500'}`}>
+            {/* Map Button (Custom styling to match theme) */}
+            <button onClick={() => setShowMap(true)} className={`relative p-2 rounded-md shadow-lg flex items-center gap-2 transition-all mr-2 overflow-hidden border ${watchFocus === activeDistrict ? 'bg-red-950/80 border-red-500 text-red-200 animate-pulse' : `${theme.nav} hover:text-amber-200`}`}>
                 {watchFocus === activeDistrict ? <Siren size={20} className="animate-spin" /> : <MapIcon size={20} />}
                 <span className="text-xs uppercase font-bold tracking-widest hidden md:inline">{watchFocus === activeDistrict ? "PATROL ALERT" : "City Map"}</span>
             </button>
+            
             {apprentice.hired && apprentice.activeAbility?.type === 'consult' && (
-              <Button onClick={handleConsultApprentice} disabled={consultUsed} size="sm" className={`mr-2 ${consultUsed ? 'bg-slate-800 text-slate-500' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}>
+              <Button onClick={handleConsultApprentice} disabled={consultUsed} size="sm" className={`mr-2 ${consultUsed ? 'bg-stone-800 text-stone-500' : 'bg-amber-900 hover:bg-amber-800 text-amber-100'} border border-amber-700/50`}>
                 <Search className="w-4 h-4 mr-2" /> {consultUsed ? 'Consulted' : 'Ask Apprentice'}
               </Button>
             )}
-            <Button onClick={() => { soundEngine.playClick(vol); setIsBlackBookOpen(true); }} variant="ghost" className="text-amber-500 hover:text-amber-200"><BookOpen size={20} /></Button>
-            <Button onClick={() => { soundEngine.playClick(vol); setSettingsOpen(true); }} variant="ghost" className="text-amber-500 hover:text-amber-200"><Settings size={20} /></Button>
+            
+            <Button onClick={() => { soundEngine.playClick(vol); setIsBlackBookOpen(true); }} variant="ghost" className={theme.button}><BookOpen size={20} /></Button>
+            <Button onClick={() => { soundEngine.playClick(vol); setSettingsOpen(true); }} variant="ghost" className={theme.button}><Settings size={20} /></Button>
           </div>
         </div>
 
@@ -944,11 +980,8 @@ const mortarRef = useRef(null); // To help with drop detection
             {/* Background Image Layer */}
             <div className="absolute inset-0 z-0 bg-black">
                 <img src={alcBg} alt="Alchemist Alley" className="w-full h-full object-cover opacity-50" />
-                {/* Floor Fade */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/80" />
-                {/* Right Void Fade (For Window) */}
                 <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-black to-transparent" />
-                {/* Left Shadow Fade (For Door) */}
                 <div className="absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-black/80 to-transparent" />
             </div>
 
@@ -962,7 +995,7 @@ const mortarRef = useRef(null); // To help with drop detection
                         {/* A. The Stage */}
                         <div className="flex-1 grid grid-cols-12 px-8 min-h-0 items-end">
                             
-                            {/* LEFT COL: Customer (The Doorway) */}
+                            {/* LEFT COL: Customer */}
                             <div className="col-span-3 flex flex-col justify-center h-full pb-12 z-20 border-r border-black/40 shadow-[10px_0_20px_rgba(0,0,0,0.5)] pr-8">
                                 <AnimatePresence mode='wait'>
                                     {currentCustomer && (
@@ -987,23 +1020,17 @@ const mortarRef = useRef(null); // To help with drop detection
                                 </AnimatePresence>
                             </div>
 
-                            {/* CENTER COL: The Desk Surface */}
+                            {/* CENTER COL: The Desk */}
                             <div className="col-span-6 flex flex-col justify-end items-center relative h-full">
-                                
-                                {/* Visual Trick: "Table Edge" Shadow */}
+                                {/* Table Edge Shadow */}
                                 <div className="absolute bottom-0 left-[-20px] right-[-20px] h-16 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none z-0" />
 
-                                {/* 1. LENS (Grounded) */}
                                 <div className="absolute bottom-1 left-4 z-40">
                                     <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
                                 </div>
-
-                                {/* 2. MORTAR (Grounded) */}
                                 <div className="absolute bottom-1 right-4 z-40">
                                     <Mortar onInteract={handleMortarClick} />
                                 </div>
-
-                                {/* 3. CAULDRON */}
                                 <div className="w-full max-w-xl z-10 mb-1">
                                     <Cauldron 
                                         selectedIngredients={selectedIngredients} 
@@ -1015,30 +1042,29 @@ const mortarRef = useRef(null); // To help with drop detection
                                 </div>
                             </div>
 
-                            {/* RIGHT COL: Atmosphere & Results */}
+                            {/* RIGHT COL: Results */}
                             <div className="col-span-3 flex flex-col justify-start pt-12 h-full z-10 pl-4">
-                                    {/* Window */}
                                     <ShopAtmosphere 
                                         heat={heat} 
                                         watchFocus={watchFocus} 
                                         activeDistrict={activeDistrict} 
                                     />
-
-                                    {/* Result Log */}
                                     <div className="flex-1 flex items-start justify-center mt-8">
                                         <AnimatePresence mode='wait'>
-                                            {gameMessage && (
-                                                <CinematicAnnouncement text={gameMessage} type={messageType} />
-                                            )}
+                                            {gameMessage && <CinematicAnnouncement text={gameMessage} type={messageType} />}
                                         </AnimatePresence>
                                     </div>
                             </div>
-
                         </div>
 
-                        {/* B. The HUD (Workbench) */}
+                        {/* B. The HUD (Workbench) - THEMED */}
                         <div className="shrink-0 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.8)] relative">
-                            <Workbench selectedIngredients={selectedIngredients} onIngredientSelect={handleIngredientSelect} />
+                            {/* We pass the theme object to the workbench */}
+                            <Workbench 
+                                selectedIngredients={selectedIngredients} 
+                                onIngredientSelect={handleIngredientSelect} 
+                                theme={theme}
+                            />
                         </div>
 
                     </motion.div>

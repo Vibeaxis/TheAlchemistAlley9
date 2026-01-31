@@ -128,6 +128,20 @@ const getTagColor = (tag) => {
     default: return 'bg-slate-400';
   }
 };
+// --- SAFE ICON HELPER (Add this above CustomerCard) ---
+const SafeIcon = ({ icon, className, size, strokeWidth }) => {
+    // 1. If it's a valid React Component (function), render it
+    if (typeof icon === 'function') {
+        const IconComp = icon;
+        return <IconComp size={size} strokeWidth={strokeWidth} className={className} />;
+    }
+    // 2. If it's a React Element (already <Icon />), clone it
+    if (React.isValidElement(icon)) {
+        return React.cloneElement(icon, { size, strokeWidth, className });
+    }
+    // 3. Fallback
+    return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
+};
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme }) => {
   const [hasRevealed, setHasRevealed] = React.useState(false);
   

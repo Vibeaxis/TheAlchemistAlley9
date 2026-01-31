@@ -142,141 +142,141 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     // 3. Fallback
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
-const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme }) => {
-  const [hasRevealed, setHasRevealed] = React.useState(false);
+// --- UPDATED CUSTOMER CARD (Safe + Visual FX) ---
+const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme, feedbackState }) => {
+  const [hasRevealed, setHasRevealed] = useState(false);
   
-  React.useEffect(() => {
-    if (isInspecting) setHasRevealed(true);
-  }, [isInspecting]);
+  useEffect(() => { if (isInspecting) setHasRevealed(true); }, [isInspecting]);
+  useEffect(() => { setHasRevealed(false); }, [customer.id]);
 
-  React.useEffect(() => {
-    setHasRevealed(false);
-  }, [customer.id]);
-
-  // Use the safe renderer
+  const t = theme || THEMES.grimoire;
   const iconSource = customer.class.icon; 
-  
-  // Lore colors
-  const districts = [
-    { name: 'The Dregs', flavor: 'Rat-Kin', color: 'text-emerald-500' },
-    { name: 'Market', flavor: 'Coin-Bound', color: 'text-amber-500' },
-    { name: 'Arcanum', flavor: 'Void-Touched', color: 'text-purple-400' },
-    { name: 'Docks', flavor: 'Salt-Born', color: 'text-cyan-600' },
-    { name: 'Cathedral', flavor: 'Light-Blinded', color: 'text-yellow-400' },
-    { name: 'Spire', flavor: 'High-Blood', color: 'text-rose-500' }
-  ];
+
+  const districts = [ { name: 'The Dregs', color: 'text-emerald-500' }, { name: 'Market', color: 'text-amber-500' }, { name: 'Arcanum', color: 'text-purple-400' }, { name: 'Docks', color: 'text-cyan-600' }, { name: 'Cathedral', color: 'text-yellow-400' }, { name: 'Spire', color: 'text-rose-500' } ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
 
-  // Theme fallback
-  const t = theme || { 
-      font: 'font-serif', 
-      nav: 'bg-slate-900 border-slate-700', 
-      textMain: 'text-slate-200', 
-      textSec: 'text-slate-400', 
-      accent: 'border-slate-600'
+  // Animation Variants for the Avatar
+  const avatarVariants = {
+    idle: { y: 0, rotate: 0, scale: 1, filter: 'none' },
+    cured: { 
+        y: [0, -20, 0], 
+        scale: [1, 1.1, 1],
+        filter: 'brightness(1.3) contrast(1.1) drop-shadow(0 0 15px gold)',
+        transition: { duration: 0.5 }
+    },
+    poisoned: { 
+        x: [-5, 5, -5, 5, 0],
+        filter: 'hue-rotate(90deg) contrast(1.5) drop-shadow(0 0 10px lime)',
+        transition: { duration: 0.4 } 
+    },
+    exploded: { 
+        x: [-10, 10, -10, 10, 0],
+        scale: 0.9,
+        filter: 'grayscale(100%) brightness(0.4) sepia(1)', 
+        transition: { duration: 0.3 }
+    },
+    failed: {
+        rotate: [0, -5, 5, 0],
+        filter: 'grayscale(100%) opacity(0.7)',
+        transition: { duration: 0.5 }
+    }
   };
 
   return (
-    <div
-      className={`
-        relative w-full h-full min-h-[460px] 
-        rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2
-        ${t.nav} 
-        ${hasRevealed ? `shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]` : 'border-opacity-60'}
-      `}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
+    <div className={`relative w-full h-full min-h-[460px] rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${hasRevealed ? 'shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       
-      {/* 1. BACKGROUND TEXTURE */}
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" 
-           style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} 
-      />
-
-      {/* 2. AVATAR */}
+      {/* 1. Background */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
+      
+      {/* 2. Avatar Container */}
       <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10">
          <div className="relative w-full h-full flex justify-center">
             <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
-            <img 
+            
+            {/* Animated Avatar Image */}
+            <motion.img 
                 src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
-                alt="Customer"
-                className="h-full w-auto object-contain drop-shadow-xl opacity-90 transition-all duration-700 group-hover:scale-105 group-hover:-translate-y-2 group-hover:opacity-100"
+                alt="Customer" 
+                variants={avatarVariants}
+                animate={feedbackState || 'idle'}
+                className="h-full w-auto object-contain drop-shadow-xl z-10"
             />
+
+            {/* Overlays for States */}
+            <AnimatePresence>
+                {feedbackState === 'poisoned' && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                        className="absolute top-1/3 left-1/2 -translate-x-1/2 z-20 flex gap-8 pointer-events-none"
+                    >
+                        <div className="text-4xl font-bold text-red-500 drop-shadow-md">X</div>
+                        <div className="text-4xl font-bold text-red-500 drop-shadow-md">X</div>
+                    </motion.div>
+                )}
+                {feedbackState === 'cured' && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.5, y: 20 }} animate={{ opacity: 1, scale: 1.5, y: -50 }} exit={{ opacity: 0 }}
+                        className="absolute top-1/4 left-1/2 -translate-x-1/2 z-0 pointer-events-none"
+                    >
+                        <div className="text-6xl filter drop-shadow-lg">✨</div>
+                    </motion.div>
+                )}
+                {feedbackState === 'failed' && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 0 }} animate={{ opacity: 1, y: -40 }} exit={{ opacity: 0 }}
+                        className="absolute top-1/4 right-10 z-20 pointer-events-none"
+                    >
+                        <div className="text-6xl font-bold text-slate-500">?</div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
          </div>
       </div>
 
-      {/* 3. STAMP */}
+      {/* 3. Stamp */}
       <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-1000 z-10 text-right ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-        <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>
-            Soul Echo
-        </div>
-        <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/60 px-2 rounded-sm backdrop-blur-md border border-white/10`}>
-            {origin.name}
-        </div>
+        <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>Soul Echo</div>
+        <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/60 px-2 rounded-sm backdrop-blur-md border border-white/10`}>{origin.name}</div>
       </div>
 
-      {/* 4. TEXT PANEL */}
+      {/* 4. Text Panel */}
       <div className={`absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-4 border-t ${t.accent} bg-gradient-to-t from-black via-black/95 to-transparent`}>
         <div className={`absolute inset-0 opacity-90 ${t.nav} -z-10`} />
-
         <div className={`relative z-30 flex-1 flex flex-col ${t.font}`}>
-            {/* HEADER */}
             <div className="w-full flex flex-col items-center -mt-8">
                 <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg mb-2`}>
-                    {/* SAFE RENDER HERE */}
-                    <SafeIcon icon={iconSource} size={24} strokeWidth={1.5} className={t.textMain} />
+                    {/* Safe Icon Render */}
+                    <SafeIcon icon={iconSource} size={24} className={t.textMain} />
                 </div>
-                
-                <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>
-                    {customer.class.name}
-                </h2>
-                <p className={`${t.textSec} text-xs italic tracking-wider mt-1 opacity-80`}>
-                    "{customer.class.description}"
-                </p>
+                <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>{customer.class.name}</h2>
+                <p className={`${t.textSec} text-xs italic tracking-wider mt-1 opacity-80`}>"{customer.class.description}"</p>
             </div>
-
-            {/* SYMPTOM */}
             <div className="flex-1 flex items-center justify-center py-2">
-                <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm`}>
-                    "{customer.symptom.text}"
-                </p>
+                <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm`}>"{customer.symptom.text}"</p>
             </div>
-
-            {/* FOOTER */}
             <div className="h-8 w-full flex items-end justify-center shrink-0">
                 <AnimatePresence>
                 {observationHint && hasRevealed && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }} 
-                        animate={{ opacity: 1, y: 0 }} 
-                        className="w-full text-center"
-                    >
-                        <span className={`inline-block px-3 py-1 text-[9px] ${t.textMain} uppercase tracking-[0.2em] font-bold border-t border-b ${t.accent} bg-black/20`}>
-                            ✦ {observationHint} ✦
-                        </span>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center">
+                        <span className={`inline-block px-3 py-1 text-[9px] ${t.textMain} uppercase tracking-[0.2em] font-bold border-t border-b ${t.accent} bg-black/20`}>✦ {observationHint} ✦</span>
                     </motion.div>
                 )}
                 </AnimatePresence>
-                
                 {!hasRevealed && (
                     <div className="flex flex-col items-center gap-1 opacity-30 group-hover:opacity-60 transition-opacity">
-                        <span className={`text-[8px] ${t.textSec} uppercase tracking-[0.25em]`}>
-                            Divinate Aura
-                        </span>
+                        <span className={`text-[8px] ${t.textSec} uppercase tracking-[0.25em]`}>Divinate Aura</span>
                     </div>
                 )}
             </div>
         </div>
       </div>
 
-      {/* TAGS */}
+      {/* 5. Tags */}
       {revealedTags && revealedTags.length > 0 && (
         <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none">
           {revealedTags.map(t => (
-            <span key={t} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/60 px-2 py-0.5 rounded-sm backdrop-blur-md`}>
-                {t}
-            </span>
+            <span key={t} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/60 px-2 py-0.5 rounded-sm backdrop-blur-md`}>{t}</span>
           ))}
         </div>
       )}
@@ -678,7 +678,7 @@ const mortarRef = useRef(null); // To help with drop detection
   const [isBlackBookOpen, setIsBlackBookOpen] = useState(false);
   const [discoveredIngredients, setDiscoveredIngredients] = useState({});
   const [brewHistory, setBrewHistory] = useState([]);
-
+const [feedbackState, setFeedbackState] = useState(null); // Add this line
   const [heat, setHeat] = useState(0);
   const [watchFocus, setWatchFocus] = useState('market'); 
   const [activeDistrict, setActiveDistrict] = useState('dregs');
@@ -1061,7 +1061,8 @@ const handleBrew = () => {
     setGold(prev => Math.max(0, prev + outcome.goldReward));
     setReputation(prev => Math.max(0, prev + outcome.reputationChange));
     setGameMessage(outcome.narrative);
-
+// --- TRIGGER ANIMATION ---
+setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
     if (outcome.result === 'cured') {
       setMessageType('success');
       setTimeout(() => {
@@ -1097,6 +1098,7 @@ const handleBrew = () => {
             setConsultUsed(false);
             setRevealedCustomerTags([]);
             setSelectedIngredients([]);
+            setFeedbackState(null);
         }
       }
     }, 4000);
@@ -1189,6 +1191,7 @@ const handleBrew = () => {
                                                 onMouseEnter={() => handleCustomerHover(currentCustomer)} 
                                                 onMouseLeave={handleCustomerLeave} 
                                                 revealedTags={revealedCustomerTags}
+                                                feedbackState={feedbackState}
                                                 isInspecting={isInspecting} 
                                                 theme={theme}
                                             />

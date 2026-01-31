@@ -160,32 +160,35 @@ const LOCATIONS = {
   elemental: ['breath', 'voice', 'touch', 'gaze', 'heartbeat']
 };
 export const SENSATIONS_MAP = [
-  // --- TIER 1: ELEMENTAL (Basic) ---
-  { category: 'elemental', text: 'burns with an unholy fire', tags: ['Cooling', 'Holy'] },
-  { category: 'elemental', text: 'feels like molten slag', tags: ['Cooling', 'Heavy'] },
-  { category: 'elemental', text: 'feels like solid ice', tags: ['Hot', 'Vital'] },
-  { category: 'elemental', text: 'shivers with a grave chill', tags: ['Hot', 'Holy'] },
+  // --- TIER 1: BASICS (Day 1+) ---
+  // Ingredients: Salt, Sage, Sulfur, Moonstone, Bloodroot, Copper
+  // Available Tags: Purifying, Crystalline, Calming, Cooling, Holy, Hot, Vital, Heavy
+  { category: 'elemental', text: 'burns with an unholy fire', tags: ['Cooling', 'Holy'], minDay: 1 },
+  { category: 'elemental', text: 'feels like molten slag', tags: ['Cooling', 'Heavy'], minDay: 1 },
+  { category: 'elemental', text: 'feels like solid ice', tags: ['Hot', 'Vital'], minDay: 1 },
+  { category: 'elemental', text: 'shivers with a grave chill', tags: ['Hot', 'Holy'], minDay: 1 },
+  { category: 'physical', text: 'is turning to dust', tags: ['Heavy', 'Vital'], minDay: 1 },
+  { category: 'physical', text: 'vibrates uncontrollably', tags: ['Calming', 'Heavy'], minDay: 1 },
+  { category: 'physical', text: 'feels heavy as lead', tags: ['Purifying', 'Vital'], minDay: 1 }, // Changed from Luminous (Tier 2) to Vital
 
-  // --- TIER 2: PHYSICAL (Advanced) ---
-  { category: 'physical', text: 'oozes a foul sludge', tags: ['Purifying', 'Desiccated'] }, // Needs Skull
-  { category: 'physical', text: 'feels heavy as lead', tags: ['Purifying', 'Luminous'] }, // Needs Moss
-  { category: 'physical', text: 'is turning to dust', tags: ['Heavy', 'Vital'] },
-  { category: 'physical', text: 'vibrates uncontrollably', tags: ['Calming', 'Heavy'] },
-  
-  // --- TIER 3: ETHEREAL (Arcane/Void) ---
-  { category: 'ethereal', text: 'is clouded by dark shadows', tags: ['Luminous', 'Holy'] }, // Needs Feather/Moss
-  { category: 'ethereal', text: 'hears the call of the void', tags: ['Arcane', 'Calming'] }, // Needs Pepper/Time
-  { category: 'ethereal', text: 'is fading from existence', tags: ['Arcane', 'Heavy'] }, 
-  { category: 'ethereal', text: 'is drowning in dry air', tags: ['Vital', 'Cooling'] },
-  { category: 'ethereal', text: 'is weeping blood', tags: ['Desiccated', 'Calming'] }, // Needs Skull
+  // --- TIER 2: ADVANCED (Day 3+) ---
+  // Unlocks: Ghost Pepper, Skull, Moss
+  // New Tags: Arcane, Desiccated, Luminous
+  { category: 'physical', text: 'oozes a foul sludge', tags: ['Purifying', 'Desiccated'], minDay: 3 },
+  { category: 'physical', text: 'feels thin and stretched', tags: ['Luminous', 'Heavy'], minDay: 3 },
+  { category: 'ethereal', text: 'is clouded by dark shadows', tags: ['Luminous', 'Holy'], minDay: 3 },
+  { category: 'ethereal', text: 'hears the call of the void', tags: ['Arcane', 'Calming'], minDay: 3 },
+  { category: 'ethereal', text: 'is fading from existence', tags: ['Arcane', 'Heavy'], minDay: 3 },
+  { category: 'ethereal', text: 'is drowning in dry air', tags: ['Vital', 'Cooling'], minDay: 3 },
+  { category: 'ethereal', text: 'is weeping blood', tags: ['Desiccated', 'Calming'], minDay: 3 },
 
-  // --- TIER 4: NEW HIGH LEVEL SCENARIOS ---
-  { category: 'ethereal', text: 'is stuck in a time loop', tags: ['Arcane', 'Crystalline'] }, // Needs Time Sand
-  { category: 'physical', text: 'has stopped beating', tags: ['Electric', 'Vital'] }, // Needs Thunderstone
-  { category: 'elemental', text: 'is consumed by entropy', tags: ['Void', 'Holy'] }, // Needs Tentacle (to match void) + Holy to cure? 
-  // Actually, standard logic is "Opposites". 
-  // Entropy (Void) needs Holy + Vital (Phoenix Feather).
-  { category: 'ethereal', text: 'is screaming silently', tags: ['Dark', 'Calming'] } // Needs Grave Dust
+  // --- TIER 3: EXPERT (Day 6+) ---
+  // Unlocks: Tentacle, Thunderstone, etc.
+  // New Tags: Void, Electric, Dark
+  { category: 'ethereal', text: 'is stuck in a time loop', tags: ['Arcane', 'Crystalline'], minDay: 6 },
+  { category: 'physical', text: 'has stopped beating', tags: ['Electric', 'Vital'], minDay: 6 },
+  { category: 'elemental', text: 'is consumed by entropy', tags: ['Void', 'Holy'], minDay: 6 },
+  { category: 'ethereal', text: 'is screaming silently', tags: ['Dark', 'Calming'], minDay: 6 }
 ];
 
 
@@ -392,20 +395,16 @@ const fixGrammar = (part, text) => {
     }
     return text;
 };
-
-// ** UPDATED GENERATOR: Uses Weights and Days **
+// ** UPDATED GENERATOR **
 export const generateCustomer = (day = 1) => {
-  // 1. Filter Classes based on Day (Progression Gating)
+  // 1. Filter Classes based on Day
   const availableClasses = CUSTOMER_CLASSES.filter(c => day >= (c.minDay || 1));
 
-  // 2. Weighted Random Selection
-  // Calculate total weight of available classes
+  // Weighted Random Class
   const totalWeight = availableClasses.reduce((sum, c) => sum + (c.weight || 10), 0);
-  
   let random = Math.random() * totalWeight;
-  let customerClass = availableClasses[0]; // Default
+  let customerClass = availableClasses[0]; 
 
-  // Iterate to find the winner
   for (const c of availableClasses) {
       const weight = c.weight || 10;
       if (random < weight) {
@@ -415,14 +414,18 @@ export const generateCustomer = (day = 1) => {
       random -= weight;
   }
 
-  // 3. Pick Scenario
-  const scenario = SENSATIONS_MAP[Math.floor(Math.random() * SENSATIONS_MAP.length)];
+  // 2. Filter Scenarios based on Day (THE FIX)
+  const availableScenarios = SENSATIONS_MAP.filter(s => day >= (s.minDay || 1));
+  
+  // Fallback: If day 1 has no scenarios (shouldn't happen), take the first one
+  const scenario = availableScenarios.length > 0 
+    ? availableScenarios[Math.floor(Math.random() * availableScenarios.length)]
+    : SENSATIONS_MAP[0];
 
-  // 4. Pick Body Part
+  // 3. Pick Body Part
   const validParts = LOCATIONS[scenario.category] || LOCATIONS.physical;
   const part = validParts[Math.floor(Math.random() * validParts.length)];
   
-  // 5. Fix Grammar (and assign to a variable named 'text')
   const text = fixGrammar(part, scenario.text);
 
   return {
@@ -436,25 +439,32 @@ export const generateCustomer = (day = 1) => {
 };
 
 // --- 3. ALCHEMY ENGINE ---
-
 export const tagCombination = (ingredients) => {
   const allTags = [];
   ingredients.forEach(ing => allTags.push(...ing.tags));
   let processedTags = [...allTags];
 
   // A. Thermodynamics (Hot <-> Cold)
+  // They neutralize each other completely
   const hotCount = processedTags.filter(t => t === 'Hot').length;
   const coldCount = processedTags.filter(t => t === 'Cooling').length;
   const tempCancel = Math.min(hotCount, coldCount);
+  
   for (let i = 0; i < tempCancel; i++) {
-    processedTags.splice(processedTags.indexOf('Hot'), 1);
-    processedTags.splice(processedTags.indexOf('Cooling'), 1);
+    const hotIdx = processedTags.indexOf('Hot');
+    if (hotIdx > -1) processedTags.splice(hotIdx, 1);
+    
+    const coldIdx = processedTags.indexOf('Cooling');
+    if (coldIdx > -1) processedTags.splice(coldIdx, 1);
   }
 
   // B. Purification (Purifying -> Toxic)
+  // Purifying acts as a cleansing agent. It removes Toxic tags.
+  // CRITICAL: We do NOT remove the 'Purifying' tag. It survives the reaction.
   const purifyingCount = processedTags.filter(t => t === 'Purifying').length;
   const toxicCount = processedTags.filter(t => t === 'Toxic').length;
   const poisonCancel = Math.min(purifyingCount, toxicCount);
+  
   for (let i = 0; i < poisonCancel; i++) {
     const toxicIndex = processedTags.indexOf('Toxic');
     if (toxicIndex !== -1) processedTags.splice(toxicIndex, 1);

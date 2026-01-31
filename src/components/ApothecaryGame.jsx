@@ -947,7 +947,92 @@ const handleAssignMission = (mission) => {
   };
 
 
+// --- SAVE SYSTEM ---
+  const saveGame = () => {
+    const gameState = {
+        day,
+        gold,
+        reputation,
+        heat,
+        inventory,
+        upgrades,
+        apprentice,
+        rival,
+        discoveredIngredients,
+        brewHistory,
+        gameStats,
+        currentThemeId: currentTheme.id
+    };
+    localStorage.setItem('apothecary_save_v1', JSON.stringify(gameState));
+    console.log("Game Saved:", gameState);
+  };
 
+  const loadGame = () => {
+    const savedData = localStorage.getItem('apothecary_save_v1');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            
+            // Restore States
+            setDay(data.day);
+            setGold(data.gold);
+            setReputation(data.reputation);
+            setHeat(data.heat || 0);
+            setInventory(data.inventory);
+            setUpgrades(data.upgrades);
+            setApprentice(data.apprentice);
+            setRival(data.rival || null); // Handle legacy saves
+            setDiscoveredIngredients(data.discoveredIngredients);
+            setBrewHistory(data.brewHistory);
+            setGameStats(data.gameStats);
+            
+            // Restore Theme
+            if (data.currentThemeId && THEMES[data.currentThemeId]) {
+                setCurrentTheme(THEMES[data.currentThemeId]);
+            }
+            
+            // Reset Phase to 'day' to be safe
+            setPhase('day');
+            setCurrentCustomer(generateCustomer(data.day)); // New customer for the reloaded day
+            
+            console.log("Game Loaded Successfully");
+        } catch (err) {
+            console.error("Failed to load save:", err);
+            setGameMessage("Save file corrupted");
+        }
+    } else {
+        setGameMessage("No save found");
+    }
+  };
+
+  // --- AUTO LOAD ON STARTUP ---
+  useEffect(() => {
+    const hasSave = localStorage.getItem('apothecary_save_v1');
+    if (hasSave) {
+        loadGame();
+    }
+  }, []);
+
+  // --- UPDATED RESET ---
+  const handleHardReset = () => {
+      // 1. Clear Storage
+      localStorage.removeItem('apothecary_save_v1');
+      
+      // 2. Reset All States to Initial Values
+      setDay(1);
+      setGold(100);
+      setReputation(20);
+      setHeat(0);
+      setInventory({ Salt: 3, Sage: 2 });
+      setUpgrades({ ... }); // Reset your upgrades object here manually or use INITIAL_STATE constant
+      setApprentice({ hired: false, ... });
+      setRival(null);
+      setDiscoveredIngredients({});
+      setBrewHistory([]);
+      
+      // 3. Force Refresh (Easiest way to clear derived states)
+      window.location.reload();
+  };
 
 
 
@@ -977,6 +1062,10 @@ const advanceDay = () => {
     setWatchFocus(districts[Math.floor(Math.random() * districts.length)]);
     
     setTimeout(() => setGameMessage(''), 3000);
+    // AUTO SAVE
+    setTimeout(() => {
+        saveGame();
+    }, 100); // Small delay to ensure state updates settle (though mostly redundant with hooks, safer here)
 };
 
 
@@ -1541,7 +1630,8 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
 />
 
       <BlackBook isOpen={isBlackBookOpen} onClose={() => setIsBlackBookOpen(false)} discoveredIngredients={discoveredIngredients} brewHistory={brewHistory} />
-      <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={currentThemeId}        // <--- Add this
+      <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={currentThemeId}   onSaveGame={saveGame}
+    onLoadGame={loadGame}     // <--- Add this
   onThemeChange={setCurrentThemeId}      // <--- Add this
   availableThemes={THEMES} />
       <AnimatePresence>

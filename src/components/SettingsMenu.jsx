@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Volume2, Monitor, Sun, RotateCcw, X, Check, Palette } from 'lucide-react';
+import { Settings, Volume2, Monitor, Sun, RotateCcw, X, Check, Palette, Save, Download } from 'lucide-react'; // Added Save/Download icons
 import { Button } from '@/components/ui/button';
 import { soundEngine } from '@/lib/SoundEngine';
 
@@ -14,17 +14,34 @@ const SettingsMenu = ({
   onScaleChange,
   currentGamma,
   onGammaChange,
-  // NEW PROPS FOR THEME
   currentThemeId,
   onThemeChange,
-  availableThemes // Pass the THEMES object here
+  availableThemes,
+  // NEW PROPS
+  onSaveGame,
+  onLoadGame
 }) => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(''); // 'saved', 'loaded'
 
   const handleVolumeChangeInternal = (e) => {
     const newVal = parseInt(e.target.value);
     onVolumeChange(newVal);
     if (Math.random() > 0.8) soundEngine.playHover(newVal / 100);
+  };
+
+  const handleSave = () => {
+    onSaveGame();
+    setSaveStatus('saved');
+    soundEngine.playSuccess(currentVolume/100);
+    setTimeout(() => setSaveStatus(''), 2000);
+  };
+
+  const handleLoad = () => {
+    onLoadGame();
+    setSaveStatus('loaded');
+    soundEngine.playClick(currentVolume/100);
+    setTimeout(() => setSaveStatus(''), 2000);
   };
 
   if (!isOpen) return null;
@@ -57,7 +74,25 @@ const SettingsMenu = ({
 
           <div className="space-y-6">
             
-            {/* --- NEW: THEME TOGGLE --- */}
+            {/* --- SAVE / LOAD SYSTEM --- */}
+            <div className="space-y-3">
+                 <div className="flex justify-between items-center text-sm font-medium text-slate-300">
+                    <span className="flex items-center gap-2"><Save className="w-4 h-4 text-amber-500"/> Game Progress</span>
+                    {saveStatus && <span className="text-emerald-400 text-xs font-bold uppercase animate-pulse">{saveStatus === 'saved' ? 'Game Saved' : 'Game Loaded'}</span>}
+                 </div>
+                 <div className="grid grid-cols-2 gap-3">
+                    <Button onClick={handleSave} className="bg-emerald-900/50 hover:bg-emerald-800 border border-emerald-700/50 text-emerald-100">
+                        <Save className="w-4 h-4 mr-2" /> Save Game
+                    </Button>
+                    <Button onClick={handleLoad} variant="outline" className="border-slate-600 hover:bg-slate-800 text-slate-300">
+                        <Download className="w-4 h-4 mr-2" /> Load Save
+                    </Button>
+                 </div>
+            </div>
+
+            <div className="w-full h-px bg-slate-800" />
+
+            {/* --- THEME TOGGLE --- */}
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm font-medium text-slate-300">
                 <div className="flex items-center gap-2">
@@ -82,7 +117,6 @@ const SettingsMenu = ({
                                 : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-slate-200'}
                         `}
                     >
-                        {/* Small preview dot of the bg color */}
                         <div className={`w-3 h-3 rounded-full border border-white/20 ${theme.id === 'default' ? 'bg-slate-900' : 'bg-[#1c1917]'}`} />
                         {theme.id}
                     </button>
@@ -107,45 +141,6 @@ const SettingsMenu = ({
                 max="100"
                 value={currentVolume}
                 onChange={handleVolumeChangeInternal}
-                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-            </div>
-
-            {/* UI Scale */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center text-sm font-medium text-slate-300">
-                <div className="flex items-center gap-2">
-                  <Monitor className="w-4 h-4 text-amber-500" />
-                  <span>UI Scale</span>
-                </div>
-                <span className="text-amber-500 font-mono">{currentScale}%</span>
-              </div>
-              <input
-                type="range"
-                min="80"
-                max="120"
-                value={currentScale}
-                onChange={(e) => onScaleChange(parseInt(e.target.value))}
-                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              />
-            </div>
-
-            {/* Brightness / Gamma */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center text-sm font-medium text-slate-300">
-                <div className="flex items-center gap-2">
-                  <Sun className="w-4 h-4 text-amber-500" />
-                  <span>Brightness</span>
-                </div>
-                <span className="text-amber-500 font-mono">{currentGamma.toFixed(1)}</span>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="2.0"
-                step="0.1"
-                value={currentGamma}
-                onChange={(e) => onGammaChange(parseFloat(e.target.value))}
                 className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
             </div>

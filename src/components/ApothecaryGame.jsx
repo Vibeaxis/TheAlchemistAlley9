@@ -22,29 +22,79 @@ import alcBg from '../assets/alc_bg.jpg';
 // 1. INLINE VISUAL COMPONENTS (FIXED)
 // ==========================================
 const THEMES = {
-  // The Old Look (for reference/unlockable)
+  // 1. DEFAULT (Legacy/Tech)
   'default': {
     id: 'default',
+    label: 'Standard Issue',
     font: 'font-sans',
     bg: 'bg-slate-950',
-    nav: 'bg-slate-900/80 border-slate-800',
+    nav: 'bg-slate-900/90 border-slate-800',
     hud: 'bg-slate-900 border-slate-700',
-    textMain: 'text-amber-500',
-    textSec: 'text-blue-400',
+    textMain: 'text-blue-400',
+    textSec: 'text-slate-500',
     accent: 'border-slate-700',
-    button: 'hover:bg-slate-800 text-slate-400 hover:text-white'
+    button: 'hover:bg-slate-800 text-slate-400 hover:text-white',
+    overlay: 'from-slate-950 via-slate-900/50 to-transparent' // Cool Blue Tint
   },
-  // THE NEW LOOK (Golden/Wood/Paper)
+
+  // 2. GRIMOIRE (The Main Vibe - Warm/Gold)
   'grimoire': {
     id: 'grimoire',
-    font: 'font-serif', // Everything becomes serif
-    bg: 'bg-[#0c0a09]', // Warm Black (Stone)
-    nav: 'bg-[#1c1917]/90 border-amber-900/30', // Dark Wood
-    hud: 'bg-[#1c1917] border-amber-900/30', // Dark Wood HUD
+    label: 'Grand Grimoire',
+    font: 'font-serif',
+    bg: 'bg-[#0c0a09]', // Warm Stone Black
+    nav: 'bg-[#1c1917]/95 border-amber-900/30', // Dark Wood
+    hud: 'bg-[#1c1917] border-amber-900/30', 
     textMain: 'text-amber-500', // Gold
-    textSec: 'text-amber-700', // Dark Bronze/Leather
+    textSec: 'text-amber-800', // Bronze
     accent: 'border-amber-900/30',
-    button: 'hover:bg-amber-900/20 text-amber-800 hover:text-amber-500'
+    button: 'hover:bg-amber-900/20 text-amber-700 hover:text-amber-500',
+    overlay: 'from-[#1c1917] via-[#292524]/50 to-transparent' // Warm Brown Tint
+  },
+
+  // 3. VERDANT (Witch of the Woods - Green/Toxic)
+  'verdant': {
+    id: 'verdant',
+    label: 'Swamp Witch',
+    font: 'font-serif',
+    bg: 'bg-[#022c22]', // Deep Emerald Black
+    nav: 'bg-[#064e3b]/90 border-emerald-800/50', // Mossy Green
+    hud: 'bg-[#064e3b] border-emerald-900',
+    textMain: 'text-emerald-400', // Glowing Green
+    textSec: 'text-emerald-800', // Dark Green
+    accent: 'border-emerald-800/30',
+    button: 'hover:bg-emerald-900/30 text-emerald-700 hover:text-emerald-300',
+    overlay: 'from-[#022c22] via-[#064e3b]/40 to-transparent' // Toxic Green Tint
+  },
+
+  // 4. VOID (Cosmic/High Magic - Purple/Starlight)
+  'void': {
+    id: 'void',
+    label: 'Astral Plane',
+    font: 'font-sans tracking-wide',
+    bg: 'bg-[#0f172a]', // Deep Space Blue
+    nav: 'bg-[#1e1b4b]/90 border-indigo-500/20', // Deep Indigo
+    hud: 'bg-[#1e1b4b] border-indigo-500/20',
+    textMain: 'text-purple-300', // Starlight Purple
+    textSec: 'text-indigo-400',
+    accent: 'border-purple-500/20',
+    button: 'hover:bg-indigo-900/50 text-indigo-300 hover:text-white',
+    overlay: 'from-[#0f172a] via-[#1e1b4b]/50 to-transparent' // Deep Space Tint
+  },
+
+  // 5. SYNTH (Cyberpunk Alchemist - Pink/Black/Mono)
+  'synth': {
+    id: 'synth',
+    label: 'Neon Runner',
+    font: 'font-mono',
+    bg: 'bg-black',
+    nav: 'bg-zinc-950/95 border-pink-500/50',
+    hud: 'bg-zinc-950 border-pink-500/50',
+    textMain: 'text-pink-500', // Hot Pink
+    textSec: 'text-zinc-500',
+    accent: 'border-pink-500',
+    button: 'hover:bg-pink-900/20 text-pink-700 hover:text-pink-400',
+    overlay: 'from-black via-pink-900/10 to-transparent' // Subtle Neon Tint
   }
 };
 const TagBadge = ({ tag }) => {
@@ -993,13 +1043,24 @@ const mortarRef = useRef(null); // To help with drop detection
         {/* 3. Game Content Area */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
             
-            {/* Background Image Layer */}
-            <div className="absolute inset-0 z-0 bg-black">
-                <img src={alcBg} alt="Alchemist Alley" className="w-full h-full object-cover opacity-50" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/80" />
-                <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-black to-transparent" />
-                <div className="absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-black/80 to-transparent" />
-            </div>
+          {/* Background Image Layer */}
+<div className={`absolute inset-0 z-0 ${theme.bg}`}> {/* Apply theme BG color to container */}
+    <img 
+        src={alcBg} 
+        alt="Alchemist Alley" 
+        className="w-full h-full object-cover opacity-40 mix-blend-overlay" 
+    />
+    
+    {/* 1. DYNAMIC FLOOR FADE (Removes the blue tint!) */}
+    {/* We use the theme's specific gradient here */}
+    <div className={`absolute inset-0 bg-gradient-to-t ${theme.overlay}`} />
+
+    {/* 2. Right Void Fade (Keep black for the window contrast) */}
+    <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-black to-transparent" />
+    
+    {/* 3. Left Shadow Fade (Keep black for door contrast) */}
+    <div className="absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-black/90 to-transparent" />
+</div>
 
             <AnimatePresence mode='wait'>
                 {phase === 'day' ? (

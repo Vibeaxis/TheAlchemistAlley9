@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { soundEngine } from '@/lib/SoundEngine';
 import { HIREABLE_NPCS } from '@/lib/NPCData';
 import { UPGRADES_LIST } from '@/lib/gameLogic';
-import ReagentVendor from './ReagentVendor';
+import ReagentVendor from '@/components/ReagentVendor';
 
 // --- SAFE ICON RENDERER ---
 const RenderIcon = ({ icon, className }) => {

@@ -461,22 +461,27 @@ const CinematicAnnouncement = ({ text, type }) => {
 const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
   const isWatched = watchFocus === activeDistrict;
   
+  // COLORS UPDATED:
+  // Red: Deep Lantern Red (Alert)
+  // Orange: Smoldering Coal (Suspicion)
+  // Blue: Desaturated Moonlight (Safe) - Less "Electric Blue", more "Night Sky"
   const glowColor = isWatched 
-    ? 'shadow-[0_0_100px_rgba(220,38,38,0.5)] bg-red-950/20' 
+    ? 'shadow-[0_0_100px_rgba(153,27,27,0.5)] bg-red-950/30' 
     : heat > 50 
-      ? 'shadow-[0_0_80px_rgba(234,88,12,0.3)] bg-orange-900/10'
-      : 'shadow-[0_0_50px_rgba(30,41,59,0.5)] bg-blue-950/20';
+      ? 'shadow-[0_0_80px_rgba(194,65,12,0.3)] bg-orange-950/20'
+      : 'shadow-[0_0_60px_rgba(71,85,105,0.3)] bg-[#0f172a]/60';
 
   return (
     <div className="w-full flex flex-col gap-4 p-4 opacity-90 pointer-events-none select-none transition-all duration-1000 items-center">
        
-       {/* THE WINDOW - Increased size constraints */}
-       <div className={`relative w-full aspect-square max-w-[280px] border-8 border-slate-900 bg-black overflow-hidden rounded-t-full transition-all duration-1000 ${glowColor}`}>
+       {/* THE WINDOW FRAME */}
+       {/* Changed border from slate-900 to #292524 (Warm Iron/Stone) */}
+       <div className={`relative w-full aspect-square max-w-[280px] border-8 border-[#292524] bg-black overflow-hidden rounded-t-full transition-all duration-1000 ${glowColor}`}>
           
-          {/* 1. Atmosphere Overlay */}
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 z-10" />
+          {/* 1. Texture Overlay (Dirty Glass) */}
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 z-10 mix-blend-overlay" />
           
-          {/* 2. THE GUARD */}
+          {/* 2. THE GUARD (Silhouette) */}
           <AnimatePresence>
             {isWatched && (
                <motion.img 
@@ -491,14 +496,15 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
             )}
           </AnimatePresence>
 
-          {/* 3. The Window Bars */}
+          {/* 3. THE BARS (Cast Iron) */}
+          {/* Changed from slate-900 to #0c0a09 (Obsidian/Black Iron) */}
           <div className="absolute inset-0 flex z-20">
-             <div className="flex-1 border-r-4 border-slate-900/80"></div>
-             <div className="flex-1 border-r-4 border-slate-900/80"></div>
+             <div className="flex-1 border-r-4 border-[#0c0a09]"></div>
+             <div className="flex-1 border-r-4 border-[#0c0a09]"></div>
              <div className="flex-1"></div>
           </div>
           <div className="absolute inset-0 flex flex-col z-20">
-             <div className="flex-1 border-b-4 border-slate-900/80"></div>
+             <div className="flex-1 border-b-4 border-[#0c0a09]"></div>
              <div className="flex-1"></div>
           </div>
        </div>

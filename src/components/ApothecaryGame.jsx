@@ -1206,7 +1206,8 @@ const mortarRef = useRef(null); // To help with drop detection
                     </motion.div>
                 ) : (
                     <motion.div key="night" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full z-20 relative bg-slate-950">
-                        <TavernHub gold={gold} setGold={setGold} upgrades={upgrades} setUpgrades={setUpgrades} apprentice={apprentice} setApprentice={setApprentice} day={day} onRest={handleRest} volume={vol} />
+                        <TavernHub gold={gold} setGold={setGold} upgrades={upgrades} setUpgrades={setUpgrades} apprentice={apprentice} setApprentice={setApprentice} day={day} onRest={handleRest} volume={vol} onBuyReagent={handleBuyReagent}
+    inventory={inventory} />
                     </motion.div>
                 )}
             </AnimatePresence>

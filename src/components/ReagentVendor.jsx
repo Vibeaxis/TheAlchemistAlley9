@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShoppingBag, Coins, Lock, Package } from 'lucide-react';
-import { INGREDIENTS } from '@/lib/constants';
+import { INGREDIENTS } from '@/lib/gameLogic';
 
 const ReagentVendor = ({ inventory, onBuy, playerGold }) => {
   // Only show Finite items in the shop

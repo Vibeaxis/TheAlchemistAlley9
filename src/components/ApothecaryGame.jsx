@@ -53,25 +53,36 @@ const getTagColor = (tag) => {
     default: return 'bg-slate-400';
   }
 };
-
 const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting }) => {
+  // 1. STATE: Track if we have uncovered the secrets
+  const [hasRevealed, setHasRevealed] = React.useState(false);
+  
+  // 2. EFFECT: Latch the reveal state when inspection starts
+  React.useEffect(() => {
+    if (isInspecting) {
+        setHasRevealed(true);
+    }
+  }, [isInspecting]);
+
+  // 3. EFFECT: Reset when a new customer arrives
+  React.useEffect(() => {
+    setHasRevealed(false);
+  }, [customer.id]);
+
   const Icon = customer.class.icon || Ghost;
-  const seed = customer.id + customer.class.name;
-  const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=transparent`;
-// Generate a consistent District based on ID (Pseudo-random)
+  
+  // Generate District
   const districts = ['Dregs', 'Market', 'Arcanum', 'Docks', 'Cathedral', 'Spire'];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const originDistrict = districts[districtIndex];
-  const accentColor =
-    customer.class.id === 'noble' ? 'text-yellow-400 border-yellow-500/30' :
-      customer.class.id === 'guard' ? 'text-blue-400 border-blue-500/30' :
-        customer.class.id === 'cultist' ? 'text-purple-400 border-purple-500/30' :
-          customer.class.id === 'merchant' ? 'text-emerald-400 border-emerald-500/30' : 
-          customer.class.id === 'bard' ? 'text-pink-400 border-pink-500/30' : 'text-slate-400 border-slate-500/30';
 
   return (
     <div
-      className="relative h-full bg-slate-950 border-4 border-double rounded-lg p-6 flex flex-col items-center text-center shadow-2xl overflow-hidden group border-slate-800"
+      className={`
+        relative w-full h-full min-h-[460px] 
+        bg-slate-950 border-4 border-double border-slate-800 rounded-lg p-4 md:p-6 
+        flex flex-col items-center text-center shadow-2xl overflow-hidden group transition-all
+      `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -83,54 +94,85 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
             className="absolute -right-16 -bottom-10 w-[90%] h-[90%] object-contain opacity-20 filter grayscale brightness-0 drop-shadow-lg"
         />
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent z-0 pointer-events-none" />
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col justify-between items-center w-full relative z-10 h-full">
+      {/* Content Layer */}
+      <div className="flex-1 flex flex-col justify-between items-center w-full relative z-10 h-full gap-4">
         
-        {/* Header */}
-        <div className="mt-4 flex flex-col items-center">
-            <div className="p-3 rounded-full bg-slate-900/80 border-2 border-slate-700 shadow-lg mb-3 text-slate-400">
-              <Icon size={32} />
+        {/* Header Section */}
+        <div className="mt-2 flex flex-col items-center shrink-0">
+            <div className="p-3 rounded-full bg-slate-900/80 border-2 border-slate-700 shadow-lg mb-2 text-slate-400">
+              <Icon size={28} />
             </div>
-            <h2 className="text-3xl font-serif font-bold text-slate-200">{customer.class.name}</h2>
-            <p className="text-slate-500 text-xs italic font-serif tracking-wider">"{customer.class.description}"</p>
+            {/* Reduced text size slightly for mobile safety */}
+            <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-200 leading-tight">
+                {customer.class.name}
+            </h2>
+            <p className="text-slate-500 text-xs italic font-serif tracking-wider">
+                "{customer.class.description}"
+            </p>
         </div>
 
-        {/* HIDDEN CLUE LAYER (Revealed by Lens) */}
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ${isInspecting ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="border-4 border-red-900/50 p-4 rounded rotate-[-15deg] backdrop-blur-md bg-black/60 shadow-2xl">
-                <div className="text-xs text-red-700 uppercase font-black tracking-widest">Residency Record</div>
-                <div className="text-2xl text-red-500 font-serif font-bold uppercase">{originDistrict}</div>
+        {/* THE SECRET STAMP (Reveals permanently after inspection) */}
+        <div 
+            className={`
+                absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 
+                transition-all duration-700 ease-out pointer-events-none z-50
+                ${hasRevealed ? 'opacity-100 scale-100 rotate-[-12deg]' : 'opacity-0 scale-150 rotate-[0deg]'}
+            `}
+        >
+            <div className="border-4 border-red-800/80 p-3 rounded backdrop-blur-sm bg-black/40 shadow-2xl mix-blend-hard-light">
+                <div className="text-[10px] text-red-400 uppercase font-black tracking-widest leading-none mb-1">
+                    Residency Record
+                </div>
+                <div className="text-xl md:text-2xl text-red-500 font-serif font-bold uppercase tracking-tight">
+                    {originDistrict}
+                </div>
             </div>
         </div>
 
-        {/* Symptom Text (Always Visible now) */}
-        <div className="w-full bg-slate-950/90 border-l-4 border-amber-700 p-4 rounded shadow-xl backdrop-blur-md mt-auto mb-12">
-          <p className="text-amber-100/90 font-serif text-md leading-relaxed italic">
+        {/* Symptom Text */}
+        <div className="w-full bg-slate-950/80 border-l-4 border-amber-700 p-4 rounded shadow-xl backdrop-blur-md mt-auto relative z-20">
+          <p className="text-amber-100/90 font-serif text-sm md:text-base leading-relaxed italic">
             "{customer.symptom.text}"
           </p>
         </div>
 
-        {/* Observation Hint (Bottom Overlay) */}
-        <AnimatePresence>
-          {observationHint && !isInspecting && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="absolute bottom-2 left-0 w-full text-center"
-            >
-              <span className="text-[10px] text-amber-500 uppercase tracking-widest bg-black/90 px-4 py-2 rounded-full border border-amber-900/50 shadow-lg">
-                👁 {observationHint}
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Observation Hint (Only shows AFTER reveal) */}
+        {/* We use min-h to prevent layout jump when it appears */}
+        <div className="h-8 w-full flex items-center justify-center shrink-0">
+            <AnimatePresence>
+            {observationHint && hasRevealed && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0 }}
+                    className="w-full text-center"
+                >
+                    <span className="text-[10px] text-amber-500 uppercase tracking-widest bg-black/90 px-3 py-1.5 rounded-full border border-amber-900/50 shadow-lg whitespace-nowrap">
+                        👁 {observationHint}
+                    </span>
+                </motion.div>
+            )}
+            </AnimatePresence>
+            
+            {/* Hint to use the Lens if NOT revealed yet */}
+            {!hasRevealed && (
+                <span className="text-[9px] text-slate-600 uppercase tracking-widest animate-pulse">
+                    Inspect for records...
+                </span>
+            )}
+        </div>
       </div>
 
-      {/* Diagnosis Tags */}
+      {/* Diagnosis Tags (Top Right) */}
       {revealedTags && revealedTags.length > 0 && (
-        <div className="absolute top-4 right-4 flex flex-col gap-1 items-end z-20">
-          {revealedTags.map(t => <span key={t} className="text-[10px] bg-slate-800 border border-slate-600 px-1 rounded text-slate-400">{t}</span>)}
+        <div className="absolute top-2 right-2 flex flex-col gap-1 items-end z-20">
+          {revealedTags.map(t => (
+            <span key={t} className="text-[9px] bg-slate-900/90 border border-slate-700 px-1.5 py-0.5 rounded text-slate-400 font-mono shadow-sm">
+                {t}
+            </span>
+          ))}
         </div>
       )}
     </div>

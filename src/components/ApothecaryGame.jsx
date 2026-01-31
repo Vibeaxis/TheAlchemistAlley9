@@ -1012,65 +1012,62 @@ const handleBrew = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/60" />
                </div>
 
-            {/* --- 3. CONTENT GRID --- */}
-<div className="relative z-10 h-full grid grid-cols-12 gap-6 p-6">
+   {/* --- 3. CONTENT GRID --- */}
+<div className="relative z-10 h-full flex flex-col p-6 gap-4">
   
-  {/* LEFT COL: Compact Customer Info (Now 3 columns instead of 4) */}
-  <div className="col-span-3 flex flex-col gap-4">
-    <AnimatePresence mode='wait'>
-      {currentCustomer && (
-        <motion.div 
-          key={currentCustomer.id} 
-          initial={{ x: -20, opacity: 0 }} 
-          animate={{ x: 0, opacity: 1 }} 
-          exit={{ x: -20, opacity: 0 }}
-          className="w-full"
-        >
-          {/* We'll assume CustomerCard can handle a smaller container or scale down */}
-          <div className="transform origin-top scale-90">
-             <CustomerCard
-                customer={currentCustomer}
-                observationHint={observationHint}
-                onMouseEnter={() => handleCustomerHover(currentCustomer)}
-                onMouseLeave={handleCustomerLeave}
-                revealedTags={revealedCustomerTags}
-              />
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+  {/* TOP SECTION: Customer and Cauldron */}
+  <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">
+    
+    {/* LEFT: Customer Card (Tarot spot) */}
+    <div className="col-span-3">
+      <AnimatePresence mode='wait'>
+        {currentCustomer && (
+          <motion.div 
+            key={currentCustomer.id} 
+            initial={{ x: -20, opacity: 0 }} 
+            animate={{ x: 0, opacity: 1 }} 
+            exit={{ x: -20, opacity: 0 }}
+            className="w-full max-w-[300px]" // Constrain width for tarot feel
+          >
+            <CustomerCard
+              customer={currentCustomer}
+              observationHint={observationHint}
+              onMouseEnter={() => handleCustomerHover(currentCustomer)}
+              onMouseLeave={handleCustomerLeave}
+              revealedTags={revealedCustomerTags}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
 
-    {/* Result Toasts / Notifications can live here now in the empty space below the card */}
-    <div className="flex-1 flex flex-col justify-end pb-4">
-       {/* Toasts go here */}
+    {/* CENTER/RIGHT: Cauldron Space */}
+    <div className="col-span-9 flex items-center justify-center relative">
+      <div className="w-full max-w-xl"> {/* Constrains cauldron size slightly */}
+        <Cauldron 
+          selectedIngredients={selectedIngredients} 
+          onBrew={handleBrew} 
+          onClear={handleClearSelection} 
+          whisperQueue={whisperQueue} 
+        />
+      </div>
+      
+      {/* PRO-TIP: Your "Result Toast" can be absolutely positioned 
+          in the top-right of this div (relative to this container).
+      */}
     </div>
   </div>
 
-  {/* RIGHT COL: The Desk (Expanded to 9 columns) */}
-  <div className="col-span-9 h-full flex flex-col gap-4">
-    
-    {/* 1. REAGENT RACK (Now at the top like a shelf) */}
-    <div className="h-1/3 min-h-[280px]">
+  {/* BOTTOM SECTION: Full-Width Reagent Rack */}
+  <div className="h-auto pt-4 border-t border-slate-800/50 bg-black/20 backdrop-blur-sm -mx-6 px-6">
+    <div className="max-w-7xl mx-auto">
       <Workbench 
         selectedIngredients={selectedIngredients} 
         onIngredientSelect={handleIngredientSelect} 
       />
     </div>
-
-    {/* 2. THE CAULDRON (Now at the bottom, centered) */}
-    <div className="flex-1 flex items-center justify-center relative">
-       {/* You might want to add a 'table top' graphic div here */}
-       <div className="w-full max-w-2xl transform translate-y-4">
-          <Cauldron 
-            selectedIngredients={selectedIngredients} 
-            onBrew={handleBrew} 
-            onClear={handleClearSelection} 
-            whisperQueue={whisperQueue} 
-          />
-       </div>
-    </div>
-
   </div>
+
 </div>
             </motion.div>
           )}

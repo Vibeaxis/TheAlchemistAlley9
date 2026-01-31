@@ -3,90 +3,150 @@ import {
   Music, Sword, Book, Hammer 
 } from 'lucide-react';
 
+import { 
+  Crown, Hand, Shield, Skull, ShieldCheck, Wind, Coins, FlaskConical, 
+  Music, Sword, Book, Hammer, Anchor, Cross // <--- Added new icons
+} from 'lucide-react';
+
+// ==========================================
+// 1. DATA: CUSTOMER CLASSES (Weighted)
+// ==========================================
 export const CUSTOMER_CLASSES = [
-  // --- ORIGINAL ---
-  {
-    id: 'noble',
-    name: 'Noble',
-    icon: Crown,
-    goldMultiplier: 2.5, // Buffed: They should pay huge
-    reputationFailMultiplier: -2,
-    reputationSuccessMultiplier: 1.5,
-    description: 'Wealthy and demanding'
-  },
+  // --- COMMONS (High Weight - Days 1 & 2) ---
   {
     id: 'beggar',
     name: 'Beggar',
     icon: Hand,
-    goldMultiplier: 0,
-    reputationFailMultiplier: -0.5, // Buffed: Less penalty for failing the poor
-    reputationSuccessMultiplier: 3.5, // Buffed: Huge rep boost
+    weight: 50,
+    minDay: 1,
+    goldMultiplier: 0, 
+    reputationFailMultiplier: -0.5,
+    reputationSuccessMultiplier: 3.0,
     description: 'Poor but grateful'
+  },
+  {
+    id: 'laborer', // NEW: The backbone of the city
+    name: 'Laborer',
+    icon: Hammer,
+    weight: 45,
+    minDay: 1,
+    goldMultiplier: 0.8, // Pays little
+    reputationFailMultiplier: -1.0,
+    reputationSuccessMultiplier: 1.0, // Standard interaction
+    description: 'Exhausted from the mines'
+  },
+  {
+    id: 'sailor', // NEW: Flavor for the Docks
+    name: 'Sailor',
+    icon: Anchor,
+    weight: 40,
+    minDay: 1,
+    goldMultiplier: 1.1, // Just got paid
+    reputationFailMultiplier: -1.5, // Rowdy if disappointed
+    reputationSuccessMultiplier: 1.0,
+    description: 'Fresh from the Docks'
   },
   {
     id: 'guard',
     name: 'Guard',
     icon: Shield,
+    weight: 40,
+    minDay: 1,
     goldMultiplier: 1.2,
     reputationFailMultiplier: -1,
     reputationSuccessMultiplier: 1.5,
     description: 'Fair and honorable'
   },
   {
-    id: 'cultist',
-    name: 'Cultist',
-    icon: Skull,
-    goldMultiplier: 1.5,
-    reputationFailMultiplier: -2, // Nerfed: Failing a cultist is dangerous
-    reputationSuccessMultiplier: 0.5, // Nerfed: No one likes you for helping them
-    description: 'Pays in dark secrets',
-    specialReward: 'Dark Secret'
-  },
-
-  // --- NEW ADDITIONS ---
-  {
-    id: 'merchant',
-    name: 'Merchant',
-    icon: Coins,
-    goldMultiplier: 3.0, // The "Whale"
-    reputationFailMultiplier: -0.5, // They don't care, it's just business
-    reputationSuccessMultiplier: 0.5, // Transactional relationship
-    description: 'Resells for profit'
-  },
-  {
-    id: 'bard',
-    name: 'Bard',
-    icon: Music, // Make sure to import 'Music'
-    goldMultiplier: 0.8,
-    reputationFailMultiplier: -4.0, // HIGH RISK: They write a bad song about you
-    reputationSuccessMultiplier: 5.0, // HIGH REWARD: They make you famous
-    description: 'Influencer of the realm'
+    id: 'acolyte', // NEW: Early game "Magic/Holy" intro
+    name: 'Acolyte',
+    icon: Cross,
+    weight: 35,
+    minDay: 2,
+    goldMultiplier: 0.5, // Pays in donations
+    reputationFailMultiplier: -1.0,
+    reputationSuccessMultiplier: 2.5, // Blessings boost rep
+    description: 'Seeking divine clarity'
   },
   {
     id: 'adventurer',
     name: 'Adventurer',
-    icon: Sword, // Make sure to import 'Sword'
+    icon: Sword,
+    weight: 30,
+    minDay: 2,
     goldMultiplier: 1.4,
     reputationFailMultiplier: -1.2,
     reputationSuccessMultiplier: 1.2,
     description: 'Needs potions for the dungeon'
   },
+
+  // --- UNCOMMONS (Medium Weight - Day 3+) ---
   {
     id: 'scholar',
     name: 'Scholar',
-    icon: Book, // Make sure to import 'Book'
+    icon: Book,
+    weight: 20,
+    minDay: 3,
     goldMultiplier: 1.0,
-    reputationFailMultiplier: -0.2, // Low Risk: They just write a stern letter
-    reputationSuccessMultiplier: 2.0, // Academic validation
+    reputationFailMultiplier: -0.5,
+    reputationSuccessMultiplier: 2.0,
     description: 'Studying alchemical theory'
+  },
+  {
+    id: 'merchant',
+    name: 'Merchant',
+    icon: Coins,
+    weight: 20,
+    minDay: 3,
+    goldMultiplier: 3.0,
+    reputationFailMultiplier: -0.5,
+    reputationSuccessMultiplier: 0.5,
+    description: 'Resells for profit'
+  },
+
+  // --- RARES / EVENTS (Low Weight - Day 4+) ---
+  {
+    id: 'bard',
+    name: 'Bard',
+    icon: Music,
+    weight: 10,
+    minDay: 4,
+    goldMultiplier: 0.8,
+    reputationFailMultiplier: -5.0,
+    reputationSuccessMultiplier: 5.0,
+    description: 'Influencer of the realm'
+  },
+  {
+    id: 'noble',
+    name: 'Noble',
+    icon: Crown,
+    weight: 10,
+    minDay: 5,
+    goldMultiplier: 5.0, 
+    reputationFailMultiplier: -3,
+    reputationSuccessMultiplier: 2.0,
+    description: 'Wealthy and demanding'
+  },
+  {
+    id: 'cultist',
+    name: 'Cultist',
+    icon: Skull,
+    weight: 5,
+    minDay: 6,
+    goldMultiplier: 1.5,
+    reputationFailMultiplier: -2,
+    reputationSuccessMultiplier: 0.5,
+    description: 'Pays in dark secrets'
   },
   {
     id: 'rival',
     name: 'Rival Alchemist',
     icon: FlaskConical,
+    weight: 5,
+    minDay: 8,
     goldMultiplier: 1.1,
-    reputationFailMultiplier: -3.0, // They will mock you relentlessly
-    reputationSuccessMultiplier: 2.5, // Earn their respect
+    reputationFailMultiplier: -5.0,
+    reputationSuccessMultiplier: 5.0, 
     description: 'Judges your technique'
   }
 ];
@@ -317,11 +377,11 @@ export const INGREDIENTS = [
 ];
 
 let customerIdCounter = 0;
-
 // --- 2. GENERATOR LOGIC ---
+
 // Helper to fix "My bones is" -> "My bones are"
 const fixGrammar = (part, text) => {
-    const isPlural = ['eyes', 'bones', 'veins', 'dreams', 'thoughts', 'lungs'].includes(part);
+    const isPlural = ['eyes', 'bones', 'veins', 'dreams', 'thoughts', 'lungs', 'teeth'].includes(part);
     
     // Simple replacement rules
     if (isPlural) {
@@ -337,197 +397,151 @@ const fixGrammar = (part, text) => {
     }
     return text;
 };
-export const generateCustomer = () => {
-  // 1. Pick Class
-  const roll = Math.random();
-  const customerClass = CUSTOMER_CLASSES.find(c => roll < c.prob) || CUSTOMER_CLASSES[0];
 
-  // 2. Pick Scenario (Mechanic)
+// ** UPDATED GENERATOR: Uses Weights and Days **
+export const generateCustomer = (day = 1) => {
+  // 1. Filter Classes based on Day (Progression Gating)
+  const availableClasses = CUSTOMER_CLASSES.filter(c => day >= (c.minDay || 1));
+
+  // 2. Weighted Random Selection
+  // Calculate total weight of available classes
+  const totalWeight = availableClasses.reduce((sum, c) => sum + (c.weight || 10), 0);
+  
+  let random = Math.random() * totalWeight;
+  let customerClass = availableClasses[0]; // Default
+
+  // Iterate to find the winner
+  for (const c of availableClasses) {
+      const weight = c.weight || 10;
+      if (random < weight) {
+          customerClass = c;
+          break;
+      }
+      random -= weight;
+  }
+
+  // 3. Pick Scenario
   const scenario = SENSATIONS_MAP[Math.floor(Math.random() * SENSATIONS_MAP.length)];
 
-  // 3. Pick Body Part (Flavor) based on Category
+  // 4. Pick Body Part
   const validParts = LOCATIONS[scenario.category] || LOCATIONS.physical;
   const part = validParts[Math.floor(Math.random() * validParts.length)];
   
-  // 4. Fix Grammar
-  // We save the fixed string into a variable named 'text'
+  // 5. Fix Grammar (and assign to a variable named 'text')
   const text = fixGrammar(part, scenario.text);
 
   return {
     id: ++customerIdCounter,
     class: customerClass,
     symptom: {
-      // FIX: Use 'text' here, not 'grammaticallyCorrectText'
       text: `My ${part} ${text}...`,
       requiredTags: scenario.tags
     }
   };
 };
 
-// --- 3. ALCHEMY ENGINE (Tag Processing) ---
+// --- 3. ALCHEMY ENGINE ---
 
 export const tagCombination = (ingredients) => {
   const allTags = [];
-  
-  // Flatten tags
   ingredients.forEach(ing => allTags.push(...ing.tags));
-
   let processedTags = [...allTags];
 
-  // REACTION A: Thermodynamics (Hot cancels Cooling)
+  // A. Thermodynamics (Hot <-> Cold)
   const hotCount = processedTags.filter(t => t === 'Hot').length;
   const coldCount = processedTags.filter(t => t === 'Cooling').length;
   const tempCancel = Math.min(hotCount, coldCount);
-
   for (let i = 0; i < tempCancel; i++) {
     processedTags.splice(processedTags.indexOf('Hot'), 1);
     processedTags.splice(processedTags.indexOf('Cooling'), 1);
   }
 
-  // REACTION B: Purification (Purifying removes Toxic)
-  // *New Feature*: You can now use Toxic ingredients safely IF you add Purifying ones!
+  // B. Purification (Purifying -> Toxic)
   const purifyingCount = processedTags.filter(t => t === 'Purifying').length;
   const toxicCount = processedTags.filter(t => t === 'Toxic').length;
   const poisonCancel = Math.min(purifyingCount, toxicCount);
-
   for (let i = 0; i < poisonCancel; i++) {
-    // Note: We typically don't remove the 'Purifying' tag because it might be needed for the cure.
-    // We ONLY remove the Toxic tag.
     const toxicIndex = processedTags.indexOf('Toxic');
     if (toxicIndex !== -1) processedTags.splice(toxicIndex, 1);
   }
 
-  // CHECK STATES
-  
-  // 1. POISONOUS: Any remaining Toxic tags?
+  // C. State Checks
   const isToxic = processedTags.includes('Toxic');
-  
-  // 2. UNSTABLE: Too much Arcane energy? (3+ Arcane tags causes Reality Break)
   const arcaneCount = processedTags.filter(t => t === 'Arcane').length;
   const isUnstable = arcaneCount >= 3;
 
-  return {
-    tags: processedTags,
-    isToxic,
-    isUnstable
-  };
+  return { tags: processedTags, isToxic, isUnstable };
 };
+
 export const calculateOutcome = (selectedIngredients, customer, upgrades = {}, apprentice = null) => {
-  // 1. RUN THE ALCHEMY ENGINE
-  // This processes the tags (cancels hot/cold, cures poison, checks void stability)
   const combination = tagCombination(selectedIngredients);
   const { tags, isToxic, isUnstable } = combination;
-  
   const requiredTags = customer.symptom.requiredTags;
   const customerClass = customer.class;
 
-  // --- FAIL STATE A: REALITY BREAK (Void/Arcane Overload) ---
+  // 1. FAILURE: VOID EXPLOSION
   if (isUnstable) {
     let repLoss = -5;
     let narrative = `The air screams as a Void Rift tears open! It swallows the potion (and the customer's eyebrows).`;
-
-    // Upgrade: Void Anchor (Hypothetical future upgrade) or Reinforced Cauldron
     if (upgrades.reinforced) {
       repLoss = -2;
-      narrative = `A Void Rift opens! But your Reinforced Cauldron contains the anomaly before it spreads.`;
+      narrative = `A Void Rift opens! But your Reinforced Cauldron contains the anomaly.`;
     }
-
-    return {
-      result: 'exploded', // Visual: Purple explosion
-      goldReward: 0,
-      reputationChange: repLoss,
-      narrative
-    };
+    return { result: 'exploded', goldReward: 0, reputationChange: repLoss, narrative };
   }
 
-  // --- FAIL STATE B: TOXICITY (Poisoned) ---
+  // 2. FAILURE: TOXICITY
   if (isToxic) {
-    let repLoss = -5;
+    let repLoss = -10;
     let narrative = `The ${customerClass.name} takes one sip, turns green, and collapses. The City Watch has been notified.`;
-
-    // Upgrade: Antidote Stash (Saves the day)
+    
     if (upgrades.antidoteStash) {
       repLoss = -2;
-      narrative = `The brew was toxic! Thankfully, you administered an emergency antidote. The ${customerClass.name} leaves angry, but alive.`;
-    }
-    // Apprentice: Bouncer (Reduces penalty)
+      narrative = `The brew was toxic! Thankfully, you administered an emergency antidote. They leave angry, but alive.`;
+    } 
     else if (apprentice && apprentice.activeAbility?.type === 'security') {
-        repLoss = -1;
-        narrative = `The potion was poison! Your Apprentice rushed the ${customerClass.name} to a healer, mitigating the scandal.`;
+      repLoss = -5;
+      narrative = `The potion was poison! Your Bouncer rushed them to a healer, mitigating the scandal.`;
     }
 
-    return {
-      result: 'poisoned', // Visual: Green smoke
-      goldReward: 0,
-      reputationChange: repLoss,
-      narrative
-    };
+    return { result: 'poisoned', goldReward: 0, reputationChange: repLoss, narrative };
   }
 
-  // --- CHECK SUCCESS CRITERIA ---
+  // 3. SUCCESS CHECK
   const hasRequirements = requiredTags.every(req => tags.includes(req));
 
-  // --- SUCCESS STATES ---
   if (hasRequirements) {
-    
-    // 1. MASTERPIECE CHECK (Efficiency)
-    // A Masterpiece has EXACTLY the required tags (length match), or is a complex 3-tag cure.
+    // Masterpiece: Exact match, no junk, complex (2+ tags)
     const isMasterpiece = tags.length === requiredTags.length && tags.length >= 2;
-    
-    // 2. SIDE EFFECT CHECK (Darkness)
-    // Dark ingredients work, but unsettle normal people. Cultists love them.
+    // Dark Side Effect: Using 'Dark' ingredients on non-cultists
     const hasDarkSideEffect = tags.includes('Dark') && customerClass.id !== 'cultist';
 
-    // Base Rewards
-    let gold = customerClass.baseGold || 15;
+    let gold = customerClass.goldMultiplier ? Math.floor(15 * customerClass.goldMultiplier) : 15;
     let rep = 5;
-    let narrative = '';
-
-    // -- SCENARIO CALCULATION --
+    let narrative = `It works. The ${customerClass.name} feels better.`;
 
     if (hasDarkSideEffect) {
-        // Cured, but creepy
-        gold = Math.floor(gold * 0.8); // They pay less
-        rep = -2; // Reputation HIT even though cured
+        gold = Math.floor(gold * 0.8);
+        rep = -2;
         narrative = `You cured the ailment, but the ${customerClass.name} shivers uncontrollably. "It feels... wrong."`;
     } 
     else if (isMasterpiece) {
-        // Flawless Victory
         gold = Math.floor(gold * 1.5);
         rep = 15;
-        
-        // Custom Class Dialogue
-        switch(customerClass.id) {
-            case 'noble': narrative = `A Flawless Brew! The Noble tosses a heavy purse. "Finally, a competent alchemist!"`; break;
-            case 'guard': narrative = `Perfect. The Guard salutes you. "This... this is better than standard issue."`; break;
-            case 'cultist': narrative = `Sublime. The Cultist whispers, "The Void smiles upon your precision."`; break;
-            default: narrative = `A Masterpiece! The ${customerClass.name} is awestruck by the purity of the cure.`;
-        }
-    } 
-    else {
-        // Standard Success (Sloppy but works)
-        // e.g. You needed "Hot" but you gave them "Hot, Heavy, Smelly"
-        rep = 5;
-        narrative = `It works. The ${customerClass.name} feels better, though the taste was questionable.`;
+        narrative = `A Masterpiece! The ${customerClass.name} is awestruck by the purity of the cure.`;
     }
 
-    // -- APPLY UPGRADES --
     if (upgrades.marketing) gold = Math.floor(gold * 1.25);
     if (upgrades.merchant) gold += 5;
 
-    return {
-      result: 'cured', // Visual: Gold particles
-      goldReward: gold,
-      reputationChange: rep,
-      narrative
-    };
+    return { result: 'cured', goldReward: gold, reputationChange: rep, narrative };
   }
 
-  // --- FAIL STATE C: INEFFECTIVE (Wrong Tags) ---
-  return {
-    result: 'failed', // Visual: Grey puff
-    goldReward: 0,
-    reputationChange: -2,
-    narrative: `The potion does nothing. The ${customerClass.name} stares at you awkwardly. "Is this just murky water?"`
+  // 4. FAILURE: INEFFECTIVE
+  return { 
+    result: 'failed', 
+    goldReward: 0, 
+    reputationChange: -2, 
+    narrative: `The potion does nothing. The ${customerClass.name} tastes it, frowns, and leaves.` 
   };
 };

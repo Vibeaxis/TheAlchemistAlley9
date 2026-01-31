@@ -128,7 +128,7 @@ const getTagColor = (tag) => {
     default: return 'bg-slate-400';
   }
 };
-const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting }) => {
+const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme }) => {
   const [hasRevealed, setHasRevealed] = React.useState(false);
   
   React.useEffect(() => {
@@ -141,7 +141,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 
   const Icon = customer.class.icon || Ghost;
   
-  // Use themed district colors (Warm/Gold/Purple instead of neon)
+  // Lore colors (These stay consistent as they represent the District, not the Theme)
   const districts = [
     { name: 'The Dregs', flavor: 'Rat-Kin', color: 'text-emerald-500' },
     { name: 'Market', flavor: 'Coin-Bound', color: 'text-amber-500' },
@@ -153,55 +153,67 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
 
+  // Safety fallback if theme isn't passed immediately
+  const t = theme || { 
+      font: 'font-serif', 
+      nav: 'bg-slate-900 border-slate-700', 
+      textMain: 'text-slate-200', 
+      textSec: 'text-slate-400', 
+      accent: 'border-slate-600'
+  };
+
   return (
     <div
       className={`
         relative w-full h-full min-h-[460px] 
-        bg-[#14100e] rounded-xl overflow-hidden
+        ${t.nav} /* DYNAMIC BACKGROUND based on theme */
+        rounded-xl overflow-hidden
         flex flex-col items-center text-center shadow-2xl group transition-all duration-700
-        border-2 border-[#2c241b]
-        ${hasRevealed ? 'shadow-[0_0_40px_rgba(245,158,11,0.1)] border-amber-900/50' : ''}
+        border-2
+        ${hasRevealed ? `shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]` : 'border-opacity-60'}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* 1. TEXTURE: Paper Grain Overlay */}
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0" 
+      {/* 1. TEXTURE: Subtle grain for tactile feel */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 mix-blend-multiply" 
            style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} 
       />
 
-      {/* 2. BACKGROUND & AVATAR */}
+      {/* 2. BACKGROUND & AVATAR - UNBLOCKED */}
       <div className="absolute inset-0 z-0">
+         {/* THE FIX: Removed sepia/brightness filters. Increased opacity. */}
          <img 
             src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
-            alt="Shadow"
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] object-contain opacity-20 filter sepia brightness-50 contrast-125 pointer-events-none"
+            alt="Customer"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] object-contain opacity-60 transition-all duration-700 group-hover:scale-105 group-hover:opacity-80"
         />
-         <div className="absolute inset-0 bg-gradient-to-t from-[#14100e] via-[#14100e]/80 to-transparent z-10" />
+         {/* Gradient Overlay: Ensures text readability without hiding the art */}
+         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-10" />
       </div>
 
       {/* 3. CONTENT LAYER */}
-      <div className="flex-1 flex flex-col w-full relative z-20 h-full p-6 font-serif">
+      <div className={`flex-1 flex flex-col w-full relative z-20 h-full p-6 ${t.font}`}>
         
         {/* HEADER */}
         <div className="w-full relative flex flex-col items-center pt-2">
-            <div className="text-amber-900/60 mb-2 drop-shadow-md">
+            <div className={`${t.textSec} mb-2 drop-shadow-md opacity-80`}>
               <Icon size={32} strokeWidth={1.5} />
             </div>
             
-            <h2 className="text-3xl font-bold text-amber-100/90 leading-none drop-shadow-lg tracking-wide">
+            <h2 className={`text-3xl font-bold ${t.textMain} leading-none drop-shadow-lg tracking-wide`}>
                 {customer.class.name}
             </h2>
-            <p className="text-amber-700/60 text-xs italic tracking-wider mt-1">
+            <p className={`${t.textSec} text-xs italic tracking-wider mt-1 opacity-80`}>
                 "{customer.class.description}"
             </p>
 
-            {/* REVEAL (Top Right) */}
+            {/* REVEAL STAMP (Top Right) */}
             <div className={`absolute -top-2 -right-2 flex flex-col items-end transition-all duration-1000 ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <div className="text-[9px] text-amber-800/80 italic tracking-widest mb-0.5">
+                <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5`}>
                    Soul Echo
                 </div>
-                <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] ${origin.color}`}>
+                <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${origin.color}`}>
                    {origin.name}
                 </div>
             </div>
@@ -209,7 +221,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 
         {/* BODY TEXT */}
         <div className="flex-1 flex items-center justify-center py-4">
-          <p className="text-amber-100/80 text-lg leading-relaxed italic drop-shadow-md">
+          <p className={`${t.textMain} text-lg leading-relaxed italic drop-shadow-md opacity-90`}>
             "{customer.symptom.text}"
           </p>
         </div>
@@ -224,8 +236,8 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                     transition={{ duration: 1 }}
                     className="w-full text-center"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 border-t border-b border-amber-900/30">
-                        <span className="text-[10px] text-amber-500 uppercase tracking-[0.2em] font-bold">
+                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 border-t border-b ${t.accent} bg-black/30 backdrop-blur-sm rounded-sm`}>
+                        <span className={`text-[10px] ${t.textMain} uppercase tracking-[0.2em] font-bold`}>
                             ✦ {observationHint} ✦
                         </span>
                     </div>
@@ -234,21 +246,21 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
             </AnimatePresence>
             
             {!hasRevealed && (
-                <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity">
-                    <span className="text-[9px] text-amber-700 uppercase tracking-[0.25em]">
+                <div className="flex flex-col items-center gap-2 opacity-40 group-hover:opacity-80 transition-opacity">
+                    <span className={`text-[9px] ${t.textSec} uppercase tracking-[0.25em]`}>
                         Divinate Aura
                     </span>
-                    <div className="h-px w-8 bg-amber-800/50" />
+                    <div className={`h-px w-8 ${t.textSec} opacity-50`} />
                 </div>
             )}
         </div>
       </div>
 
-      {/* TAGS */}
+      {/* TAGS (Top Left) */}
       {revealedTags && revealedTags.length > 0 && (
         <div className="absolute top-6 left-6 flex flex-col gap-1 items-start z-30 pointer-events-none">
           {revealedTags.map(t => (
-            <span key={t} className="text-[9px] text-amber-700/60 font-bold tracking-widest border-b border-amber-900/20">
+            <span key={t} className={`text-[9px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm`}>
                 {t}
             </span>
           ))}
@@ -1104,6 +1116,7 @@ const mortarRef = useRef(null); // To help with drop detection
                                                 onMouseLeave={handleCustomerLeave} 
                                                 revealedTags={revealedCustomerTags}
                                                 isInspecting={isInspecting} 
+                                                theme={theme}
                                             />
                                         </motion.div>
                                     )}

@@ -91,52 +91,51 @@ export const CUSTOMER_CLASSES = [
   }
 ];
 
-// --- 1. FLAVOR ADJECTIVES ---
-const ADJECTIVES = [
-  'Burning', 'Freezing', 'Cursed', 'Poisonous', 'Hollow', 
-  'Whispering', 'Heavy', 'Glowing', 'Rotting', 'Petrified', 
-  'Shadowy', 'Feverish', 'Withering', 'Vibrating', 'Numb'
-];
+// --- 1. FLAVOR ADJECTIVES (Categorized) ---
+const ADJECTIVES = {
+  physical: ['Rotting', 'Petrified', 'Feverish', 'Withering', 'Numb', 'Bleeding', 'Cracked', 'Swollen'],
+  ethereal: ['Cursed', 'Hollow', 'Whispering', 'Shadowy', 'Vibrating', 'Echoing', 'Fractured', 'Silent'],
+  elemental: ['Burning', 'Freezing', 'Glowing', 'Electric', 'Poisonous', 'Heavy', 'Sharp']
+};
 
-// --- 2. ANATOMY / LOCATIONS ---
-const LOCATIONS = [
-  'skin', 'blood', 'bones', 'mind', 'dreams', 
-  'heart', 'veins', 'flesh', 'soul', 'shadow', 
-  'vision', 'breath', 'stomach', 'thoughts', 'voice'
-];
+// --- 2. ANATOMY / LOCATIONS (Categorized) ---
+const LOCATIONS = {
+  physical: ['skin', 'blood', 'bones', 'flesh', 'veins', 'stomach', 'teeth', 'eyes'],
+  ethereal: ['mind', 'dreams', 'soul', 'shadow', 'thoughts', 'aura', 'memory', 'will'],
+  elemental: ['breath', 'voice', 'touch', 'gaze', 'heartbeat']
+};
 
 // --- 3. THE LOGIC MAP (Problem -> Required Tags) ---
 // This ensures that no matter what text is generated, the game knows exactly what tags solve it.
 const SENSATIONS_MAP = [
-  // --- HOT PROBLEMS (Need Cooling) ---
+  // --- TIER 1: ELEMENTAL (Basic Hot/Cold/Purify) ---
   { text: 'burns with an unholy fire', tags: ['Cooling', 'Holy'] },
   { text: 'is scorching from the inside out', tags: ['Cooling', 'Calming'] },
   { text: 'feels like molten slag', tags: ['Cooling', 'Heavy'] },
-  { text: 'radiates a feverish heat', tags: ['Cooling', 'Vital'] },
-
-  // --- COLD PROBLEMS (Need Hot) ---
   { text: 'feels like solid ice', tags: ['Hot', 'Vital'] },
   { text: 'shivers with a grave chill', tags: ['Hot', 'Holy'] },
-  { text: 'turns to cold stone', tags: ['Hot', 'Vital'] },
   { text: 'has frozen stiff', tags: ['Hot', 'Calming'] },
+  { text: 'oozes a foul sludge', tags: ['Purifying', 'Desiccated'] }, // Needs drying!
 
-  // --- CURSED/DARK PROBLEMS (Need Holy/Purifying) ---
-  { text: 'is clouded by dark shadows', tags: ['Holy', 'Purifying'] },
-  { text: 'hears the call of the void', tags: ['Holy', 'Calming'] },
-  { text: 'is possessed by a weak spirit', tags: ['Holy', 'Vital'] },
-  { text: 'feels an invisible weight', tags: ['Holy', 'Purifying'] },
-
-  // --- TOXIC/SICK PROBLEMS (Need Purifying) ---
-  { text: 'rejects all nourishment', tags: ['Purifying', 'Vital'] },
-  { text: 'oozes a foul sludge', tags: ['Purifying', 'Cooling'] },
-  { text: 'grows strange crystals', tags: ['Purifying', 'Hot'] },
-  { text: 'tastes like bitter ash', tags: ['Purifying', 'Calming'] },
-
-  // --- PHYSICAL/STRUCTURAL PROBLEMS (Need Heavy/Vital) ---
-  { text: 'feels heavy as lead', tags: ['Purifying', 'Heavy'] }, 
+  // --- TIER 2: PHYSICAL (Heavy/Vital/Calming) ---
+  { text: 'feels heavy as lead', tags: ['Purifying', 'Luminous'] }, // Lighten the load
   { text: 'is turning to dust', tags: ['Heavy', 'Vital'] },
-  { text: 'feels thin and stretched', tags: ['Heavy', 'Calming'] },
-  { text: 'vibrates uncontrollably', tags: ['Calming', 'Heavy'] }
+  { text: 'vibrates uncontrollably', tags: ['Calming', 'Heavy'] },
+  { text: 'feels thin and stretched', tags: ['Heavy', 'Vital'] },
+  { text: 'is petrifying into stone', tags: ['Hot', 'Vital'] },
+
+  // --- TIER 3: ETHEREAL (Holy/Arcane/Shadow) ---
+  { text: 'is clouded by dark shadows', tags: ['Luminous', 'Holy'] }, // Needs Light
+  { text: 'hears the call of the void', tags: ['Arcane', 'Calming'] }, // Needs Magic to fight Void
+  { text: 'is fading from existence', tags: ['Arcane', 'Heavy'] }, // Anchor them back
+  { text: 'feels disconnected from reality', tags: ['Arcane', 'Vital'] },
+  { text: 'is possessed by a weak spirit', tags: ['Holy', 'Arcane'] },
+
+  // --- TIER 4: COMPLEX (The New Stuff) ---
+  { text: 'is drowning in dry air', tags: ['Vital', 'Cooling'] }, 
+  { text: 'glows with a sickening light', tags: ['Shadow', 'Purifying'] }, // Needs Shadow to dim it (Future tag?)
+  { text: 'has forgotten how to beat', tags: ['Vital', 'Arcane'] }, // Magical Heart restart
+  { text: 'is weeping blood', tags: ['Desiccated', 'Calming'] } // Dry the tears
 ];
 
 
@@ -244,162 +243,220 @@ export const INGREDIENTS = [
     // Filings become sharp/crystalline
     processed: { name: 'Copper Filings', tags: ['Hot', 'Crystalline'], icon: '⛓' }
   }
+  // Add these to your INGREDIENTS constant
+{
+    name: 'Ghost Pepper',
+    icon: '🌶️', // Or a ghostly SVG
+    tags: ['Hot', 'Arcane'], // Magical Heat
+    description: 'Burns across dimensions.',
+    processed: { name: 'Spirit Dust', tags: ['Arcane', 'Purifying'] } // Crushing removes heat, keeps magic
+},
+{
+    name: 'Sun-Bleached Skull',
+    icon: '💀',
+    tags: ['Desiccated', 'Holy'], // Dry + Holy
+    description: 'Bone that has stared into the sun too long.',
+    processed: { name: 'Bone Meal', tags: ['Desiccated', 'Heavy'] } // Crushing makes it heavy powder
+},
+{
+    name: 'Bioluminescent Moss',
+    icon: '🌿',
+    tags: ['Luminous', 'Vital'], // Light + Life
+    description: 'Glows with a heartbeat.',
+    processed: { name: 'Glowing Paste', tags: ['Luminous', 'Cooling'] }
+}
 ];
 
 let customerIdCounter = 0;
 
+// --- 2. GENERATOR LOGIC ---
+
 export const generateCustomer = () => {
-  const randomClass = CUSTOMER_CLASSES[Math.floor(Math.random() * CUSTOMER_CLASSES.length)];
-  const generatedSymptom = generateSymptom();
+  // 1. Pick Class
+  const roll = Math.random();
+  const customerClass = CUSTOMER_CLASSES.find(c => roll < c.prob) || CUSTOMER_CLASSES[0];
+
+  // 2. Pick Scenario (Mechanic)
+  const scenario = SENSATIONS_MAP[Math.floor(Math.random() * SENSATIONS_MAP.length)];
+
+  // 3. Pick Body Part (Flavor) based on Category
+  const validParts = LOCATIONS[scenario.category] || LOCATIONS.physical;
+  const part = validParts[Math.floor(Math.random() * validParts.length)];
 
   return {
     id: ++customerIdCounter,
-    class: randomClass,
-    symptom: generatedSymptom
+    class: customerClass,
+    symptom: {
+      text: `My ${part} ${scenario.text}...`,
+      requiredTags: scenario.tags
+    }
   };
 };
+
+// --- 3. ALCHEMY ENGINE (Tag Processing) ---
 
 export const tagCombination = (ingredients) => {
   const allTags = [];
-  let isFatal = false;
+  
+  // Flatten tags
+  ingredients.forEach(ing => allTags.push(...ing.tags));
 
-  // Collect all tags
-  ingredients.forEach(ingredient => {
-    allTags.push(...ingredient.tags);
-  });
+  let processedTags = [...allTags];
 
-  // Process tag rules
-  const processedTags = [...allTags];
-
-  // Rule 1: Hot + Cold cancel out
+  // REACTION A: Thermodynamics (Hot cancels Cooling)
   const hotCount = processedTags.filter(t => t === 'Hot').length;
   const coldCount = processedTags.filter(t => t === 'Cooling').length;
-  const cancelCount = Math.min(hotCount, coldCount);
+  const tempCancel = Math.min(hotCount, coldCount);
 
-  for (let i = 0; i < cancelCount; i++) {
-    const hotIndex = processedTags.indexOf('Hot');
-    const coldIndex = processedTags.indexOf('Cooling');
-    if (hotIndex !== -1) processedTags.splice(hotIndex, 1);
-    if (coldIndex !== -1) processedTags.splice(coldIndex, 1);
+  for (let i = 0; i < tempCancel; i++) {
+    processedTags.splice(processedTags.indexOf('Hot'), 1);
+    processedTags.splice(processedTags.indexOf('Cooling'), 1);
   }
 
-  // Rule 2: 2x Toxic = Fatal
+  // REACTION B: Purification (Purifying removes Toxic)
+  // *New Feature*: You can now use Toxic ingredients safely IF you add Purifying ones!
+  const purifyingCount = processedTags.filter(t => t === 'Purifying').length;
   const toxicCount = processedTags.filter(t => t === 'Toxic').length;
-  if (toxicCount >= 2) {
-    isFatal = true;
+  const poisonCancel = Math.min(purifyingCount, toxicCount);
+
+  for (let i = 0; i < poisonCancel; i++) {
+    // Note: We typically don't remove the 'Purifying' tag because it might be needed for the cure.
+    // We ONLY remove the Toxic tag.
+    const toxicIndex = processedTags.indexOf('Toxic');
+    if (toxicIndex !== -1) processedTags.splice(toxicIndex, 1);
   }
+
+  // CHECK STATES
+  
+  // 1. POISONOUS: Any remaining Toxic tags?
+  const isToxic = processedTags.includes('Toxic');
+  
+  // 2. UNSTABLE: Too much Arcane energy? (3+ Arcane tags causes Reality Break)
+  const arcaneCount = processedTags.filter(t => t === 'Arcane').length;
+  const isUnstable = arcaneCount >= 3;
 
   return {
     tags: processedTags,
-    isFatal
+    isToxic,
+    isUnstable
   };
 };
-
 export const calculateOutcome = (selectedIngredients, customer, upgrades = {}, apprentice = null) => {
+  // 1. RUN THE ALCHEMY ENGINE
+  // This processes the tags (cancels hot/cold, cures poison, checks void stability)
   const combination = tagCombination(selectedIngredients);
-  const { tags, isFatal } = combination;
+  const { tags, isToxic, isUnstable } = combination;
+  
   const requiredTags = customer.symptom.requiredTags;
   const customerClass = customer.class;
 
-  // 1. EXPLOSION
-  if (isFatal) {
-    let reputationChange = -10;
-    let narrative = `The cauldron EXPLODES in a shower of toxic fumes! The ${customerClass.name} flees.`;
+  // --- FAIL STATE A: REALITY BREAK (Void/Arcane Overload) ---
+  if (isUnstable) {
+    let repLoss = -15;
+    let narrative = `The air screams as a Void Rift tears open! It swallows the potion (and the customer's eyebrows).`;
 
-    // Upgrade: Reinforced Cauldron
+    // Upgrade: Void Anchor (Hypothetical future upgrade) or Reinforced Cauldron
     if (upgrades.reinforced) {
-      reputationChange = 0;
-      narrative = `The cauldron EXPLODES! But your reinforced plating contains the blast. (Reputation Saved)`;
-    }
-    // Apprentice: Bouncer
-    else if (apprentice && apprentice.npcClass === 'Bouncer') {
-      reputationChange = -5; // Halved
-      narrative += ` (Your Bouncer ${apprentice.npcName} cleared the room, reducing the panic.)`;
+      repLoss = -5;
+      narrative = `A Void Rift opens! But your Reinforced Cauldron contains the anomaly before it spreads.`;
     }
 
     return {
-      result: 'exploded',
+      result: 'exploded', // Visual: Purple explosion
       goldReward: 0,
-      reputationChange,
+      reputationChange: repLoss,
       narrative
     };
   }
 
-  // Check success criteria
-  const hasAllRequired = requiredTags.every(reqTag => tags.includes(reqTag));
-  const hasToxic = tags.includes('Toxic');
-  // Cultists don't mind Dark ingredients, everyone else does
-  const hasDark = tags.includes('Dark') && customerClass.id !== 'cultist';
+  // --- FAIL STATE B: TOXICITY (Poisoned) ---
+  if (isToxic) {
+    let repLoss = -20;
+    let narrative = `The ${customerClass.name} takes one sip, turns green, and collapses. The City Watch has been notified.`;
 
-  // 2. CURED
-  if (hasAllRequired && !hasToxic && !hasDark) {
-    let goldReward = customerClass.goldMultiplier === 0 ? 0 : 15 * customerClass.goldMultiplier; // Buffed Gold
-
-    // Buffed Base Reputation: Wins should feel good
-    const reputationChange = 5 * customerClass.reputationSuccessMultiplier;
-
-    // Upgrade: Merchant's License
-    if (upgrades.merchant) {
-      goldReward += 5;
+    // Upgrade: Antidote Stash (Saves the day)
+    if (upgrades.antidoteStash) {
+      repLoss = -5;
+      narrative = `The brew was toxic! Thankfully, you administered an emergency antidote. The ${customerClass.name} leaves angry, but alive.`;
+    }
+    // Apprentice: Bouncer (Reduces penalty)
+    else if (apprentice && apprentice.activeAbility?.type === 'security') {
+        repLoss = -10;
+        narrative = `The potion was poison! Your Apprentice rushed the ${customerClass.name} to a healer, mitigating the scandal.`;
     }
 
-    // Upgrade: Mercury Permit
-    const usedMercury = selectedIngredients.some(i => i.name === 'Mercury');
-    if (upgrades.mercury && usedMercury) {
-      goldReward += 10;
-    }
+    return {
+      result: 'poisoned', // Visual: Green smoke
+      goldReward: 0,
+      reputationChange: repLoss,
+      narrative
+    };
+  }
 
-    // Narrative generation
+  // --- CHECK SUCCESS CRITERIA ---
+  const hasRequirements = requiredTags.every(req => tags.includes(req));
+
+  // --- SUCCESS STATES ---
+  if (hasRequirements) {
+    
+    // 1. MASTERPIECE CHECK (Efficiency)
+    // A Masterpiece has EXACTLY the required tags (length match), or is a complex 3-tag cure.
+    const isMasterpiece = tags.length === requiredTags.length && tags.length >= 2;
+    
+    // 2. SIDE EFFECT CHECK (Darkness)
+    // Dark ingredients work, but unsettle normal people. Cultists love them.
+    const hasDarkSideEffect = tags.includes('Dark') && customerClass.id !== 'cultist';
+
+    // Base Rewards
+    let gold = customerClass.baseGold || 15;
+    let rep = 5;
     let narrative = '';
-    if (customerClass.id === 'noble') {
-      narrative = `The Noble is cured! "Excellent work!" They pay you ${goldReward} gold.`;
-    } else if (customerClass.id === 'beggar') {
-      narrative = `The Beggar weeps with joy. "Bless you! Word of your kindness will spread!" (+${reputationChange} Reputation)`;
-    } else if (customerClass.id === 'guard') {
-      narrative = `The Guard nods. "You have my thanks." They pay you ${goldReward} gold.`;
-    } else if (customerClass.id === 'cultist') {
-      narrative = `The Cultist's eyes gleam. "You understand the shadows..." (+${reputationChange} Rep)`;
-    } else {
-      narrative = `The customer is cured! You earn ${goldReward} gold.`;
+
+    // -- SCENARIO CALCULATION --
+
+    if (hasDarkSideEffect) {
+        // Cured, but creepy
+        gold = Math.floor(gold * 0.8); // They pay less
+        rep = -2; // Reputation HIT even though cured
+        narrative = `You cured the ailment, but the ${customerClass.name} shivers uncontrollably. "It feels... wrong."`;
+    } 
+    else if (isMasterpiece) {
+        // Flawless Victory
+        gold = Math.floor(gold * 1.5);
+        rep = 15;
+        
+        // Custom Class Dialogue
+        switch(customerClass.id) {
+            case 'noble': narrative = `A Flawless Brew! The Noble tosses a heavy purse. "Finally, a competent alchemist!"`; break;
+            case 'guard': narrative = `Perfect. The Guard salutes you. "This... this is better than standard issue."`; break;
+            case 'cultist': narrative = `Sublime. The Cultist whispers, "The Void smiles upon your precision."`; break;
+            default: narrative = `A Masterpiece! The ${customerClass.name} is awestruck by the purity of the cure.`;
+        }
+    } 
+    else {
+        // Standard Success (Sloppy but works)
+        // e.g. You needed "Hot" but you gave them "Hot, Heavy, Smelly"
+        rep = 5;
+        narrative = `It works. The ${customerClass.name} feels better, though the taste was questionable.`;
     }
 
+    // -- APPLY UPGRADES --
+    if (upgrades.marketing) gold = Math.floor(gold * 1.25);
+    if (upgrades.merchant) gold += 5;
+
     return {
-      result: 'cured',
-      goldReward,
-      reputationChange,
+      result: 'cured', // Visual: Gold particles
+      goldReward: gold,
+      reputationChange: rep,
       narrative
     };
   }
 
-  // 3. POISONED / FAILED
-  let narrative = '';
-  let reputationChange = 0;
-
-  if (hasToxic) {
-    reputationChange = -5; // Reduced from -20 to -5
-
-    // Upgrade: Ventilation System
-    if (upgrades.ventilation) {
-      reputationChange = -2;
-    }
-
-    narrative = `The ${customerClass.name} clutches their stomach. "You've POISONED me!"`;
-    return {
-      result: 'poisoned',
-      goldReward: 0,
-      reputationChange,
-      narrative
-    };
-  }
-
-  // Ineffective (Failed)
-  reputationChange = -2; // Reduced penalty
-  narrative = `The potion does nothing. The ${customerClass.name} leaves disappointed.`;
-
+  // --- FAIL STATE C: INEFFECTIVE (Wrong Tags) ---
   return {
-    result: 'poisoned', // Using poisoned style for failure to show red flash
+    result: 'failed', // Visual: Grey puff
     goldReward: 0,
-    reputationChange,
-    narrative
+    reputationChange: -2,
+    narrative: `The potion does nothing. The ${customerClass.name} stares at you awkwardly. "Is this just murky water?"`
   };
 };

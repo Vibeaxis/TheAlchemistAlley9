@@ -1020,7 +1020,23 @@ const handleRest = () => {
     setGameStats(prev => ({ ...prev, daysCount: prev.daysCount + 1 }));
     setPhase('day');
     setCustomersServed(0);
-    setHeat(h => Math.max(0, h
+    setHeat(h => Math.max(0, h - 10)); // Natural heat decay
+    
+    // Generate new customer (Respecting progression with nextDay)
+    setCurrentCustomer(generateCustomer(nextDay)); 
+    
+    setConsultUsed(false);
+    setRevealedCustomerTags([]);
+    setWhisperQueue([]);
+    setSelectedIngredients([]); // Clear workbench
+    setGameMessage(`Day ${nextDay} Begins`);
+    
+    // Randomize Watch Focus for the new day
+    const districts = ['dregs', 'market', 'arcanum', 'docks', 'cathedral', 'spire'];
+    setWatchFocus(districts[Math.floor(Math.random() * districts.length)]);
+    
+    setTimeout(() => setGameMessage(''), 3000);
+};
 
 // 1. SELECTING (Clicking the Rack)
  // 1. SELECTING (Clicking the Rack)

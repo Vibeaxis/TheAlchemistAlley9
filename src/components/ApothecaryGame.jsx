@@ -58,7 +58,10 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
   const Icon = customer.class.icon || Ghost;
   const seed = customer.id + customer.class.name;
   const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=transparent`;
-
+// Generate a consistent District based on ID (Pseudo-random)
+  const districts = ['Dregs', 'Market', 'Arcanum', 'Docks', 'Cathedral', 'Spire'];
+  const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
+  const originDistrict = districts[districtIndex];
   const accentColor =
     customer.class.id === 'noble' ? 'text-yellow-400 border-yellow-500/30' :
       customer.class.id === 'guard' ? 'text-blue-400 border-blue-500/30' :
@@ -68,81 +71,66 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 
   return (
     <div
-      className={`relative h-full bg-slate-950 border-4 border-double rounded-lg p-6 flex flex-col items-center text-center shadow-2xl overflow-hidden group ${accentColor}`}
+      className="relative h-full bg-slate-950 border-4 border-double rounded-lg p-6 flex flex-col items-center text-center shadow-2xl overflow-hidden group border-slate-800"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
+      {/* Background Avatar */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
          <img 
-            src={avatarUrl} 
-            alt="Customer Shadow"
-            className="absolute -right-16 -bottom-10 w-[90%] h-[90%] object-contain opacity-30 transition-all duration-700 group-hover:opacity-40 group-hover:scale-105 group-hover:-translate-x-2"
-            style={{ filter: 'grayscale(100%) brightness(0%) drop-shadow(0 -5px 15px rgba(255,255,255,0.1))' }}
+            src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
+            alt="Shadow"
+            className="absolute -right-16 -bottom-10 w-[90%] h-[90%] object-contain opacity-20 filter grayscale brightness-0 drop-shadow-lg"
         />
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent z-0 pointer-events-none" />
 
+      {/* Content */}
       <div className="flex-1 flex flex-col justify-between items-center w-full relative z-10 h-full">
+        
+        {/* Header */}
         <div className="mt-4 flex flex-col items-center">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className={`p-3 rounded-full bg-slate-900/80 border-2 backdrop-blur-md shadow-lg mb-3 ${accentColor}`}
-            >
-              <Icon size={32} strokeWidth={2} />
-            </motion.div>
-            <h2 className={`text-3xl font-serif font-bold drop-shadow-md ${accentColor.split(' ')[0]}`}>
-                {customer.class.name}
-            </h2>
-            <p className="text-slate-400 text-xs italic font-serif tracking-wider">
-                "{customer.class.description}"
-            </p>
+            <div className="p-3 rounded-full bg-slate-900/80 border-2 border-slate-700 shadow-lg mb-3 text-slate-400">
+              <Icon size={32} />
+            </div>
+            <h2 className="text-3xl font-serif font-bold text-slate-200">{customer.class.name}</h2>
+            <p className="text-slate-500 text-xs italic font-serif tracking-wider">"{customer.class.description}"</p>
         </div>
-{/* SYMPTOM BOX MODIFICATION */}
-      <div className="w-full bg-slate-950/90 border-l-4 border-amber-700 p-4 rounded shadow-xl backdrop-blur-md mt-auto mb-12 relative overflow-hidden">
-          
-          {/* The Text - Blurred by default */}
-          <p className={`text-amber-100/90 font-serif text-md leading-relaxed italic transition-all duration-500 ${isInspecting ? 'blur-0' : 'blur-sm select-none'}`}>
-            "{customer.symptom.text}"
-          </p>
 
-          {/* The "Haze" Overlay - Fades out when inspecting */}
-          <div className={`absolute inset-0 bg-slate-950/20 transition-opacity duration-300 pointer-events-none ${isInspecting ? 'opacity-0' : 'opacity-100'}`} />
-          
-          {!isInspecting && (
-             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-[10px] text-amber-700/50 uppercase tracking-widest font-black animate-pulse">
-                   Inspect Patient
-                </span>
-             </div>
-          )}
-      </div>
+        {/* HIDDEN CLUE LAYER (Revealed by Lens) */}
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ${isInspecting ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="border-4 border-red-900/50 p-4 rounded rotate-[-15deg] backdrop-blur-md bg-black/60 shadow-2xl">
+                <div className="text-xs text-red-700 uppercase font-black tracking-widest">Residency Record</div>
+                <div className="text-2xl text-red-500 font-serif font-bold uppercase">{originDistrict}</div>
+            </div>
+        </div>
+
+        {/* Symptom Text (Always Visible now) */}
         <div className="w-full bg-slate-950/90 border-l-4 border-amber-700 p-4 rounded shadow-xl backdrop-blur-md mt-auto mb-12">
           <p className="text-amber-100/90 font-serif text-md leading-relaxed italic">
             "{customer.symptom.text}"
           </p>
         </div>
 
+        {/* Observation Hint (Bottom Overlay) */}
         <AnimatePresence>
-          {observationHint && (
+          {observationHint && !isInspecting && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="absolute bottom-2 left-0 w-full text-center"
             >
               <span className="text-[10px] text-amber-500 uppercase tracking-widest bg-black/90 px-4 py-2 rounded-full border border-amber-900/50 shadow-lg">
-                👁 Observation: {observationHint}
+                👁 {observationHint}
               </span>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
+      {/* Diagnosis Tags */}
       {revealedTags && revealedTags.length > 0 && (
         <div className="absolute top-4 right-4 flex flex-col gap-1 items-end z-20">
-          <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest bg-slate-900/80 px-1 rounded">Diagnosis</span>
-          {revealedTags.map(t => <TagBadge key={t} tag={t} />)}
+          {revealedTags.map(t => <span key={t} className="text-[10px] bg-slate-800 border border-slate-600 px-1 rounded text-slate-400">{t}</span>)}
         </div>
       )}
     </div>
@@ -438,74 +426,67 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
     </div>
   )
 }
-
 const Lens = ({ onInspect, isInspecting }) => {
   return (
     <motion.div
       drag
-      dragConstraints={{ left: -200, right: 200, top: -200, bottom: 200 }}
-      dragElastic={0.1}
-      whileDrag={{ scale: 1.2, cursor: 'grabbing' }}
+      // REMOVED: dragConstraints={...} 
+      dragElastic={0.05} // Low elasticity feels heavier/better
+      dragMomentum={false} // Stops it from sliding away when you let go
+      whileDrag={{ scale: 1.1, cursor: 'grabbing' }}
       onDragStart={() => onInspect(true)}
       onDragEnd={() => onInspect(false)}
       className="absolute bottom-4 left-4 z-50 cursor-grab group"
     >
       {/* The Glass Visual */}
-      <div className="relative w-24 h-24">
+      <div className="relative w-24 h-24 pointer-events-none"> {/* Added pointer-events-none to inner so drag works better */}
         {/* Handle */}
         <div className="absolute -bottom-6 -right-6 w-16 h-4 bg-amber-900 rounded-full rotate-45 border-2 border-amber-950 z-0" />
         
         {/* Rim */}
-        <div className="absolute inset-0 rounded-full border-[6px] border-amber-600 bg-white/10 backdrop-blur-[2px] shadow-xl z-10 flex items-center justify-center overflow-hidden">
-             {/* Reflection/Glint */}
+        <div className="absolute inset-0 rounded-full border-[6px] border-amber-600 bg-white/10 backdrop-blur-[1px] shadow-xl z-10 flex items-center justify-center overflow-hidden">
+             {/* Reflection */}
              <div className="absolute top-2 left-4 w-8 h-4 bg-white/40 rounded-full rotate-[-15deg] blur-[1px]" />
         </div>
       </div>
       
       {/* Helper Text */}
-      <div className="absolute -bottom-8 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-amber-500 font-mono tracking-widest pointer-events-none">
+      <div className="absolute -bottom-10 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-amber-500 font-mono tracking-widest pointer-events-none whitespace-nowrap">
         DRAG TO INSPECT
       </div>
     </motion.div>
   );
 };
-const Mortar = ({ onProcess }) => {
+const Mortar = ({ onInteract }) => {
   const [isGrinding, setIsGrinding] = useState(false);
 
-  // Expose a function to trigger the grind animation
-  const grind = () => {
+  const handleClick = () => {
     setIsGrinding(true);
-    soundEngine.playGravel(0.5); // You'll need to add a simple grind sound or just use a click
-    setTimeout(() => setIsGrinding(false), 800);
+    if(onInteract) onInteract(); // Trigger the parent logic
+    setTimeout(() => setIsGrinding(false), 500);
   };
 
   return (
-    <div className="relative w-32 h-32 flex items-center justify-center group">
-       
+    <div 
+      onClick={handleClick}
+      className="relative w-32 h-32 flex items-center justify-center group cursor-pointer hover:scale-105 transition-transform"
+    >
        {/* Pestle Animation */}
        <motion.div 
-         animate={isGrinding ? { x: [0, 10, -10, 5, -5, 0], y: [0, 5, -5, 5, 0], rotate: [0, 10, -10, 0] } : {}}
-         transition={{ duration: 0.8 }}
-         className="absolute z-20 -top-4 right-2 text-6xl text-stone-400 drop-shadow-xl origin-bottom-left pointer-events-none"
+         animate={isGrinding ? { x: [0, 5, -5, 0], y: [0, 10, 0], rotate: [0, -15, 10, 0] } : {}}
+         transition={{ duration: 0.4 }}
+         className="absolute z-20 -top-8 right-4 text-6xl drop-shadow-xl origin-bottom-left pointer-events-none"
        >
-         {/* Simple Emoji or SVG for Pestle could go here, sticking to text for now */}
          🥢 
        </motion.div>
 
        {/* Bowl */}
-       <div className="w-24 h-20 bg-stone-800 border-b-4 border-r-4 border-stone-950 rounded-b-full shadow-2xl flex items-center justify-center relative overflow-hidden">
+       <div className="w-24 h-20 bg-stone-800 border-b-4 border-r-4 border-stone-950 rounded-b-full shadow-2xl flex items-center justify-center relative overflow-hidden group-hover:bg-stone-700 transition-colors">
           <div className="absolute inset-0 bg-stone-900/50" />
-          <div className="text-[10px] text-stone-600 font-black uppercase tracking-widest mt-2 z-10">
-             Mortar
+          <div className="text-[10px] text-stone-500 font-black uppercase tracking-widest mt-4 z-10 select-none">
+             {isGrinding ? "CRUSHING..." : "MORTAR"}
           </div>
        </div>
-
-       {/* Hit Box for Dragging */}
-       {/* We identify this drop zone by class name or coordinates in the main loop */}
-       <div 
-         id="mortar-drop-zone" 
-         className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-stone-600/50 transition-colors"
-       />
     </div>
   );
 };
@@ -567,7 +548,38 @@ const mortarRef = useRef(null); // To help with drop detection
   const handleVolumeChange = (val) => { setAudioVolume(val); localStorage.setItem('alchemistAudioVolume', val); };
   const handleScaleChange = (val) => { setUiScale(val); localStorage.setItem('alchemistUIScale', val); };
   const handleGammaChange = (val) => { setGamma(val); localStorage.setItem('alchemistGamma', val); };
+// BULK PROCESS: Tries to crush everything in the pot
+  const handleMortarClick = () => {
+    soundEngine.playClick(vol); // Or a grind sound if you have it
+    
+    let didCrush = false;
+    
+    // Create a new array with processed items
+    const newIngredients = selectedIngredients.map(item => {
+        if (item.processed && !item.isProcessed) {
+            didCrush = true;
+            return {
+                ...item,
+                name: item.processed.name,
+                tags: item.processed.tags,
+                icon: item.processed.icon,
+                isProcessed: true
+            };
+        }
+        return item;
+    });
 
+    if (didCrush) {
+        setSelectedIngredients(newIngredients);
+        setGameMessage("Ingredients Refined");
+        setMessageType("normal");
+        setTimeout(() => setGameMessage(""), 1500);
+    } else {
+        // Feedback if nothing could be crushed
+        setGameMessage("Nothing to crush...");
+        setTimeout(() => setGameMessage(""), 1000);
+    }
+  };
   const handleHardReset = () => {
     localStorage.clear();
     setAudioVolume(100); setUiScale(100); setGamma(1.0); setSettingsOpen(false);
@@ -936,10 +948,10 @@ const mortarRef = useRef(null); // To help with drop detection
                             <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
                         </div>
 
-                        {/* 2. MORTAR (Bottom Right of Center) */}
-                        <div className="absolute bottom-4 right-0 z-40">
-                            <Mortar />
-                        </div>
+                      {/* 2. MORTAR (Bottom Right of Center) */}
+<div className="absolute bottom-4 right-0 z-40">
+    <Mortar onInteract={handleMortarClick} />
+</div>
 
                         {/* 3. CAULDRON */}
                         <div className="w-full max-w-xl">

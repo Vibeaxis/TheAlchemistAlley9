@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Eye, MapPin, Siren, Coins, Lock, Crosshair, X, ArrowRight, Home, Search } from 'lucide-react';
 
 // YOUR IMPORTED IMAGE (Ensure this points to the copper one)
-import mapCopperBg from '../assets/map_holo.webp'; // Update filename if needed
+import mapHoloBg from '../assets/map_holo.webp'; // Update filename if needed
 const MAP_IMAGE_URL = mapHoloBg;
 
 const DEBUG_MODE = false;

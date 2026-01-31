@@ -1,6 +1,6 @@
 import React, { useState, isValidElement } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Beer, UserPlus, Coins, ArrowRight, ShoppingBag, Shield, Zap } from 'lucide-react';
+import { Beer, UserPlus, Coins, ArrowRight, ShoppingBag, Shield, Zap, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { soundEngine } from '@/lib/SoundEngine';
 import { HIREABLE_NPCS } from '@/lib/NPCData';

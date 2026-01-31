@@ -7,19 +7,28 @@ import { HIREABLE_NPCS } from '@/lib/NPCData';
 import { UPGRADES_LIST } from '@/lib/gameLogic';
 import ReagentVendor from './ReagentVendor';
 
-// --- HELPER: SAFE ICON RENDERER ---
-// This prevents the "Illegal Constructor" error by checking if the icon 
-// is a String (Emoji) or a Component (Lucide)
-const RenderIcon = ({ icon: Icon, className }) => {
-    if (!Icon) return <Shield className={className} />; // Fallback
-    
-    // If it's a string (Emoji), render as text in a span
-    if (typeof Icon === 'string') {
-        return <span className={`${className} flex items-center justify-center text-lg leading-none not-italic`}>{Icon}</span>;
+const RenderIcon = ({ icon, className }) => {
+    // 1. Fallback if icon is missing or undefined
+    if (!icon) return <Shield className={className} />;
+
+    // 2. Handle Emojis/Strings
+    if (typeof icon === 'string') {
+        return <span className={`${className} flex items-center justify-center`}>{icon}</span>;
     }
-    
-    // If it's a Component (Lucide), render as JSX
-    return <Icon className={className} />;
+
+    // 3. Handle Components (Lucide)
+    // ONLY try to render as a component if it's a function or object
+    if (typeof icon === 'function' || typeof icon === 'object') {
+        const IconComponent = icon;
+        try {
+            return <IconComponent className={className} />;
+        } catch (e) {
+            console.error("Failed to render icon component", e);
+            return <Shield className={className} />;
+        }
+    }
+
+    return <Shield className={className} />;
 };
 
 const TavernHub = ({
@@ -252,21 +261,11 @@ const TavernHub = ({
     </motion.div>
   );
 };
-
-// Helper Sub-component for Nav Buttons
-const NavButton = ({ active, onClick, icon: Icon, label, desc }) => (
-    <button
-        onClick={onClick}
-        className={`
-            text-left p-4 rounded-xl transition-all flex items-center gap-4 group w-full
-            ${active 
-                ? 'bg-amber-900/20 border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' 
-                : 'bg-transparent border border-transparent hover:bg-white/5'
-            }
-        `}
-    >
+const NavButton = ({ active, onClick, icon, label, desc }) => (
+    <button onClick={onClick} className={...}>
         <div className={`p-2 rounded-lg ${active ? 'bg-amber-500 text-black' : 'bg-stone-800 text-stone-500 group-hover:text-stone-300'}`}>
-            <Icon size={20} />
+            {/* USE THE HELPER HERE */}
+            <RenderIcon icon={icon} size={20} />
         </div>
         <div>
             <div className={`font-bold ${active ? 'text-amber-100' : 'text-stone-400 group-hover:text-stone-200'}`}>{label}</div>

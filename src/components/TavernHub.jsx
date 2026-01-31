@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, isValidElement } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Beer, UserPlus, Coins, ArrowRight, ShoppingBag, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,27 +7,28 @@ import { HIREABLE_NPCS } from '@/lib/NPCData';
 import { UPGRADES_LIST } from '@/lib/gameLogic';
 import ReagentVendor from './ReagentVendor';
 
+// --- SAFE ICON RENDERER ---
 const RenderIcon = ({ icon, className }) => {
-    // 1. Fallback if icon is missing or undefined
+    // 1. Missing?
     if (!icon) return <Shield className={className} />;
 
-    // 2. Handle Emojis/Strings
+    // 2. Already an Element? (e.g. <Beer />) -> Just Clone it with new classes
+    if (isValidElement(icon)) {
+        return React.cloneElement(icon, { className });
+    }
+
+    // 3. String? (Emoji) -> Render as text
     if (typeof icon === 'string') {
-        return <span className={`${className} flex items-center justify-center`}>{icon}</span>;
+        return <span className={`${className} flex items-center justify-center not-italic leading-none`}>{icon}</span>;
     }
 
-    // 3. Handle Components (Lucide)
-    // ONLY try to render as a component if it's a function or object
-    if (typeof icon === 'function' || typeof icon === 'object') {
+    // 4. Component? (Lucide Function) -> Render as JSX
+    if (typeof icon === 'function') {
         const IconComponent = icon;
-        try {
-            return <IconComponent className={className} />;
-        } catch (e) {
-            console.error("Failed to render icon component", e);
-            return <Shield className={className} />;
-        }
+        return <IconComponent className={className} />;
     }
 
+    // Fallback
     return <Shield className={className} />;
 };
 
@@ -47,7 +48,6 @@ const TavernHub = ({
   const [activeTab, setActiveTab] = useState('market');
 
   const [randomHireables] = useState(() => {
-    // Safety check for empty list
     const list = HIREABLE_NPCS || [];
     const shuffled = [...list].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
@@ -74,7 +74,6 @@ const TavernHub = ({
   const handleDismiss = () => {
     soundEngine.playGold(volume);
     setGold(g => g + 25);
-    // Reset icon to null to prevent stale state issues
     setApprentice({ hired: false, npcId: null, npcName: null, npcClass: null, icon: null });
   };
 
@@ -95,7 +94,7 @@ const TavernHub = ({
       exit={{ opacity: 0 }}
       className="min-h-screen bg-[#0c0a09] text-amber-500 flex flex-col items-center overflow-hidden"
     >
-      {/* 1. HEADER */}
+      {/* HEADER */}
       <div className="w-full bg-[#1c1917] border-b border-amber-900/30 p-4 flex justify-between items-center z-20 shadow-xl">
          <div className="flex items-center gap-4">
              <div className='p-3 bg-amber-900/20 rounded-lg border border-amber-900/50'>
@@ -118,22 +117,21 @@ const TavernHub = ({
          </div>
       </div>
 
-      {/* 2. MAIN CONTENT AREA */}
+      {/* CONTENT AREA */}
       <div className="flex-1 w-full max-w-7xl mx-auto flex gap-6 p-6 h-[calc(100vh-80px)]">
          
-         {/* SIDEBAR NAVIGATION */}
+         {/* SIDEBAR */}
          <div className="w-64 shrink-0 flex flex-col gap-2">
             <NavButton active={activeTab === 'market'} onClick={() => setActiveTab('market')} icon={ShoppingBag} label="Black Market" desc="Buy Rare Reagents" />
             <NavButton active={activeTab === 'upgrades'} onClick={() => setActiveTab('upgrades')} icon={Zap} label="Workshop" desc="Shop Upgrades" />
             <NavButton active={activeTab === 'hire'} onClick={() => setActiveTab('hire')} icon={UserPlus} label="Recruit" desc="Hire Apprentices" />
             
-            {/* Active Apprentice Card (Mini) */}
+            {/* Active Apprentice */}
             <div className="mt-auto bg-[#1c1917] p-4 rounded-xl border border-amber-900/30">
                 <h4 className="text-xs font-bold uppercase text-stone-500 mb-2">Active Apprentice</h4>
                 {apprentice.hired ? (
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-indigo-900/50 rounded-full flex items-center justify-center border border-indigo-500/30 overflow-hidden">
-                             {/* SAFE RENDER */}
                              <RenderIcon icon={apprentice.icon} className="w-5 h-5 text-indigo-400" />
                         </div>
                         <div>
@@ -147,15 +145,15 @@ const TavernHub = ({
             </div>
          </div>
 
-         {/* CONTENT PANEL */}
+         {/* PANEL */}
          <div className="flex-1 bg-[#141210] border border-[#292524] rounded-2xl shadow-2xl overflow-hidden relative">
             
-            {/* TAB: BLACK MARKET */}
+            {/* 1. VENDOR */}
             {activeTab === 'market' && (
                 <ReagentVendor inventory={inventory} onBuy={onBuyReagent} playerGold={gold} />
             )}
 
-            {/* TAB: WORKSHOP */}
+            {/* 2. UPGRADES */}
             {activeTab === 'upgrades' && (
                 <div className="p-8 h-full overflow-y-auto custom-scrollbar">
                     <h2 className="text-2xl font-bold text-amber-100 font-serif mb-6 flex items-center gap-2">
@@ -183,7 +181,6 @@ const TavernHub = ({
                                     <div className="flex justify-between items-start mb-1 relative z-10">
                                         <div className="flex items-center gap-3">
                                             <div className={`p-2 rounded bg-black/40 ${isPurchased ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                                {/* SAFE RENDER */}
                                                 <RenderIcon icon={item.icon} className="w-5 h-5" />
                                             </div>
                                             <h3 className={`font-bold ${isPurchased ? 'text-emerald-500' : 'text-stone-200'}`}>{item.name}</h3>
@@ -200,7 +197,7 @@ const TavernHub = ({
                 </div>
             )}
 
-            {/* TAB: RECRUIT */}
+            {/* 3. RECRUIT */}
             {activeTab === 'hire' && (
                 <div className="p-8 h-full overflow-y-auto custom-scrollbar flex flex-col">
                     <h2 className="text-2xl font-bold text-indigo-200 font-serif mb-6 flex items-center gap-2">
@@ -229,7 +226,6 @@ const TavernHub = ({
                                 return (
                                     <div key={npc.id} className="bg-[#1c1917] border border-[#292524] p-4 rounded-xl flex gap-4 hover:border-indigo-500/30 transition-all group">
                                         <div className={`w-14 h-14 rounded-full bg-black/40 flex items-center justify-center border border-white/5 ${npc.color} shrink-0 overflow-hidden`}>
-                                            {/* SAFE RENDER */}
                                             <RenderIcon icon={npc.icon} className="w-7 h-7" />
                                         </div>
                                         <div className="flex-1">
@@ -261,6 +257,7 @@ const TavernHub = ({
     </motion.div>
   );
 };
+
 const NavButton = ({ active, onClick, icon, label, desc }) => (
     <button
         onClick={onClick}
@@ -273,7 +270,7 @@ const NavButton = ({ active, onClick, icon, label, desc }) => (
         `}
     >
         <div className={`p-2 rounded-lg ${active ? 'bg-amber-500 text-black' : 'bg-stone-800 text-stone-500 group-hover:text-stone-300'}`}>
-            <RenderIcon icon={icon} size={20} />
+            <RenderIcon icon={icon} className="w-5 h-5" />
         </div>
         <div>
             <div className={`font-bold ${active ? 'text-amber-100' : 'text-stone-400 group-hover:text-stone-200'}`}>{label}</div>

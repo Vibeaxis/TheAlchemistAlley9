@@ -1,14 +1,23 @@
 import React from 'react';
-import { ShoppingBag, Coins, Lock, Package } from 'lucide-react';
-import { INGREDIENTS } from '@/lib/gameLogic';
+import { ShoppingBag, Coins, Package, Shield } from 'lucide-react';
+import { INGREDIENTS } from '@/lib/constants'; // Ensure correct path!
+
+// Simple local safe render for the Vendor to avoid import loops
+const VendorIcon = ({ icon }) => {
+    if (typeof icon === 'string') return <span className="text-3xl">{icon}</span>;
+    if (typeof icon === 'function') {
+        const Comp = icon; 
+        return <Comp className="w-8 h-8" />;
+    }
+    return <Shield />;
+};
 
 const ReagentVendor = ({ inventory, onBuy, playerGold }) => {
-  // Only show Finite items in the shop
   const stock = INGREDIENTS.filter(i => i.finite);
 
   return (
     <div className="w-full h-full p-6 overflow-y-auto custom-scrollbar">
-      
+      {/* Header */}
       <div className="flex items-center justify-between mb-8 border-b border-amber-900/30 pb-4">
         <div className="flex items-center gap-3">
             <div className="bg-amber-900/20 p-2 rounded-lg border border-amber-700/30">
@@ -27,7 +36,8 @@ const ReagentVendor = ({ inventory, onBuy, playerGold }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {stock.map((ing) => {
-          const count = inventory[ing.name] || 0;
+          // Safety check for inventory
+          const count = inventory && inventory[ing.name] ? inventory[ing.name] : 0;
           const canAfford = playerGold >= ing.cost;
           
           return (
@@ -37,9 +47,11 @@ const ReagentVendor = ({ inventory, onBuy, playerGold }) => {
             >
               <div className="flex justify-between items-start z-10">
                   <div className="flex items-center gap-4">
-                      <div className="text-3xl bg-black/40 w-14 h-14 flex items-center justify-center rounded-lg border border-white/5 shadow-inner group-hover:scale-110 transition-transform">
-                          {ing.icon}
+                      {/* ICON RENDERER */}
+                      <div className="w-14 h-14 bg-black/40 flex items-center justify-center rounded-lg border border-white/5 shadow-inner group-hover:scale-110 transition-transform">
+                          <VendorIcon icon={ing.icon} />
                       </div>
+                      
                       <div>
                           <h3 className="font-bold text-stone-200 font-serif tracking-wide group-hover:text-amber-100 transition-colors">{ing.name}</h3>
                           <div className="text-[10px] text-stone-500 uppercase tracking-wider font-bold mt-1 flex items-center gap-2">
@@ -50,6 +62,7 @@ const ReagentVendor = ({ inventory, onBuy, playerGold }) => {
                   </div>
               </div>
 
+              {/* Tags */}
               <div className="flex gap-1.5 flex-wrap my-1">
                   {ing.tags.map(t => (
                       <span key={t} className="text-[9px] px-2 py-0.5 bg-black/40 text-stone-400 rounded-sm border border-white/5 uppercase tracking-wider">

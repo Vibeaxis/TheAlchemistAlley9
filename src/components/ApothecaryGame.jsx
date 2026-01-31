@@ -54,7 +54,7 @@ const getTagColor = (tag) => {
   }
 };
 
-const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags }) => {
+const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting }) => {
   const Icon = customer.class.icon || Ghost;
   const seed = customer.id + customer.class.name;
   const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=transparent`;

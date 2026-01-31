@@ -1051,7 +1051,7 @@ const handleBrew = () => {
   className="w-[95vw] max-w-none h-[90vh] bg-slate-950 border-2 border-slate-800 shadow-2xl rounded-xl overflow-hidden relative flex flex-col"
   onClick={(e) => e.stopPropagation()} 
 >
->
+
               <button 
                 onClick={() => setShowMap(false)}
                 className="absolute top-4 right-4 z-50 bg-slate-900 text-slate-400 hover:text-white p-2 rounded-full border border-slate-700"

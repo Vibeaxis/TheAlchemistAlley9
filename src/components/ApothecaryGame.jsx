@@ -158,7 +158,6 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
 
-import { motion, AnimatePresence } from 'framer-motion';
 
 const CustomerCard = ({ 
     customer, 

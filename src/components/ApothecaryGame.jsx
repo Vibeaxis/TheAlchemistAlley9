@@ -557,7 +557,6 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
     </div>
   )
 }
-
 const Lens = ({ onInspect, onHoverDetect }) => {
   return (
     <motion.div
@@ -565,37 +564,34 @@ const Lens = ({ onInspect, onHoverDetect }) => {
       dragElastic={0.05}
       dragMomentum={false}
       whileDrag={{ scale: 1.1, cursor: 'grabbing' }}
-      
       onDragStart={() => onInspect(true)}
       onDragEnd={() => onInspect(false)}
       
-      // THE SCANNER LOGIC
+      // THE FIX: Use clientX/Y directly from the event
       onDrag={(event, info) => {
-        // 1. Get all elements under the mouse cursor
-        const elements = document.elementsFromPoint(info.point.x, info.point.y);
+        const x = event.clientX;
+        const y = event.clientY;
         
-        // 2. Look for any element with our special data attribute
+        // Raycast through the lens to find elements underneath
+        const elements = document.elementsFromPoint(x, y);
+        
+        // Find the specific tag we are looking for
         const target = elements.find(el => el.getAttribute('data-inspect-id'));
         
-        // 3. If found, tell the Game Loop what we found
         if (target) {
-            const targetId = target.getAttribute('data-inspect-id');
-            onHoverDetect(targetId);
+            const id = target.getAttribute('data-inspect-id');
+            // console.log("Found:", id); // Uncomment to debug if needed
+            onHoverDetect(id);
         }
       }}
-      
-      className="absolute bottom-4 left-4 z-50 cursor-grab group"
+      className="absolute bottom-4 left-4 z-50 cursor-grab group touch-none"
     >
-      {/* Visuals (Same as before) */}
+      {/* Visuals */}
       <div className="relative w-24 h-24 pointer-events-none"> 
         <div className="absolute -bottom-6 -right-6 w-16 h-4 bg-amber-900 rounded-full rotate-45 border-2 border-amber-950 z-0" />
         <div className="absolute inset-0 rounded-full border-[6px] border-amber-600 bg-white/10 backdrop-blur-[1px] shadow-xl z-10 flex items-center justify-center overflow-hidden">
              <div className="absolute top-2 left-4 w-8 h-4 bg-white/40 rounded-full rotate-[-15deg] blur-[1px]" />
         </div>
-      </div>
-      
-      <div className="absolute -bottom-10 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-amber-500 font-mono tracking-widest pointer-events-none whitespace-nowrap">
-        DRAG TO SCAN
       </div>
     </motion.div>
   );

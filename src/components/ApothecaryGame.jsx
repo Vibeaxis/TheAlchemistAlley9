@@ -720,9 +720,7 @@ const [isProcessing, setIsProcessing] = useState(false);
   const [messageType, setMessageType] = useState('normal');
   const [whisperQueue, setWhisperQueue] = useState([]);
   const [observationHint, setObservationHint] = useState(null);
-// NEW: Theme State (Defaulting to Grimoire)
-  const [currentThemeId, setCurrentThemeId] = useState('grimoire');
-  const theme = THEMES[currentThemeId];
+const [theme, setTheme] = useState(THEMES.grimoire);
   // Tracks the result of the night's mission to show in the morning
 const [missionReport, setMissionReport] = useState(null);
 

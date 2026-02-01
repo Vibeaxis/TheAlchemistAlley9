@@ -1087,9 +1087,10 @@ const advanceDay = () => {
     
     setTimeout(() => setGameMessage(''), 3000);
     // AUTO SAVE
-    setTimeout(() => {
-        saveGame();
-    }, 100); // Small delay to ensure state updates settle (though mostly redundant with hooks, safer here)
+   // FIXED LINE
+setTimeout(() => {
+    handleSaveGame(); // <--- Use the new handler from the SaveManager logic
+}, 100);
 };
 
 // --- RIVAL ENCOUNTER RESOLUTION ---

@@ -722,7 +722,6 @@ const [isProcessing, setIsProcessing] = useState(false);
   const [observationHint, setObservationHint] = useState(null);
 // NEW: Theme State (Defaulting to Grimoire)
 const [theme, setTheme] = useState(THEMES.grimoire);
-  const theme = THEMES[currentThemeId];
   // Tracks the result of the night's mission to show in the morning
 const [missionReport, setMissionReport] = useState(null);
 

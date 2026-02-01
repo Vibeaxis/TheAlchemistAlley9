@@ -553,8 +553,7 @@ const CinematicAnnouncement = ({ text, type }) => {
 const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isRevealed, onInspect }) => {
   const isWatched = watchFocus === activeDistrict;
   
-  // 1. UPDATE GLOW LOGIC: 
-  // If Revealed (Scanned), force Blue Glow. Otherwise use Heat/Watch logic.
+  // 1. GLOW LOGIC
   const glowColor = isRevealed 
     ? 'shadow-[0_0_100px_rgba(59,130,246,0.6)] bg-blue-900/20 border-blue-400/50 animate-pulse' 
     : isWatched 
@@ -563,8 +562,8 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
         ? 'shadow-[0_0_80px_rgba(194,65,12,0.3)] bg-orange-950/20'
         : 'shadow-[0_0_60px_rgba(71,85,105,0.3)] bg-[#0f172a]/60';
 
-  // 2. INTERACTION STYLES:
-  // Only clickable if it has been revealed by the scanner
+  // 2. INTERACTION STYLES
+  // NOTE: This sets 'pointer-events-none' on the parent when NOT revealed.
   const interactionStyle = isRevealed 
     ? 'cursor-pointer hover:shadow-[0_0_50px_rgba(59,130,246,0.4)] hover:border-blue-900/50 pointer-events-auto' 
     : 'pointer-events-none';
@@ -574,12 +573,8 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
        
        {/* THE WINDOW FRAME */}
        <div 
-         // 3. ADD ID FOR LENS SCANNER
          data-inspect-id="window"
-
-         // 4. CLICK HANDLER (Only works if revealed)
          onClick={() => isRevealed && onInspect()}
-         
          className={`
             relative w-full aspect-square max-w-[280px] border-8 border-[#292524] bg-black overflow-hidden rounded-t-full transition-all duration-300
             ${glowColor} 
@@ -588,32 +583,32 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
          `}
        >
           
-      {/* --- THE SPIRIT RUNE (Only shows when Crystal Ball is ON) --- */}
-{isInspecting && !isRevealed && (
-    <div 
-    onClick={(e) => {
-        e.stopPropagation();
-        onInspect(); 
-    }}
-    // ADDED 'pointer-events-auto' HERE so it overrides the parent's pointer-events-none
-    className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900/10 backdrop-blur-[1px] cursor-pointer hover:bg-purple-900/20 transition-all pointer-events-auto"
-    >
-    <div className="relative group-hover:scale-110 transition-transform duration-500">
-        {/* Spinning Outer Ring */}
-        <div className="absolute inset-[-20px] border border-purple-400/30 rounded-full animate-[spin_4s_linear_infinite]" />
-        {/* The Eye Icon */}
-        <Eye className="w-16 h-16 text-purple-300 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse" />
-        {/* Label */}
-        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-purple-200 tracking-[0.3em] font-serif uppercase whitespace-nowrap">
-            Scry Street
-        </div>
-    </div>
-    </div>
-)}
-          {/* 1. Texture Overlay (Dirty Glass) */}
+          {/* --- THE SPIRIT RUNE --- */}
+          {/* Only shows when Crystal Ball is ON (isInspecting) and Window is HIDDEN (!isRevealed) */}
+          {isInspecting && !isRevealed && (
+             <div 
+                onClick={(e) => {
+                    e.stopPropagation(); 
+                    onInspect(); 
+                }}
+                // *** THE FIX IS HERE ***
+                // Added 'pointer-events-auto' to override the parent's 'none'
+                className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900/10 backdrop-blur-[1px] cursor-pointer hover:bg-purple-900/20 transition-all pointer-events-auto"
+             >
+                <div className="relative group-hover:scale-110 transition-transform duration-500">
+                    <div className="absolute inset-[-20px] border border-purple-400/30 rounded-full animate-[spin_4s_linear_infinite]" />
+                    <Eye className="w-16 h-16 text-purple-300 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse" />
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-purple-200 tracking-[0.3em] font-serif uppercase whitespace-nowrap">
+                        Scry Street
+                    </div>
+                </div>
+             </div>
+          )}
+
+          {/* 1. Texture Overlay */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 z-10 mix-blend-overlay" />
           
-          {/* 2. THE GUARD (Silhouette) */}
+          {/* 2. THE GUARD */}
           <AnimatePresence>
             {isWatched && (
                <motion.img 
@@ -628,7 +623,7 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
             )}
           </AnimatePresence>
 
-          {/* 3. THE BARS (Cast Iron) */}
+          {/* 3. THE BARS */}
           <div className="absolute inset-0 flex z-20 pointer-events-none">
              <div className="flex-1 border-r-4 border-[#0c0a09]"></div>
              <div className="flex-1 border-r-4 border-[#0c0a09]"></div>
@@ -642,6 +637,8 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
     </div>
   )
 }
+
+
 const Lens = ({ isInspecting, onInspect }) => {
   return (
     <div className="absolute bottom-4 left-4 z-50">

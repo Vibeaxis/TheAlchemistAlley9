@@ -627,35 +627,63 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
     </div>
   )
 }
-const Lens = ({ onInspect, isInspecting }) => {
+const Lens = ({ isInspecting, onInspect }) => {
   return (
-    <motion.div
-      drag
-      // REMOVED: dragConstraints={...} 
-      dragElastic={0.05} // Low elasticity feels heavier/better
-      dragMomentum={false} // Stops it from sliding away when you let go
-      whileDrag={{ scale: 1.1, cursor: 'grabbing' }}
-      onDragStart={() => onInspect(true)}
-      onDragEnd={() => onInspect(false)}
-      className="absolute bottom-4 left-4 z-50 cursor-grab group"
-    >
-      {/* The Glass Visual */}
-      <div className="relative w-24 h-24 pointer-events-none"> {/* Added pointer-events-none to inner so drag works better */}
-        {/* Handle */}
-        <div className="absolute -bottom-6 -right-6 w-16 h-4 bg-amber-900 rounded-full rotate-45 border-2 border-amber-950 z-0" />
+    <div className="absolute bottom-4 left-4 z-50">
+      <motion.div
+        // 1. SIMPLE CLICK INTERACTION
+        onClick={() => onInspect(!isInspecting)} 
         
-        {/* Rim */}
-        <div className="absolute inset-0 rounded-full border-[6px] border-amber-600 bg-white/10 backdrop-blur-[1px] shadow-xl z-10 flex items-center justify-center overflow-hidden">
-             {/* Reflection */}
-             <div className="absolute top-2 left-4 w-8 h-4 bg-white/40 rounded-full rotate-[-15deg] blur-[1px]" />
+        // 2. Button Feel
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        
+        // 3. Floating Animation when Active
+        animate={isInspecting ? { y: [0, -6, 0] } : { y: 0 }}
+        transition={{ y: { repeat: Infinity, duration: 2.5, ease: "easeInOut" } }}
+        
+        className="relative w-24 h-24 cursor-pointer group"
+      >
+        {/* --- THE CRYSTAL BALL VISUAL --- */}
+        
+        {/* The Base (Gold/Stone Stand) */}
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-14 h-8 bg-[#1c1917] border-2 border-[#78350f] rounded-b-xl z-0 shadow-lg" />
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-16 h-2 bg-[#78350f] rounded-full z-0" />
+
+        {/* The Sphere */}
+        <div className={`
+            absolute bottom-4 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full 
+            border-2 border-white/20 z-10 overflow-hidden transition-all duration-700
+            ${isInspecting 
+                ? 'bg-purple-900/40 shadow-[0_0_30px_rgba(168,85,247,0.6),inset_0_0_20px_rgba(168,85,247,0.4)] border-purple-400/50' 
+                : 'bg-stone-900/60 shadow-[inset_0_0_10px_rgba(0,0,0,0.8)] border-stone-600/30'}
+        `}>
+             
+             {/* Inner Mist / Texture */}
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-40 mix-blend-overlay" />
+             
+             {/* Active Spin Effect */}
+             {isInspecting && (
+                 <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-[-50%] w-[200%] h-[200%] bg-gradient-to-tr from-transparent via-purple-500/20 to-transparent blur-md"
+                 />
+             )}
+
+             {/* Glass Reflection (Static) */}
+             <div className="absolute top-3 left-4 w-6 h-3 bg-white/30 rounded-full rotate-[-15deg] blur-[1px]" />
         </div>
-      </div>
-      
-      {/* Helper Text */}
-      <div className="absolute -bottom-10 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-amber-500 font-mono tracking-widest pointer-events-none whitespace-nowrap">
-        DRAG TO INSPECT
-      </div>
-    </motion.div>
+
+        {/* --- HELPER TEXT --- */}
+        <div className={`
+            absolute -bottom-6 left-0 right-0 text-center text-[10px] font-mono tracking-widest transition-all duration-300
+            ${isInspecting ? 'text-purple-400 text-shadow-glow' : 'text-stone-500 group-hover:text-stone-300'}
+        `}>
+          {isInspecting ? "SIGHT ACTIVE" : "ACTIVATE"}
+        </div>
+      </motion.div>
+    </div>
   );
 };
 const Mortar = ({ onInteract }) => {

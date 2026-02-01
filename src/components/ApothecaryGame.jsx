@@ -1751,6 +1751,8 @@ const handleLensHover = (targetId) => {
                                         watchFocus={watchFocus} 
                                         activeDistrict={activeDistrict} 
                                         // NEW PROPS:
+                                        isRevealed={revealedItems['window']} // <--- Crucial link
+    
   isInspecting={isInspecting}
     onInspect={handleInspectWindow}
                                     />

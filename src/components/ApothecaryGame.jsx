@@ -552,8 +552,7 @@ const CinematicAnnouncement = ({ text, type }) => {
 };
 const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, activeTool, onInspect }) => {
   const isWatched = watchFocus === activeDistrict;
-  const isInspectable = activeTool === 'magnify'; // Check if we are holding the tool
-
+  const isInspectable = isInspecting;
   // COLORS UPDATED:
   const glowColor = isWatched 
     ? 'shadow-[0_0_100px_rgba(153,27,27,0.5)] bg-red-950/30' 
@@ -749,10 +748,10 @@ const [isRepModalOpen, setIsRepModalOpen] = useState(false);
 const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 const [activeBuffs, setActiveBuffs] = useState({}); // Stores temp buffs like 'marketing'
 const handleInspectWindow = () => {
-    // Only works if using Magnifying Glass!
-    if (activeTool !== 'magnify') return;
+    // FIX: Check your specific state variable
+    if (!isInspecting) return; 
 
-    soundEngine.playClick(vol); // Or a specific "glass" sound
+    soundEngine.playClick(audioVolume/100); 
     
     let msg = "";
     let color = "";
@@ -771,13 +770,9 @@ const handleInspectWindow = () => {
         color = "text-red-500 font-bold animate-pulse";
     }
 
-    // Show the report (using your existing Game Message system or a new popup)
     setScoutReport({ msg, color });
-    
-    // Auto-hide after 4 seconds
     setTimeout(() => setScoutReport(null), 4000);
   };
-
 
   const handleRaidResolve = () => {
      if (!activeRaid) return;
@@ -1724,7 +1719,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
                                         watchFocus={watchFocus} 
                                         activeDistrict={activeDistrict} 
                                         // NEW PROPS:
-    activeTool={activeTool}
+  isInspecting={isInspecting}
     onInspect={handleInspectWindow}
                                     />
                                     <div className="flex-1 flex items-start justify-center mt-8">

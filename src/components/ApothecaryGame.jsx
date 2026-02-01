@@ -173,11 +173,6 @@ const CustomerCard = ({
   
 
 
-  // Reset when customer changes
-  useEffect(() => { 
-      setPersistedReveal(false); 
-  }, [customer.id]);
-
   // Combine parent prop + local memory
   const showReveal = revealedTags && revealedTags.length > 0;
 

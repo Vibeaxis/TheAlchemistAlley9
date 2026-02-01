@@ -165,17 +165,13 @@ const CustomerCard = ({
     onMouseEnter, 
     onMouseLeave, 
     revealedTags, 
-    isInspecting, // This comes from parent when hovered
+ 
     theme, 
     feedbackState 
 }) => {
-  // Logic: We want to remember if it was revealed even if cursor slips off for a second
-  const [persistedReveal, setPersistedReveal] = useState(false);
+
   
-  // If the parent says we are inspecting, lock it in.
-  useEffect(() => { 
-      if (isInspecting) setPersistedReveal(true); 
-  }, [isInspecting]);
+
 
   // Reset when customer changes
   useEffect(() => { 

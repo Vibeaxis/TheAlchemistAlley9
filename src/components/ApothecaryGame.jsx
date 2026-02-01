@@ -588,9 +588,16 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
          `}
        >
           
-         {/* --- THE SPIRIT RUNE (Only shows when Crystal Ball is ON) --- */}
+        {/* --- THE SPIRIT RUNE (Only shows when Crystal Ball is ON) --- */}
           {isInspecting && !isRevealed && (
-             <div className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900/10 backdrop-blur-[1px] cursor-pointer hover:bg-purple-900/20 transition-all">
+             <div 
+                // ADD THIS LINE HERE:
+                onClick={(e) => {
+                    e.stopPropagation(); // Prevents bubbling issues
+                    onInspect(); 
+                }}
+                className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900/10 backdrop-blur-[1px] cursor-pointer hover:bg-purple-900/20 transition-all"
+             >
                 <div className="relative group-hover:scale-110 transition-transform duration-500">
                     {/* Spinning Outer Ring */}
                     <div className="absolute inset-[-20px] border border-purple-400/30 rounded-full animate-[spin_4s_linear_infinite]" />

@@ -937,14 +937,13 @@ const handleAssignMission = (mission) => {
     }
     setTimeout(() => setGameMessage(''), 2000);
   };
-
-
 const saveGame = () => {
-    // ONLY check Reputation. Being broke (0 gold) is fine, just hard.
+    // 1. SAFETY CHECK: Do not save if the player is dead/exiled
     if (reputation <= 0) {
         console.warn("Cannot save: Player is exiled (0 Rep).");
         return;
     }
+
     const gameState = {
         day,
         gold,
@@ -953,23 +952,24 @@ const saveGame = () => {
         inventory,
         upgrades,
         apprentice,
-        rival, // Don't forget the nemesis!
+        rival,
         discoveredIngredients,
         brewHistory,
         gameStats,
-        currentThemeId: currentTheme.id
+        // FIX: Use 'theme' instead of 'currentTheme'
+        currentThemeId: theme.id 
     };
+    
     localStorage.setItem('apothecary_save_v1', JSON.stringify(gameState));
-    console.log("Game Saved");
+    console.log("Game Saved Successfully");
   };
-
-  const loadGame = () => {
+const loadGame = () => {
     const savedData = localStorage.getItem('apothecary_save_v1');
     if (savedData) {
         try {
             const data = JSON.parse(savedData);
             
-            // Restore all states
+            // Restore States
             setDay(data.day || 1);
             setGold(data.gold ?? 100);
             setReputation(data.reputation ?? 20);
@@ -977,21 +977,20 @@ const saveGame = () => {
             setInventory(data.inventory || { Salt: 3, Sage: 2 });
             setUpgrades(data.upgrades || {});
             setApprentice(data.apprentice || { hired: false });
-            setRival(data.rival || null); 
+            setRival(data.rival || null);
             setDiscoveredIngredients(data.discoveredIngredients || {});
             setBrewHistory(data.brewHistory || []);
             setGameStats(data.gameStats || { daysCount: 0 });
             
-            // Restore Theme
+            // FIX: Use 'setTheme' instead of 'setCurrentTheme'
             if (data.currentThemeId && THEMES[data.currentThemeId]) {
-                setCurrentTheme(THEMES[data.currentThemeId]);
+                setTheme(THEMES[data.currentThemeId]);
             }
             
-            // Reset to Day phase to avoid getting stuck in Night modals
+            // Reset phase to Day
             setPhase('day');
             setCurrentCustomer(generateCustomer(data.day || 1)); 
             
-            // Feedback
             setGameMessage("Game Loaded");
             setTimeout(() => setGameMessage(''), 2000);
         } catch (err) {
@@ -1016,12 +1015,13 @@ const saveGame = () => {
      // but putting saveGame() inside advanceDay() is cleaner.
   }, [day]);
 
-
-  // --- THE FIX FOR YOUR BUGGED PROFILE ---
-  const handleHardReset = () => {
-    // 1. Wipe the specific save key
+const handleHardReset = () => {
     localStorage.removeItem('apothecary_save_v1');
-    
+    // Ensure you use the variable name 'audioVolume' if that is what your state is called
+    // If your state is 'vol', keep it as 'vol'.
+    soundEngine.playFail(audioVolume / 100); 
+    window.location.reload();
+  };
     // 2. Play sound
     soundEngine.playFail(vol);
 

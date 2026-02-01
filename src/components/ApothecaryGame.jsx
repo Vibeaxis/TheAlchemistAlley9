@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, BookOpen, Search, Settings,
   Shield, Crown, Coins, Skull, Ghost,
-  FlaskConical, Flame, Trash2, Loader, Map as MapIcon, X, Siren, ShieldAlert, CheckCircle
+  FlaskConical, Flame, Trash2, Loader, Map as MapIcon, X, Siren, ShieldAlert, CheckCircle, Eye, VenetianMask
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CityMap from '@/components/CityMap'; // Ensure this path is correct
@@ -22,7 +22,7 @@ import ReputationExchange from '@/components/ReputationExchange';
 import WorldCalendar from '@/components/WorldCalendar';
 
 import RivalEncounter from '@/components/RivalEncounter';
-
+import RaidEvent from '@/components/RaidEvent';
 
 
 
@@ -550,26 +550,43 @@ const CinematicAnnouncement = ({ text, type }) => {
     </motion.div>
   );
 };
-const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
+const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, activeTool, onInspect }) => {
   const isWatched = watchFocus === activeDistrict;
-  
+  const isInspectable = activeTool === 'magnify'; // Check if we are holding the tool
+
   // COLORS UPDATED:
-  // Red: Deep Lantern Red (Alert)
-  // Orange: Smoldering Coal (Suspicion)
-  // Blue: Desaturated Moonlight (Safe) - Less "Electric Blue", more "Night Sky"
   const glowColor = isWatched 
     ? 'shadow-[0_0_100px_rgba(153,27,27,0.5)] bg-red-950/30' 
     : heat > 50 
       ? 'shadow-[0_0_80px_rgba(194,65,12,0.3)] bg-orange-950/20'
       : 'shadow-[0_0_60px_rgba(71,85,105,0.3)] bg-[#0f172a]/60';
 
+  // Interaction Styles
+  const interactionStyle = isInspectable 
+    ? 'cursor-pointer hover:shadow-[0_0_50px_rgba(59,130,246,0.4)] hover:border-blue-900/50 pointer-events-auto' 
+    : 'pointer-events-none';
+
   return (
-    <div className="w-full flex flex-col gap-4 p-4 opacity-90 pointer-events-none select-none transition-all duration-1000 items-center">
+    <div className="w-full flex flex-col gap-4 p-4 opacity-90 select-none transition-all duration-1000 items-center">
        
        {/* THE WINDOW FRAME */}
-       {/* Changed border from slate-900 to #292524 (Warm Iron/Stone) */}
-       <div className={`relative w-full aspect-square max-w-[280px] border-8 border-[#292524] bg-black overflow-hidden rounded-t-full transition-all duration-1000 ${glowColor}`}>
+       <div 
+         onClick={() => isInspectable && onInspect()}
+         className={`
+            relative w-full aspect-square max-w-[280px] border-8 border-[#292524] bg-black overflow-hidden rounded-t-full transition-all duration-300
+            ${glowColor} 
+            ${interactionStyle}
+            group
+         `}
+       >
           
+          {/* HOVER HINT: Only shows when holding Magnifying Glass */}
+          {isInspectable && (
+            <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-blue-900/10 backdrop-blur-[1px]">
+                <Eye className="w-12 h-12 text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" strokeWidth={1.5} />
+            </div>
+          )}
+
           {/* 1. Texture Overlay (Dirty Glass) */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 z-10 mix-blend-overlay" />
           
@@ -589,13 +606,12 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict }) => {
           </AnimatePresence>
 
           {/* 3. THE BARS (Cast Iron) */}
-          {/* Changed from slate-900 to #0c0a09 (Obsidian/Black Iron) */}
-          <div className="absolute inset-0 flex z-20">
+          <div className="absolute inset-0 flex z-20 pointer-events-none">
              <div className="flex-1 border-r-4 border-[#0c0a09]"></div>
              <div className="flex-1 border-r-4 border-[#0c0a09]"></div>
              <div className="flex-1"></div>
           </div>
-          <div className="absolute inset-0 flex flex-col z-20">
+          <div className="absolute inset-0 flex flex-col z-20 pointer-events-none">
              <div className="flex-1 border-b-4 border-[#0c0a09]"></div>
              <div className="flex-1"></div>
           </div>
@@ -724,15 +740,58 @@ const [isProcessing, setIsProcessing] = useState(false);
 const [theme, setTheme] = useState(THEMES.grimoire);
   // Tracks the result of the night's mission to show in the morning
 const [missionReport, setMissionReport] = useState(null);
-
-
+const [activeRaid, setActiveRaid] = useState(null); // Stores raid data if happening
+const [scoutReport, setScoutReport] = useState(null); // Stores the window inspection result
 
 
 // 2. STATE
 const [isRepModalOpen, setIsRepModalOpen] = useState(false);
 const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 const [activeBuffs, setActiveBuffs] = useState({}); // Stores temp buffs like 'marketing'
+const handleInspectWindow = () => {
+    // Only works if using Magnifying Glass!
+    if (activeTool !== 'magnify') return;
 
+    soundEngine.playClick(vol); // Or a specific "glass" sound
+    
+    let msg = "";
+    let color = "";
+
+    if (heat < 20) {
+        msg = "The streets are quiet. A drunkard sings in the distance.";
+        color = "text-emerald-400";
+    } else if (heat < 50) {
+        msg = "Two guards are patrolling the market. They don't look this way.";
+        color = "text-blue-400";
+    } else if (heat < 80) {
+        msg = "There are shadows in the alleyway. They are watching the shop.";
+        color = "text-amber-400";
+    } else {
+        msg = "GUARDS ARE GATHERING AT THE CORNER. A RAID IS IMMINENT!";
+        color = "text-red-500 font-bold animate-pulse";
+    }
+
+    // Show the report (using your existing Game Message system or a new popup)
+    setScoutReport({ msg, color });
+    
+    // Auto-hide after 4 seconds
+    setTimeout(() => setScoutReport(null), 4000);
+  };
+
+
+  const handleRaidResolve = () => {
+     if (!activeRaid) return;
+
+     // Apply Penalties
+     setGold(g => Math.max(0, g - activeRaid.goldLoss));
+     setInventory(activeRaid.newInv);
+     setHeat(30); // Reset to "Safe" level
+     
+     setActiveRaid(null);
+     
+     // Advance Day
+     advanceDay();
+  };
 // 3. HELPER FOR BUFFS
 const addBuff = (id, duration) => {
     setActiveBuffs(prev => ({ ...prev, [id]: duration }));
@@ -1664,6 +1723,9 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
                                         heat={heat} 
                                         watchFocus={watchFocus} 
                                         activeDistrict={activeDistrict} 
+                                        // NEW PROPS:
+    activeTool={activeTool}
+    onInspect={handleInspectWindow}
                                     />
                                     <div className="flex-1 flex items-start justify-center mt-8">
                                         <AnimatePresence mode='wait'>
@@ -1697,6 +1759,16 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       </div>
 
       {/* Modals */}
+
+
+      {/* RAID MODAL */}
+{activeRaid && (
+    <RaidEvent 
+        goldLoss={activeRaid.goldLoss}
+        inventoryLoss={activeRaid.itemsLost}
+        onResolve={handleRaidResolve}
+    />
+)}
 {/* RIVAL MODAL - Place at the very bottom */}
 {activeEncounter && (
     <RivalEncounter 
@@ -1705,7 +1777,18 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
         onResolve={handleEncounterResolve} 
     />
 )}
-
+{/* --- SCOUT REPORT POPUP (Add this near the bottom of your Return) --- */}
+{scoutReport && (
+    <div className="absolute top-32 right-[22rem] z-50 bg-black/95 border border-stone-600 p-4 rounded-xl max-w-xs shadow-2xl animate-in fade-in slide-in-from-right-4 pointer-events-none">
+        <div className="flex items-center gap-2 mb-2 border-b border-white/10 pb-2">
+            <VenetianMask className="w-4 h-4 text-stone-400" />
+            <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">Scout Report</span>
+        </div>
+        <p className={`text-sm font-serif leading-relaxed ${scoutReport.color}`}>
+            "{scoutReport.msg}"
+        </p>
+    </div>
+)}
 <ReputationExchange 
     isOpen={isRepModalOpen} 
     onClose={() => setIsRepModalOpen(false)}

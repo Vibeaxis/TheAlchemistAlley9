@@ -157,48 +157,57 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     // 3. Fallback
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
+// --- UPDATED CUSTOMER CARD (Safe + Visual FX) ---
+// --- UPDATED CUSTOMER CARD (Fixed Feedback Positioning) ---
+const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme, feedbackState }) => {
+  const [hasRevealed, setHasRevealed] = useState(false);
+  
+  useEffect(() => { if (isInspecting) setHasRevealed(true); }, [isInspecting]);
+  useEffect(() => { setHasRevealed(false); }, [customer.id]);
 
-const CustomerCard = ({ 
-    customer, 
-    observationHint, 
-    revealedTags, 
-    theme, 
-    feedbackState,
-    isInspecting,
-}) => {
-const showReveal = revealedTags && revealedTags.length > 0;
-const [persistedReveal, setPersistedReveal] = useState(false);
-  const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
+  const t = theme || THEMES.grimoire;
+  // Use safe icon renderer logic here if not passed as prop, but usually SafeIcon handles it in render
   const iconSource = customer.class.icon; 
+
   const districts = [ { name: 'The Dregs', color: 'text-emerald-500' }, { name: 'Market', color: 'text-amber-500' }, { name: 'Arcanum', color: 'text-purple-400' }, { name: 'Docks', color: 'text-cyan-600' }, { name: 'Cathedral', color: 'text-yellow-400' }, { name: 'Spire', color: 'text-rose-500' } ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
-useEffect(() => { 
-      if (isInspecting) setPersistedReveal(true); 
-}, [isInspecting]);
+
   // Animation Variants
   const avatarVariants = {
     idle: { y: 0, rotate: 0, scale: 1, filter: 'none' },
-    cured: { y: [0, -15, 0], scale: [1, 1.1, 1], filter: 'brightness(1.2) contrast(1.1) drop-shadow(0 0 15px #fbbf24)', transition: { duration: 0.6 } },
-    poisoned: { x: [-5, 5, -5, 5, 0], filter: 'hue-rotate(90deg) contrast(1.2) drop-shadow(0 0 10px #84cc16)', transition: { duration: 0.4 } },
-    exploded: { x: [-10, 10, -10, 10, 0], scale: 0.9, filter: 'grayscale(100%) brightness(0.3) blur(1px)', transition: { duration: 0.3 } },
-    failed: { rotate: [0, -5, 5, 0], filter: 'grayscale(80%) opacity(0.8)', transition: { duration: 0.5 } }
+    cured: { 
+        y: [0, -15, 0], 
+        scale: [1, 1.1, 1],
+        filter: 'brightness(1.2) contrast(1.1) drop-shadow(0 0 15px #fbbf24)', // Golden glow
+        transition: { duration: 0.6 }
+    },
+    poisoned: { 
+        x: [-5, 5, -5, 5, 0],
+        filter: 'hue-rotate(90deg) contrast(1.2) drop-shadow(0 0 10px #84cc16)', // Greenish
+        transition: { duration: 0.4 } 
+    },
+    exploded: { 
+        x: [-10, 10, -10, 10, 0],
+        scale: 0.9,
+        filter: 'grayscale(100%) brightness(0.3) blur(1px)', // Soot
+        transition: { duration: 0.3 }
+    },
+    failed: {
+        rotate: [0, -5, 5, 0],
+        filter: 'grayscale(80%) opacity(0.8)',
+        transition: { duration: 0.5 }
+    }
   };
 
   return (
-    <div 
-      // --- FIX: ID IS ON THE MAIN WRAPPER NOW ---
-      // This ensures the lens sees it no matter where you drag on the card.
-      data-inspect-id="customer-card" 
-      // ------------------------------------------
-      className={`relative w-full h-full min-h-[460px] rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${showReveal ? 'shadow-[0_0_40px_rgba(168,85,247,0.4)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}`}
-    >
+    <div className={`relative w-full h-full min-h-[460px] rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${hasRevealed ? 'shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       
       {/* 1. Background */}
       <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
       
-      {/* 2. Avatar Container */}
-      <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10 pointer-events-none">
+      {/* 2. Avatar & Feedback Container */}
+      <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10">
          <div className="relative w-full h-full flex justify-center items-center">
             {/* Glow backing */}
             <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
@@ -212,12 +221,44 @@ useEffect(() => {
                 className="h-[85%] w-auto object-contain drop-shadow-xl z-10"
             />
 
-            {/* FEEDBACK OVERLAYS */}
+            {/* FEEDBACK OVERLAYS (Centered over head) */}
             <AnimatePresence>
                 {feedbackState === 'poisoned' && (
-                    <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="absolute top-[20%] left-1/2 -translate-x-1/2 z-20 flex gap-12">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                        className="absolute top-[20%] left-1/2 -translate-x-1/2 z-20 flex gap-12 pointer-events-none"
+                    >
                         <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
                         <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
+                    </motion.div>
+                )}
+                
+                {feedbackState === 'cured' && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.5, y: 0 }} animate={{ opacity: 1, scale: 1.2, y: -60 }} exit={{ opacity: 0 }}
+                        className="absolute top-[10%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                    >
+                        {/* Golden Sparkles */}
+                        <div className="text-6xl filter drop-shadow-[0_0_10px_gold]">✨</div>
+                    </motion.div>
+                )}
+                
+                {feedbackState === 'failed' && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 0, rotate: -10 }} animate={{ opacity: 1, y: -50, rotate: 10 }} exit={{ opacity: 0 }}
+                        className="absolute top-[15%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                    >
+                        {/* Grey Question Mark */}
+                        <div className="text-7xl font-bold text-slate-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">?</div>
+                    </motion.div>
+                )}
+
+                {feedbackState === 'exploded' && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1.5 }} exit={{ opacity: 0 }}
+                        className="absolute top-[25%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                    >
+                        <div className="text-7xl">💥</div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -225,18 +266,18 @@ useEffect(() => {
       </div>
 
       {/* 3. Stamp */}
-      <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-1000 z-10 text-right ${showReveal ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+      <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-1000 z-10 text-right ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
         <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>Soul Echo</div>
         <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/60 px-2 rounded-sm backdrop-blur-md border border-white/10`}>{origin.name}</div>
       </div>
 
       {/* 4. Text Panel */}
-      <div className={`absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-4 border-t ${t.accent} bg-gradient-to-t from-black via-black/95 to-transparent pointer-events-none`}>
+      <div className={`absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-4 border-t ${t.accent} bg-gradient-to-t from-black via-black/95 to-transparent`}>
         <div className={`absolute inset-0 opacity-90 ${t.nav} -z-10`} />
         <div className={`relative z-30 flex-1 flex flex-col ${t.font}`}>
             <div className="w-full flex flex-col items-center -mt-8">
                 <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg mb-2`}>
-                   <div className="w-6 h-6 bg-stone-700 rounded-full" /> 
+                    <SafeIcon icon={iconSource} size={24} className={t.textMain} />
                 </div>
                 <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>{customer.class.name}</h2>
                 <p className={`${t.textSec} text-xs italic tracking-wider mt-1 opacity-80`}>"{customer.class.description}"</p>
@@ -244,18 +285,16 @@ useEffect(() => {
             <div className="flex-1 flex items-center justify-center py-2">
                 <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm`}>"{customer.symptom.text}"</p>
             </div>
-            
-            {/* HINT SECTION */}
             <div className="h-8 w-full flex items-end justify-center shrink-0">
                 <AnimatePresence>
-                {observationHint && showReveal && (
+                {observationHint && hasRevealed && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center">
                         <span className={`inline-block px-3 py-1 text-[9px] ${t.textMain} uppercase tracking-[0.2em] font-bold border-t border-b ${t.accent} bg-black/20`}>✦ {observationHint} ✦</span>
                     </motion.div>
                 )}
                 </AnimatePresence>
-                {!showReveal && (
-                    <div className="flex flex-col items-center gap-1 opacity-30 transition-opacity">
+                {!hasRevealed && (
+                    <div className="flex flex-col items-center gap-1 opacity-30 group-hover:opacity-60 transition-opacity">
                         <span className={`text-[8px] ${t.textSec} uppercase tracking-[0.25em]`}>Divinate Aura</span>
                     </div>
                 )}
@@ -263,22 +302,17 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* 5. Tags - REVEALED */}
+      {/* 5. Tags */}
       {revealedTags && revealedTags.length > 0 && (
-        <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none animate-in fade-in zoom-in duration-300">
-          {revealedTags.map(tag => (
-            <span key={tag} className={`text-[8px] text-purple-200 font-bold tracking-widest border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.5)] bg-black/80 px-2 py-0.5 rounded-sm backdrop-blur-md flex items-center gap-1`}>
-                <span>👁️</span> {tag}
-            </span>
+        <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none">
+          {revealedTags.map(t => (
+            <span key={t} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/60 px-2 py-0.5 rounded-sm backdrop-blur-md`}>{t}</span>
           ))}
         </div>
       )}
     </div>
   );
 };
-
-
-
 const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProcess, isProcessing }) => {
   const [isBrewing, setIsBrewing] = useState(false);
 
@@ -516,22 +550,18 @@ const CinematicAnnouncement = ({ text, type }) => {
     </motion.div>
   );
 };
-const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isRevealed, onInspect }) => {
+const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, activeTool, onInspect }) => {
   const isWatched = watchFocus === activeDistrict;
-  
-  // 1. UPDATE GLOW LOGIC: 
-  // If Revealed (Scanned), force Blue Glow. Otherwise use Heat/Watch logic.
-  const glowColor = isRevealed 
-    ? 'shadow-[0_0_100px_rgba(59,130,246,0.6)] bg-blue-900/20 border-blue-400/50 animate-pulse' 
-    : isWatched 
-      ? 'shadow-[0_0_100px_rgba(153,27,27,0.5)] bg-red-950/30' 
-      : heat > 50 
-        ? 'shadow-[0_0_80px_rgba(194,65,12,0.3)] bg-orange-950/20'
-        : 'shadow-[0_0_60px_rgba(71,85,105,0.3)] bg-[#0f172a]/60';
+  const isInspectable = isInspecting;
+  // COLORS UPDATED:
+  const glowColor = isWatched 
+    ? 'shadow-[0_0_100px_rgba(153,27,27,0.5)] bg-red-950/30' 
+    : heat > 50 
+      ? 'shadow-[0_0_80px_rgba(194,65,12,0.3)] bg-orange-950/20'
+      : 'shadow-[0_0_60px_rgba(71,85,105,0.3)] bg-[#0f172a]/60';
 
-  // 2. INTERACTION STYLES:
-  // Only clickable if it has been revealed by the scanner
-  const interactionStyle = isRevealed 
+  // Interaction Styles
+  const interactionStyle = isInspectable 
     ? 'cursor-pointer hover:shadow-[0_0_50px_rgba(59,130,246,0.4)] hover:border-blue-900/50 pointer-events-auto' 
     : 'pointer-events-none';
 
@@ -540,12 +570,7 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
        
        {/* THE WINDOW FRAME */}
        <div 
-         // 3. ADD ID FOR LENS SCANNER
-         data-inspect-id="window"
-
-         // 4. CLICK HANDLER (Only works if revealed)
-         onClick={() => isRevealed && onInspect()}
-         
+         onClick={() => isInspectable && onInspect()}
          className={`
             relative w-full aspect-square max-w-[280px] border-8 border-[#292524] bg-black overflow-hidden rounded-t-full transition-all duration-300
             ${glowColor} 
@@ -554,8 +579,8 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
          `}
        >
           
-          {/* HOVER HINT: Shows if revealed to tell user they can click */}
-          {isRevealed && (
+          {/* HOVER HINT: Only shows when holding Magnifying Glass */}
+          {isInspectable && (
             <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-blue-900/10 backdrop-blur-[1px]">
                 <Eye className="w-12 h-12 text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" strokeWidth={1.5} />
             </div>
@@ -593,51 +618,37 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
     </div>
   )
 }
-
-const Lens = ({ onInspect, onHoverDetect }) => {
+const Lens = ({ onInspect, isInspecting }) => {
   return (
     <motion.div
       drag
-      dragElastic={0.05}
-      dragMomentum={false}
+      // REMOVED: dragConstraints={...} 
+      dragElastic={0.05} // Low elasticity feels heavier/better
+      dragMomentum={false} // Stops it from sliding away when you let go
       whileDrag={{ scale: 1.1, cursor: 'grabbing' }}
-      
       onDragStart={() => onInspect(true)}
       onDragEnd={() => onInspect(false)}
-      
-      // THE SCANNER LOGIC
-      onDrag={(event, info) => {
-        // 1. Get all elements under the mouse cursor
-        const elements = document.elementsFromPoint(info.point.x, info.point.y);
-        
-        // 2. Look for any element with our special data attribute
-        const target = elements.find(el => el.getAttribute('data-inspect-id'));
-        
-        // 3. If found, tell the Game Loop what we found
-        if (target) {
-            const targetId = target.getAttribute('data-inspect-id');
-            onHoverDetect(targetId);
-        }
-      }}
-      
       className="absolute bottom-4 left-4 z-50 cursor-grab group"
     >
-      {/* Visuals (Same as before) */}
-      <div className="relative w-24 h-24 pointer-events-none"> 
+      {/* The Glass Visual */}
+      <div className="relative w-24 h-24 pointer-events-none"> {/* Added pointer-events-none to inner so drag works better */}
+        {/* Handle */}
         <div className="absolute -bottom-6 -right-6 w-16 h-4 bg-amber-900 rounded-full rotate-45 border-2 border-amber-950 z-0" />
+        
+        {/* Rim */}
         <div className="absolute inset-0 rounded-full border-[6px] border-amber-600 bg-white/10 backdrop-blur-[1px] shadow-xl z-10 flex items-center justify-center overflow-hidden">
+             {/* Reflection */}
              <div className="absolute top-2 left-4 w-8 h-4 bg-white/40 rounded-full rotate-[-15deg] blur-[1px]" />
         </div>
       </div>
       
+      {/* Helper Text */}
       <div className="absolute -bottom-10 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-amber-500 font-mono tracking-widest pointer-events-none whitespace-nowrap">
-        DRAG TO SCAN
+        DRAG TO INSPECT
       </div>
     </motion.div>
   );
 };
-
-
 const Mortar = ({ onInteract }) => {
   const [isGrinding, setIsGrinding] = useState(false);
 
@@ -730,14 +741,15 @@ const [theme, setTheme] = useState(THEMES.grimoire);
 const [missionReport, setMissionReport] = useState(null);
 const [activeRaid, setActiveRaid] = useState(null); // Stores raid data if happening
 const [scoutReport, setScoutReport] = useState(null); // Stores the window inspection result
-const [revealedItems, setRevealedItems] = useState({}); // Tracks { window: true, card: true }
+
 
 // 2. STATE
 const [isRepModalOpen, setIsRepModalOpen] = useState(false);
 const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 const [activeBuffs, setActiveBuffs] = useState({}); // Stores temp buffs like 'marketing'
 const handleInspectWindow = () => {
-
+    // FIX: Check your specific state variable
+    if (!isInspecting) return; 
 
     soundEngine.playClick(audioVolume/100); 
     
@@ -1515,34 +1527,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       }
     }, 4000);
 };
-const handleLensHover = (targetId) => {
-    // 1. WINDOW LOGIC
-    if (targetId === 'window') {
-        if (revealedItems['window']) return; // Don't spam
 
-        // Reveal the window
-        setRevealedItems(prev => ({ ...prev, 'window': true }));
-        // soundEngine.playMagic(0.2); // Optional sound
-
-        // Hide after 5 seconds
-        setTimeout(() => {
-            setRevealedItems(prev => ({ ...prev, 'window': false }));
-        }, 5000);
-    }
-
-    // 2. CUSTOMER CARD LOGIC
-    if (targetId === 'customer-card') {
-        // If we haven't revealed their tags yet, do it now
-        if (currentCustomer && currentCustomer.hiddenTraits) {
-             setRevealedCustomerTags(prev => {
-                const newTags = currentCustomer.hiddenTraits.filter(t => !prev.includes(t));
-                if (newTags.length === 0) return prev;
-                // soundEngine.playMagic(0.2); 
-                return [...prev, ...newTags];
-            });
-        }
-    }
-  };
 // --- 1. TITLE SCREEN ---
   if (gameState === 'TITLE') {
     return (
@@ -1711,7 +1696,7 @@ const handleLensHover = (targetId) => {
                                
 
                                 <div className="absolute bottom-1 left-4 z-40">
-                                    <Lens onInspect={setIsInspecting} isInspecting={isInspecting} onHoverDetect={handleLensHover} />
+                                    <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
                                 </div>
                                 <div className="absolute bottom-1 right-4 z-40">
                                     <Mortar onInteract={handleMortarClick} />
@@ -1734,9 +1719,7 @@ const handleLensHover = (targetId) => {
                                         watchFocus={watchFocus} 
                                         activeDistrict={activeDistrict} 
                                         // NEW PROPS:
-                                        isRevealed={revealedItems['window']} // <--- Crucial link
-    
-
+  isInspecting={isInspecting}
     onInspect={handleInspectWindow}
                                     />
                                     <div className="flex-1 flex items-start justify-center mt-8">

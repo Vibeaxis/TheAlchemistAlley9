@@ -166,8 +166,7 @@ const CustomerCard = ({
     feedbackState,
     isInspecting,
 }) => {
-  // Logic: Only show the "Revealed" visual state if we actually have revealed tags
-  const showReveal = revealedTags && revealedTags.length > 0;
+
 const [persistedReveal, setPersistedReveal] = useState(false);
   const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
   const iconSource = customer.class.icon; 

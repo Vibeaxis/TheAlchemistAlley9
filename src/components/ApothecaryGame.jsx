@@ -1779,8 +1779,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
                                         // NEW PROPS:
   isInspecting={isInspecting}
   
-    // 2. TELLS THE WINDOW IF IT WAS ALREADY FOUND
-    isRevealed={revealedItems['window']}
+  
     onInspect={handleWindowInteract}
                                     />
                                     <div className="flex-1 flex items-start justify-center mt-8">

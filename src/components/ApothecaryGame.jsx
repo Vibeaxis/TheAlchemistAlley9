@@ -793,7 +793,7 @@ const [theme, setTheme] = useState(THEMES.grimoire);
 const [missionReport, setMissionReport] = useState(null);
 const [activeRaid, setActiveRaid] = useState(null); // Stores raid data if happening
 const [scoutReport, setScoutReport] = useState(null); // Stores the window inspection result
-
+const [revealedItems, setRevealedItems] = useState({});
 
 // 2. STATE
 const [isRepModalOpen, setIsRepModalOpen] = useState(false);

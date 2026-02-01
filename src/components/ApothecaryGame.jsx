@@ -1532,7 +1532,34 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       }
     }, 4000);
 };
+const handleLensHover = (targetId) => {
+    // 1. WINDOW LOGIC
+    if (targetId === 'window') {
+        if (revealedItems['window']) return; // Don't spam
 
+        // Reveal the window
+        setRevealedItems(prev => ({ ...prev, 'window': true }));
+        // soundEngine.playMagic(0.2); // Optional sound
+
+        // Hide after 5 seconds
+        setTimeout(() => {
+            setRevealedItems(prev => ({ ...prev, 'window': false }));
+        }, 5000);
+    }
+
+    // 2. CUSTOMER CARD LOGIC
+    if (targetId === 'customer-card') {
+        // If we haven't revealed their tags yet, do it now
+        if (currentCustomer && currentCustomer.hiddenTraits) {
+             setRevealedCustomerTags(prev => {
+                const newTags = currentCustomer.hiddenTraits.filter(t => !prev.includes(t));
+                if (newTags.length === 0) return prev;
+                // soundEngine.playMagic(0.2); 
+                return [...prev, ...newTags];
+            });
+        }
+    }
+  };
 // --- 1. TITLE SCREEN ---
   if (gameState === 'TITLE') {
     return (
@@ -1701,7 +1728,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
                                
 
                                 <div className="absolute bottom-1 left-4 z-40">
-                                    <Lens onInspect={setIsInspecting} isInspecting={isInspecting} />
+                                    <Lens onInspect={setIsInspecting} isInspecting={isInspecting} onHoverDetect={handleLensHover} />
                                 </div>
                                 <div className="absolute bottom-1 right-4 z-40">
                                     <Mortar onInteract={handleMortarClick} />

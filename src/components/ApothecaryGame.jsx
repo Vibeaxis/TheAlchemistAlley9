@@ -164,10 +164,14 @@ const CustomerCard = ({
     onMouseEnter, 
     onMouseLeave, 
     revealedTags, 
+    isInspecting, // Need this to show the Rune
+    onInspect,    // Need this to handle the click
     theme, 
     feedbackState 
 }) => {
+  // LOGIC FIX: We trust the parent. If tags exist, we show them.
   const showReveal = revealedTags && revealedTags.length > 0;
+
   const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
   const districts = [ { name: 'The Dregs', color: 'text-emerald-500' }, { name: 'Market', color: 'text-amber-500' }, { name: 'Arcanum', color: 'text-purple-400' }, { name: 'Docks', color: 'text-cyan-600' }, { name: 'Cathedral', color: 'text-yellow-400' }, { name: 'Spire', color: 'text-rose-500' } ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
@@ -177,12 +181,13 @@ const CustomerCard = ({
     <div 
       data-inspect-id="customer-card" 
       className={`
-        /* MOBILE: Small Badge */
+        /* MOBILE: Small Badge (Top Left) */
         absolute top-[4.5rem] left-2 w-40 h-56 z-40
         
         /* DESKTOP: The Main Event */
-        /* Increased width to 320px (was ~280) and min-height to 500px */
-        md:relative md:top-auto md:left-auto md:w-full md:max-w-[340px] md:h-full md:min-h-[520px] md:z-auto
+        md:relative md:top-auto md:left-auto 
+        md:w-full md:max-w-[340px] md:h-full md:min-h-[520px] 
+        md:z-auto
         
         /* Styles */
         rounded-xl shadow-2xl border-2 transition-all duration-700 bg-[#0c0a09]
@@ -190,7 +195,7 @@ const CustomerCard = ({
         ${showReveal ? 'shadow-[0_0_50px_rgba(168,85,247,0.3)] border-purple-500/50 scale-[1.02]' : 'border-opacity-60'} 
         pointer-events-auto
         
-        /* CRITICAL: Allow animations to spill out */
+        /* CRITICAL FIX: Allow animations to spill OUT of the card */
         overflow-visible
       `}
       onMouseEnter={onMouseEnter}
@@ -202,18 +207,35 @@ const CustomerCard = ({
          <div className="absolute inset-0 opacity-[0.05] mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
       </div>
 
-      {/* 2. Top Labels (Moved up to clear the head) */}
+      {/* 2. Top Labels (Moved up/right to clear the head) */}
       <div className={`absolute -top-3 right-4 z-20 flex flex-col items-end`}>
         <div className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-white/10 backdrop-blur-md ${origin.color} bg-black/80`}>
             {origin.name}
         </div>
       </div>
 
-      {/* 3. Avatar Container (Adjusted positioning) */}
-      <div className="absolute top-8 left-0 right-0 h-[55%] flex items-center justify-center z-10 pointer-events-none">
+      {/* 3. Avatar Container */}
+      <div className="absolute top-8 left-0 right-0 h-[50%] flex items-center justify-center z-10">
          <div className="relative w-full h-full flex justify-center items-center">
+            
+            {/* RITUAL RUNE OVERLAY (Only shows when Crystal Ball is ON) */}
+            {isInspecting && (
+                <div 
+                    onClick={(e) => { e.stopPropagation(); onInspect(); }}
+                    className="absolute inset-0 z-50 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                >
+                    <div className="w-32 h-32 rounded-full border border-purple-500/30 bg-purple-900/10 backdrop-blur-[1px] flex items-center justify-center animate-pulse">
+                        <div className="absolute inset-2 border border-purple-400/20 rounded-full animate-[spin_10s_linear_infinite] border-dashed" />
+                        <span className="text-4xl">👁️</span>
+                        <div className="absolute -bottom-6 text-[9px] text-purple-300 tracking-[0.2em] font-serif uppercase bg-black/50 px-2 rounded">
+                            Reveal Soul
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Back Glow */}
-            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/5 blur-3xl rounded-full`} />
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
             
             {/* Avatar */}
             <motion.img 
@@ -226,23 +248,23 @@ const CustomerCard = ({
                     cured: { scale: [1, 1.1, 1], filter: 'brightness(1.2)' },
                     exploded: { scale: 0.9, filter: 'grayscale(100%) brightness(0.2)' }
                 }}
-                className="h-[90%] w-auto object-contain z-10"
+                className="h-[90%] w-auto object-contain z-10 pointer-events-none"
             />
 
-            {/* FEEDBACK OVERLAYS (Floating above everything) */}
+            {/* FEEDBACK OVERLAYS (Now free to float outside borders) */}
             <AnimatePresence>
                 {feedbackState === 'poisoned' && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="absolute -top-4 right-0 z-50">
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="absolute -top-4 right-0 z-50 pointer-events-none">
                         <div className="text-6xl drop-shadow-md">☠️</div>
                     </motion.div>
                 )}
                 {feedbackState === 'cured' && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1.5, rotate: 360 }} exit={{ scale: 0 }} className="absolute -top-6 right-0 z-50">
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1.5, rotate: 360 }} exit={{ scale: 0 }} className="absolute -top-6 right-0 z-50 pointer-events-none">
                         <div className="text-6xl drop-shadow-[0_0_20px_rgba(255,215,0,0.8)]">✨</div>
                     </motion.div>
                 )}
                 {feedbackState === 'exploded' && (
-                    <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 2, opacity: 1 }} className="absolute inset-0 z-50 flex items-center justify-center">
+                    <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 2, opacity: 1 }} className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
                         <div className="text-8xl">💥</div>
                     </motion.div>
                 )}
@@ -251,13 +273,18 @@ const CustomerCard = ({
       </div>
 
       {/* 4. Info Panel (Bottom Half) */}
-      <div className={`absolute bottom-0 left-0 right-0 h-[40%] z-20 flex flex-col p-5 border-t ${t.accent} bg-gradient-to-t from-[#0c0a09] via-[#0c0a09]/95 to-transparent rounded-b-xl`}>
+      <div className={`absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-5 border-t ${t.accent} bg-gradient-to-t from-[#0c0a09] via-[#0c0a09]/95 to-transparent rounded-b-xl`}>
          
          {/* Name & Title */}
          <div className="flex flex-col items-center -mt-10 mb-2">
             <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg bg-[#1c1917] relative z-20`}>
-                {/* Class Icon Placeholder */}
-                <div className="w-6 h-6 bg-stone-700 rounded-full" /> 
+                 {/* Icon Renderer */}
+                 {customer.class.icon ? (
+                    /* Assume RenderIcon or similar logic exists, otherwise generic fallback */
+                    <div className="w-6 h-6 text-stone-200 flex items-center justify-center">★</div> 
+                 ) : (
+                    <div className="w-6 h-6 bg-stone-700 rounded-full" />
+                 )}
             </div>
             <h2 className={`text-2xl font-bold ${t.textMain} mt-2`}>{customer.class.name}</h2>
             <p className={`${t.textSec} text-xs italic opacity-75`}>"{customer.class.description}"</p>
@@ -270,8 +297,7 @@ const CustomerCard = ({
              </p>
          </div>
 
-         {/* --- NEW: TRAIT REVEAL AREA --- */}
-         {/* Instead of covering the face, clues appear here at the bottom */}
+         {/* --- TRAIT REVEAL AREA (Moved to Bottom) --- */}
          <div className="h-12 w-full flex items-center justify-center gap-2 border-t border-white/5 pt-2">
             <AnimatePresence>
                 {showReveal ? (
@@ -287,9 +313,9 @@ const CustomerCard = ({
                         </motion.span>
                     ))
                 ) : (
-                    <span className="text-[10px] text-stone-700 uppercase tracking-[0.2em] animate-pulse">
-                        Aura Obscured
-                    </span>
+                    <div className="flex flex-col items-center opacity-30">
+                        <span className="text-[10px] text-stone-500 uppercase tracking-[0.2em]">Unknown Aura</span>
+                    </div>
                 )}
             </AnimatePresence>
          </div>

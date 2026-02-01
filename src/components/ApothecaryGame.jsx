@@ -1455,21 +1455,34 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
     return (
       <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}>
         <TitleScreen onStart={handleStartGame} onOpenSettings={() => setSettingsOpen(true)} />
-        <SettingsMenu 
-            isOpen={settingsOpen} 
-            onClose={() => setSettingsOpen(false)} 
-           
-            currentVolume={audioVolume} 
-            onVolumeChange={handleVolumeChange} 
-            currentScale={uiScale} 
-            onScaleChange={handleScaleChange} 
-            currentGamma={gamma} 
-            onGammaChange={handleGammaChange}
-        // Use the new functions
+       <SettingsMenu 
+    isOpen={settingsOpen} 
+    onClose={() => setSettingsOpen(false)} 
+    onReset={handleHardReset} 
+    
+    // Audio/Video Settings
+    currentVolume={audioVolume} 
+    onVolumeChange={handleVolumeChange} 
+    currentScale={uiScale} 
+    onScaleChange={handleScaleChange} 
+    currentGamma={gamma} 
+    onGammaChange={handleGammaChange}
+    
+    // Theme Settings (The fix)
+    currentThemeId={theme.id} 
+    onThemeChange={(newId) => {
+        // Helper to switch theme by ID
+        if (THEMES[newId]) {
+            setTheme(THEMES[newId]); 
+            soundEngine.playClick(audioVolume/100);
+        }
+    }}
+    availableThemes={THEMES}
+
+    // Save System
     onSaveGame={handleSaveGame} 
     onLoadGame={handleLoadGame}
-    onReset={handleHardReset}
-        />
+/>
       </div>
     );
   }

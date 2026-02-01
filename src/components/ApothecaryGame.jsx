@@ -829,7 +829,28 @@ const handleInspectWindow = () => {
     setTimeout(() => setScoutReport(null), 4000);
   };
 
+// 1. CLICKING THE WINDOW (In Spirit Mode)
+  const handleWindowInteract = () => {
+    // Only works if crystal ball is active
+    if (!isInspecting) return;
 
+    // Prevent spamming if already found
+    if (revealedItems['window']) return;
+
+    // Optional: Play a "Discovery" sound here
+    // soundEngine.playMagic(0.4); 
+    
+    // Reveal the window logic (Blue Glow)
+    setRevealedItems(prev => ({ ...prev, 'window': true }));
+    
+    // Trigger the actual text report immediately
+    handleInspectWindow(); 
+
+    // Auto-hide the blue glow after 5s
+    setTimeout(() => {
+        setRevealedItems(prev => ({ ...prev, 'window': false }));
+    }, 5000);
+  };
   const handleRaidResolve = () => {
      if (!activeRaid) return;
 
@@ -1777,7 +1798,9 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
                                         watchFocus={watchFocus} 
                                         activeDistrict={activeDistrict} 
                                         // NEW PROPS:
-  isInspecting={isInspecting}
+isInspecting={isInspecting}        // The Crystal Ball Switch
+    isRevealed={revealedItems['window']} // The Blue Glow Switch
+    onInspect={handleWindowInteract}   // <--- The function we just defined
   
  
                                     />

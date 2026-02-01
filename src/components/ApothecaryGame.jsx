@@ -961,7 +961,9 @@ const handleAssignMission = (mission) => {
       discoveredIngredients,
       brewHistory,
       gameStats,
-      
+      // --- NEW: SAVE DAILY PROGRESS ---
+      dailyProgress: customersServed, // Saves the "2/5" count
+      activeCustomer: currentCustomer, // Saves the guy currently staring at you
       // Settings (CAREFUL: We save IDs/Numbers, not React Objects)
       themeId: theme.id, // <--- This fixes your "currentTheme" crash
       audioVolume,       // <--- Ensure this matches your state name (vol vs audioVolume)
@@ -1003,7 +1005,13 @@ const handleAssignMission = (mission) => {
         setDiscoveredIngredients(data.discoveredIngredients || {});
         setBrewHistory(data.brewHistory || []);
         setGameStats(data.gameStats || { daysCount: 0, totalGold: 0, customersServed: 0 });
-
+setCustomersServed(data.dailyProgress || 0); // Restore 2/5
+// Restore the specific customer, or generate a new one if missing
+        if (data.activeCustomer) {
+            setCurrentCustomer(data.activeCustomer);
+        } else {
+            setCurrentCustomer(generateCustomer(data.day || 1));
+        }
         // --- RESTORE SETTINGS ---
         // Theme: We saved the ID string, now we look up the Object
         if (data.themeId && THEMES[data.themeId]) {

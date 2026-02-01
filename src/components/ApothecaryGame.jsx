@@ -218,7 +218,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                 alt="Customer" 
                 variants={avatarVariants}
                 animate={feedbackState || 'idle'}
-                className="h-[85%] w-auto object-contain drop-shadow-xl z-10"
+               
             />
 
             {/* FEEDBACK OVERLAYS (Centered over head) */}

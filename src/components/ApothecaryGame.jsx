@@ -158,32 +158,23 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
 
-// --- UPDATED CUSTOMER CARD (Fixed Feedback Positioning) ---
 const CustomerCard = ({ 
     customer, 
     observationHint, 
-    onMouseEnter, 
-    onMouseLeave, 
     revealedTags, 
- 
     theme, 
     feedbackState 
 }) => {
-
-  
-
-
-  // Combine parent prop + local memory
+  // Logic: Only show the "Revealed" visual state if we actually have revealed tags
   const showReveal = revealedTags && revealedTags.length > 0;
 
-  const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; // Safe fallback
+  const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
   const iconSource = customer.class.icon; 
-
   const districts = [ { name: 'The Dregs', color: 'text-emerald-500' }, { name: 'Market', color: 'text-amber-500' }, { name: 'Arcanum', color: 'text-purple-400' }, { name: 'Docks', color: 'text-cyan-600' }, { name: 'Cathedral', color: 'text-yellow-400' }, { name: 'Spire', color: 'text-rose-500' } ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
 
-  // Animation Variants (Kept exactly as you had them)
+  // Animation Variants
   const avatarVariants = {
     idle: { y: 0, rotate: 0, scale: 1, filter: 'none' },
     cured: { y: [0, -15, 0], scale: [1, 1.1, 1], filter: 'brightness(1.2) contrast(1.1) drop-shadow(0 0 15px #fbbf24)', transition: { duration: 0.6 } },
@@ -193,22 +184,19 @@ const CustomerCard = ({
   };
 
   return (
-    // REMOVED onMouseEnter/Leave from here so the empty corners don't trigger scanning
-    <div className={`relative w-full h-full min-h-[460px] rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${showReveal ? 'shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}`}>
+    <div 
+      // --- FIX: ID IS ON THE MAIN WRAPPER NOW ---
+      // This ensures the lens sees it no matter where you drag on the card.
+      data-inspect-id="customer-card" 
+      // ------------------------------------------
+      className={`relative w-full h-full min-h-[460px] rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${showReveal ? 'shadow-[0_0_40px_rgba(168,85,247,0.4)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}`}
+    >
       
       {/* 1. Background */}
       <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
       
-      {/* 2. Avatar & Feedback Container - THIS IS NOW THE HITBOX */}
-      <div 
-        className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10"
-        // --- HITBOX FIX ---
-        // We move the ID and the Events here. You have to touch the AVATAR to scan.
-        data-inspect-id="customer-card"
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        // ------------------
-      >
+      {/* 2. Avatar Container */}
+      <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10 pointer-events-none">
          <div className="relative w-full h-full flex justify-center items-center">
             {/* Glow backing */}
             <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
@@ -219,18 +207,17 @@ const CustomerCard = ({
                 alt="Customer" 
                 variants={avatarVariants}
                 animate={feedbackState || 'idle'}
-                className="h-[85%] w-auto object-contain drop-shadow-xl z-10 pointer-events-none" // pointer-events-none on image ensures the parent DIV catches the hover consistently
+                className="h-[85%] w-auto object-contain drop-shadow-xl z-10"
             />
 
-            {/* FEEDBACK OVERLAYS (Kept exactly as is) */}
+            {/* FEEDBACK OVERLAYS */}
             <AnimatePresence>
                 {feedbackState === 'poisoned' && (
-                    <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="absolute top-[20%] left-1/2 -translate-x-1/2 z-20 flex gap-12 pointer-events-none">
+                    <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="absolute top-[20%] left-1/2 -translate-x-1/2 z-20 flex gap-12">
                         <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
                         <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
                     </motion.div>
                 )}
-                {/* ... other feedback states ... */}
             </AnimatePresence>
          </div>
       </div>
@@ -247,7 +234,6 @@ const CustomerCard = ({
         <div className={`relative z-30 flex-1 flex flex-col ${t.font}`}>
             <div className="w-full flex flex-col items-center -mt-8">
                 <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg mb-2`}>
-                   {/* Icon Placeholder or Component */}
                    <div className="w-6 h-6 bg-stone-700 rounded-full" /> 
                 </div>
                 <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>{customer.class.name}</h2>
@@ -275,17 +261,22 @@ const CustomerCard = ({
         </div>
       </div>
 
-      {/* 5. Tags - Rendered if passed from parent */}
+      {/* 5. Tags - REVEALED */}
       {revealedTags && revealedTags.length > 0 && (
-        <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none">
+        <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none animate-in fade-in zoom-in duration-300">
           {revealedTags.map(tag => (
-            <span key={tag} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/60 px-2 py-0.5 rounded-sm backdrop-blur-md`}>{tag}</span>
+            <span key={tag} className={`text-[8px] text-purple-200 font-bold tracking-widest border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.5)] bg-black/80 px-2 py-0.5 rounded-sm backdrop-blur-md flex items-center gap-1`}>
+                <span>👁️</span> {tag}
+            </span>
           ))}
         </div>
       )}
     </div>
   );
 };
+
+
+
 const Cauldron = ({ selectedIngredients, onBrew, onClear, whisperQueue, onProcess, isProcessing }) => {
   const [isBrewing, setIsBrewing] = useState(false);
 

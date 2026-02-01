@@ -1450,16 +1450,17 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
         <SettingsMenu 
             isOpen={settingsOpen} 
             onClose={() => setSettingsOpen(false)} 
-            onReset={handleHardReset} 
+           
             currentVolume={audioVolume} 
             onVolumeChange={handleVolumeChange} 
             currentScale={uiScale} 
             onScaleChange={handleScaleChange} 
             currentGamma={gamma} 
             onGammaChange={handleGammaChange}
-            // Add these if you implemented the Save System
-            onSaveGame={saveGame}
-            onLoadGame={loadGame}
+        // Use the new functions
+    onSaveGame={handleSaveGame} 
+    onLoadGame={handleLoadGame}
+    onReset={handleHardReset}
         />
       </div>
     );

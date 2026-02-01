@@ -157,7 +157,7 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     // 3. Fallback
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
-// --- UPDATED CUSTOMER CARD (Safe + Visual FX) ---
+
 // --- UPDATED CUSTOMER CARD (Fixed Feedback Positioning) ---
 const CustomerCard = ({ 
     customer, 
@@ -532,18 +532,22 @@ const CinematicAnnouncement = ({ text, type }) => {
     </motion.div>
   );
 };
-const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, onInspect }) => {
+const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isRevealed, onInspect }) => {
   const isWatched = watchFocus === activeDistrict;
-  const isInspectable = isInspecting;
-  // COLORS UPDATED:
-  const glowColor = isWatched 
-    ? 'shadow-[0_0_100px_rgba(153,27,27,0.5)] bg-red-950/30' 
-    : heat > 50 
-      ? 'shadow-[0_0_80px_rgba(194,65,12,0.3)] bg-orange-950/20'
-      : 'shadow-[0_0_60px_rgba(71,85,105,0.3)] bg-[#0f172a]/60';
+  
+  // 1. UPDATE GLOW LOGIC: 
+  // If Revealed (Scanned), force Blue Glow. Otherwise use Heat/Watch logic.
+  const glowColor = isRevealed 
+    ? 'shadow-[0_0_100px_rgba(59,130,246,0.6)] bg-blue-900/20 border-blue-400/50 animate-pulse' 
+    : isWatched 
+      ? 'shadow-[0_0_100px_rgba(153,27,27,0.5)] bg-red-950/30' 
+      : heat > 50 
+        ? 'shadow-[0_0_80px_rgba(194,65,12,0.3)] bg-orange-950/20'
+        : 'shadow-[0_0_60px_rgba(71,85,105,0.3)] bg-[#0f172a]/60';
 
-  // Interaction Styles
-  const interactionStyle = isInspectable 
+  // 2. INTERACTION STYLES:
+  // Only clickable if it has been revealed by the scanner
+  const interactionStyle = isRevealed 
     ? 'cursor-pointer hover:shadow-[0_0_50px_rgba(59,130,246,0.4)] hover:border-blue-900/50 pointer-events-auto' 
     : 'pointer-events-none';
 
@@ -552,7 +556,12 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, onInsp
        
        {/* THE WINDOW FRAME */}
        <div 
-         onClick={() => isInspectable && onInspect()}
+         // 3. ADD ID FOR LENS SCANNER
+         data-inspect-id="window"
+
+         // 4. CLICK HANDLER (Only works if revealed)
+         onClick={() => isRevealed && onInspect()}
+         
          className={`
             relative w-full aspect-square max-w-[280px] border-8 border-[#292524] bg-black overflow-hidden rounded-t-full transition-all duration-300
             ${glowColor} 
@@ -561,8 +570,8 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, onInsp
          `}
        >
           
-          {/* HOVER HINT: Only shows when holding Magnifying Glass */}
-          {isInspectable && (
+          {/* HOVER HINT: Shows if revealed to tell user they can click */}
+          {isRevealed && (
             <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-blue-900/10 backdrop-blur-[1px]">
                 <Eye className="w-12 h-12 text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" strokeWidth={1.5} />
             </div>
@@ -600,7 +609,6 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, onInsp
     </div>
   )
 }
-
 
 const Lens = ({ onInspect, onHoverDetect }) => {
   return (

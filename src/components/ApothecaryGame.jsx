@@ -28,7 +28,7 @@ import WorldCalendar from '@/components/WorldCalendar';
 
 import { generateRival, resolveRivalAction, RIVAL_ENCOUNTERS } from '@/lib/RivalSystem';
 import RivalCard from '@/components/RivalCard';
-
+import { SaveManager } from '@/lib/SaveManager';
 
 
 
@@ -937,98 +937,119 @@ const handleAssignMission = (mission) => {
     }
     setTimeout(() => setGameMessage(''), 2000);
   };
-const saveGame = () => {
-    // 1. SAFETY CHECK: Do not save if the player is dead/exiled
-    if (reputation <= 0) {
-        console.warn("Cannot save: Player is exiled (0 Rep).");
+// ==========================================
+  //  REAL SAVE SYSTEM INTEGRATION
+  // ==========================================
+
+  // 1. GATHER STATE & SAVE
+  // This grabs all your diverse state variables and bundles them for the manager.
+  const handleSaveGame = () => {
+    const currentState = {
+      // Core Stats
+      day,
+      gold,
+      reputation,
+      heat,
+      
+      // Complex Objects
+      inventory,
+      upgrades,
+      apprentice,
+      rival: rival || null, // Ensure null if undefined
+      
+      // Progress & Settings
+      discoveredIngredients,
+      brewHistory,
+      gameStats,
+      
+      // Settings (CAREFUL: We save IDs/Numbers, not React Objects)
+      themeId: theme.id, // <--- This fixes your "currentTheme" crash
+      audioVolume,       // <--- Ensure this matches your state name (vol vs audioVolume)
+      uiScale,
+      gamma
+    };
+
+    const success = SaveManager.save(currentState);
+    if (success) {
+        setGameMessage("Game Saved");
+        setTimeout(() => setGameMessage(''), 2000);
+    }
+  };
+
+  // 2. LOAD STATE & RESTORE
+  // This takes the bundle and puts it back into React State.
+  const handleLoadGame = () => {
+    const data = SaveManager.load();
+    
+    if (!data) {
+        console.log("No save file found.");
         return;
     }
 
-    const gameState = {
-        day,
-        gold,
-        reputation,
-        heat,
-        inventory,
-        upgrades,
-        apprentice,
-        rival,
-        discoveredIngredients,
-        brewHistory,
-        gameStats,
-        // FIX: Use 'theme' instead of 'currentTheme'
-        currentThemeId: theme.id 
-    };
-    
-    localStorage.setItem('apothecary_save_v1', JSON.stringify(gameState));
-    console.log("Game Saved Successfully");
-  };
-const loadGame = () => {
-    const savedData = localStorage.getItem('apothecary_save_v1');
-    if (savedData) {
-        try {
-            const data = JSON.parse(savedData);
-            
-            // Restore States
-            setDay(data.day || 1);
-            setGold(data.gold ?? 100);
-            setReputation(data.reputation ?? 20);
-            setHeat(data.heat || 0);
-            setInventory(data.inventory || { Salt: 3, Sage: 2 });
-            setUpgrades(data.upgrades || {});
-            setApprentice(data.apprentice || { hired: false });
-            setRival(data.rival || null);
-            setDiscoveredIngredients(data.discoveredIngredients || {});
-            setBrewHistory(data.brewHistory || []);
-            setGameStats(data.gameStats || { daysCount: 0 });
-            
-            // FIX: Use 'setTheme' instead of 'setCurrentTheme'
-            if (data.currentThemeId && THEMES[data.currentThemeId]) {
-                setTheme(THEMES[data.currentThemeId]);
-            }
-            
-            // Reset phase to Day
-            setPhase('day');
-            setCurrentCustomer(generateCustomer(data.day || 1)); 
-            
-            setGameMessage("Game Loaded");
-            setTimeout(() => setGameMessage(''), 2000);
-        } catch (err) {
-            console.error("Save file corrupted:", err);
-            setGameMessage("Save Corrupted");
+    try {
+        console.log("Restoring Save Data...", data);
+        
+        // --- RESTORE CORE ---
+        setDay(data.day || 1);
+        setGold(data.gold ?? 100);
+        setReputation(data.reputation ?? 20);
+        setHeat(data.heat || 0);
+
+        // --- RESTORE OBJECTS (With Fallbacks) ---
+        setInventory(data.inventory || { Salt: 3, Sage: 2 });
+        setUpgrades(data.upgrades || { reinforced: false, ventilation: false, merchant: false, mercury: false });
+        setApprentice(data.apprentice || { hired: false });
+        setRival(data.rival || null);
+        setDiscoveredIngredients(data.discoveredIngredients || {});
+        setBrewHistory(data.brewHistory || []);
+        setGameStats(data.gameStats || { daysCount: 0, totalGold: 0, customersServed: 0 });
+
+        // --- RESTORE SETTINGS ---
+        // Theme: We saved the ID string, now we look up the Object
+        if (data.themeId && THEMES[data.themeId]) {
+            setTheme(THEMES[data.themeId]);
         }
+        
+        if (typeof data.audioVolume === 'number') setAudioVolume(data.audioVolume);
+        if (data.uiScale) setUiScale(data.uiScale);
+        if (data.gamma) setGamma(data.gamma);
+
+        // --- RESET UI STATES ---
+        setPhase('day');
+        setCurrentCustomer(generateCustomer(data.day || 1));
+        
+        setGameMessage("Game Loaded");
+        setTimeout(() => setGameMessage(''), 2000);
+
+    } catch (err) {
+        console.error("Error restoring state:", err);
+        setGameMessage("Load Error");
     }
   };
 
-  // --- AUTO-LOAD ON STARTUP ---
-  useEffect(() => {
-    // Check if a save exists when the app first loads
-    const hasSave = localStorage.getItem('apothecary_save_v1');
-    if (hasSave) {
-        loadGame();
-    }
-  }, []);
+  // 3. NUCLEAR RESET
+  const handleHardReset = () => {
+    SaveManager.clear();
+    soundEngine.playFail(audioVolume / 100);
+    window.location.reload(); // Force refresh to clear memory
+  };
 
-  // --- AUTO-SAVE (Add this to your advanceDay function later too) ---
+  // 4. AUTO-LOAD ON STARTUP
   useEffect(() => {
-     // Optional: Auto-save on specific triggers if you want, 
-     // but putting saveGame() inside advanceDay() is cleaner.
+    if (SaveManager.hasSave()) {
+        handleLoadGame();
+    }
+  }, []); // Empty dependency array = runs once on mount
+
+  // 5. AUTO-SAVE ON NEW DAY
+  // Add this to your `advanceDay` function manually:
+  // SaveManager.save({ ... all the state ... }); 
+  // OR just trigger the handler:
+  useEffect(() => {
+    if (day > 1) { // Don't auto-save on immediate first render
+        handleSaveGame();
+    }
   }, [day]);
-
-const handleHardReset = () => {
-    localStorage.removeItem('apothecary_save_v1');
-    // Ensure you use the variable name 'audioVolume' if that is what your state is called
-    // If your state is 'vol', keep it as 'vol'.
-    soundEngine.playFail(audioVolume / 100); 
-    window.location.reload();
-  };
-    // 2. Play sound
-    soundEngine.playFail(vol);
-
-    // 3. NUCLEAR OPTION: Reload the page.
-    // This is the only way to guarantee the "0 Rep Loop" and all React states are truly cleared.
-    window.location.reload();
-  };
 
 
 

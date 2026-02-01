@@ -831,16 +831,7 @@ const handleAssignMission = (mission) => {
         setTimeout(() => setGameMessage(""), 1000);
     }
   };
-  const handleHardReset = () => {
-    localStorage.clear();
-    setAudioVolume(100); setUiScale(100); setGamma(1.0); setSettingsOpen(false);
-    setDay(1); setGold(100); setReputation(20);
-    setUpgrades({ reinforced: false, ventilation: false, merchant: false, mercury: false });
-    setApprentice({ hired: false, npcId: null, npcName: null, npcClass: null });
-    setDiscoveredIngredients({}); setBrewHistory([]);
-    setGameStats({ daysCount: 0, totalGold: 0, customersServed: 0 });
-    setWhisperQueue([]); setPhase('day'); setGameState('TITLE');
-  };
+
 
   const handleBribe = (cost) => {
     if (gold >= cost) {
@@ -946,8 +937,8 @@ const handleAssignMission = (mission) => {
     setTimeout(() => setGameMessage(''), 2000);
   };
 
+// --- SAVE & LOAD SYSTEM ---
 
-// --- SAVE SYSTEM ---
   const saveGame = () => {
     const gameState = {
         day,
@@ -957,14 +948,14 @@ const handleAssignMission = (mission) => {
         inventory,
         upgrades,
         apprentice,
-        rival,
+        rival, // Don't forget the nemesis!
         discoveredIngredients,
         brewHistory,
         gameStats,
         currentThemeId: currentTheme.id
     };
     localStorage.setItem('apothecary_save_v1', JSON.stringify(gameState));
-    console.log("Game Saved:", gameState);
+    console.log("Game Saved");
   };
 
   const loadGame = () => {
@@ -973,65 +964,65 @@ const handleAssignMission = (mission) => {
         try {
             const data = JSON.parse(savedData);
             
-            // Restore States
-            setDay(data.day);
-            setGold(data.gold);
-            setReputation(data.reputation);
+            // Restore all states
+            setDay(data.day || 1);
+            setGold(data.gold ?? 100);
+            setReputation(data.reputation ?? 20);
             setHeat(data.heat || 0);
-            setInventory(data.inventory);
-            setUpgrades(data.upgrades);
-            setApprentice(data.apprentice);
-            setRival(data.rival || null); // Handle legacy saves
-            setDiscoveredIngredients(data.discoveredIngredients);
-            setBrewHistory(data.brewHistory);
-            setGameStats(data.gameStats);
+            setInventory(data.inventory || { Salt: 3, Sage: 2 });
+            setUpgrades(data.upgrades || {});
+            setApprentice(data.apprentice || { hired: false });
+            setRival(data.rival || null); 
+            setDiscoveredIngredients(data.discoveredIngredients || {});
+            setBrewHistory(data.brewHistory || []);
+            setGameStats(data.gameStats || { daysCount: 0 });
             
             // Restore Theme
             if (data.currentThemeId && THEMES[data.currentThemeId]) {
                 setCurrentTheme(THEMES[data.currentThemeId]);
             }
             
-            // Reset Phase to 'day' to be safe
+            // Reset to Day phase to avoid getting stuck in Night modals
             setPhase('day');
-            setCurrentCustomer(generateCustomer(data.day)); // New customer for the reloaded day
+            setCurrentCustomer(generateCustomer(data.day || 1)); 
             
-            console.log("Game Loaded Successfully");
+            // Feedback
+            setGameMessage("Game Loaded");
+            setTimeout(() => setGameMessage(''), 2000);
         } catch (err) {
-            console.error("Failed to load save:", err);
-            setGameMessage("Save file corrupted");
+            console.error("Save file corrupted:", err);
+            setGameMessage("Save Corrupted");
         }
-    } else {
-        setGameMessage("No save found");
     }
   };
 
-  // --- AUTO LOAD ON STARTUP ---
+  // --- AUTO-LOAD ON STARTUP ---
   useEffect(() => {
+    // Check if a save exists when the app first loads
     const hasSave = localStorage.getItem('apothecary_save_v1');
     if (hasSave) {
         loadGame();
     }
   }, []);
 
-  // --- UPDATED RESET ---
+  // --- AUTO-SAVE (Add this to your advanceDay function later too) ---
+  useEffect(() => {
+     // Optional: Auto-save on specific triggers if you want, 
+     // but putting saveGame() inside advanceDay() is cleaner.
+  }, [day]);
+
+
+  // --- THE FIX FOR YOUR BUGGED PROFILE ---
   const handleHardReset = () => {
-      // 1. Clear Storage
-      localStorage.removeItem('apothecary_save_v1');
-      
-      // 2. Reset All States to Initial Values
-      setDay(1);
-      setGold(100);
-      setReputation(20);
-      setHeat(0);
-      setInventory({ Salt: 3, Sage: 2 });
-      setUpgrades({ ... }); // Reset your upgrades object here manually or use INITIAL_STATE constant
-      setApprentice({ hired: false, ... });
-      setRival(null);
-      setDiscoveredIngredients({});
-      setBrewHistory([]);
-      
-      // 3. Force Refresh (Easiest way to clear derived states)
-      window.location.reload();
+    // 1. Wipe the specific save key
+    localStorage.removeItem('apothecary_save_v1');
+    
+    // 2. Play sound
+    soundEngine.playFail(vol);
+
+    // 3. NUCLEAR OPTION: Reload the page.
+    // This is the only way to guarantee the "0 Rep Loop" and all React states are truly cleared.
+    window.location.reload();
   };
 
 

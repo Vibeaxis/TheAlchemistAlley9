@@ -158,12 +158,22 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
 
-const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme, feedbackState }) => {
-  // --- YOUR ORIGINAL LOGIC (Unchanged) ---
+const CustomerCard = ({ 
+    customer, 
+    observationHint, 
+    onMouseEnter, 
+    onMouseLeave, 
+    revealedTags, 
+    isInspecting, 
+    theme, 
+    feedbackState 
+}) => {
+  // --- RESTORED YOUR LOGIC ---
   const [hasRevealed, setHasRevealed] = useState(false);
   
   useEffect(() => { if (isInspecting) setHasRevealed(true); }, [isInspecting]);
   useEffect(() => { setHasRevealed(false); }, [customer.id]);
+  // ---------------------------
 
   const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
   const iconSource = customer.class.icon; 
@@ -172,14 +182,7 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
 
-  // --- NEW: DETERMINE WHAT TO SHOW IN THE STAMP ---
-  // If inspecting, show the Mechanic (Trait). If not, show Flavor (District).
-  const hiddenTrait = customer.hiddenTraits && customer.hiddenTraits.length > 0 ? customer.hiddenTraits[0] : null;
-  const stampLabel = hasRevealed && hiddenTrait ? "Hidden Aura" : "District";
-  const stampValue = hasRevealed && hiddenTrait ? hiddenTrait : origin.name;
-  const stampColor = hasRevealed && hiddenTrait ? "text-purple-400 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.5)]" : origin.color;
-
-  // Animation Variants (Unchanged)
+  // Animation Variants (Kept exactly as yours)
   const avatarVariants = {
     idle: { y: 0, rotate: 0, scale: 1, filter: 'none' },
     cured: { y: [0, -15, 0], scale: [1, 1.1, 1], filter: 'brightness(1.2) contrast(1.1) drop-shadow(0 0 15px #fbbf24)', transition: { duration: 0.6 } },
@@ -190,15 +193,28 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
 
   return (
     <div 
-        // ADDED: overflow-visible (Fixes clipping of heads/explosions)
-        className={`relative w-full h-full min-h-[460px] rounded-xl overflow-visible shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${hasRevealed ? 'shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}`} 
+        // CSS FIX 1: Mobile positioning + Desktop Sizing + overflow-visible
+        className={`
+            relative z-10
+            /* Mobile: Locked Position */
+            absolute top-[4.5rem] left-2 w-40 h-56
+            /* Desktop: Relative & Bigger */
+            md:relative md:top-auto md:left-auto md:w-full md:max-w-[340px] md:h-full md:min-h-[520px] 
+            
+            rounded-xl shadow-2xl group transition-all duration-700 border-2 
+            ${t.nav} 
+            ${hasRevealed ? 'shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}
+            
+            /* KEY FIX: Allows explosions to go outside the card */
+            overflow-visible 
+        `} 
         onMouseEnter={onMouseEnter} 
         onMouseLeave={onMouseLeave}
     >
       
-      {/* 1. Background */}
+      {/* 1. Background (Needs internal overflow hidden to keep texture inside borders) */}
       <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-         <div className="absolute inset-0 opacity-[0.05] z-0 mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
+          <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
       </div>
       
       {/* 2. Avatar & Feedback Container */}
@@ -234,32 +250,20 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                         <div className="text-7xl font-bold text-slate-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">?</div>
                     </motion.div>
                 )}
+                {/* EXPLOSION: Now visible because of overflow-visible */}
                 {feedbackState === 'exploded' && (
                     <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1.5 }} exit={{ opacity: 0 }} className="absolute top-[25%] left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                        <div className="text-7xl">💥</div>
+                        <div className="text-8xl">💥</div>
                     </motion.div>
                 )}
             </AnimatePresence>
          </div>
       </div>
 
-      {/* 3. Stamp (UPDATED: Now Swaps Content based on Inspect State) */}
-      <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-300 z-10 text-right opacity-100`}>
-        <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>
-            {stampLabel}
-        </div>
-        {/* We animate the text swap so it feels like a reveal */}
-        <AnimatePresence mode="wait">
-            <motion.div
-                key={stampValue}
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 5 }}
-                className={`text-sm font-bold uppercase tracking-widest drop-shadow-md bg-black/60 px-2 rounded-sm backdrop-blur-md border border-white/10 ${stampColor}`}
-            >
-                {stampValue}
-            </motion.div>
-        </AnimatePresence>
+      {/* 3. Stamp */}
+      <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-1000 z-10 text-right ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+        <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>Soul Echo</div>
+        <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/60 px-2 rounded-sm backdrop-blur-md border border-white/10`}>{origin.name}</div>
       </div>
 
       {/* 4. Text Panel */}
@@ -276,8 +280,6 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
             <div className="flex-1 flex items-center justify-center py-2">
                 <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm`}>"{customer.symptom.text}"</p>
             </div>
-            
-            {/* Bottom Hint Area (Optional secondary reveal) */}
             <div className="h-8 w-full flex items-end justify-center shrink-0">
                 <AnimatePresence>
                 {observationHint && hasRevealed && (
@@ -286,9 +288,23 @@ const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, r
                     </motion.div>
                 )}
                 </AnimatePresence>
+                {!hasRevealed && (
+                    <div className="flex flex-col items-center gap-1 opacity-30 group-hover:opacity-60 transition-opacity">
+                        <span className={`text-[8px] ${t.textSec} uppercase tracking-[0.25em]`}>Divinate Aura</span>
+                    </div>
+                )}
             </div>
         </div>
       </div>
+
+      {/* 5. Tags */}
+      {revealedTags && revealedTags.length > 0 && (
+        <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none">
+          {revealedTags.map(t => (
+            <span key={t} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/60 px-2 py-0.5 rounded-sm backdrop-blur-md`}>{t}</span>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

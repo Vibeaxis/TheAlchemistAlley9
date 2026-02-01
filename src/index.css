@@ -40,3 +40,57 @@ body {
     cursor: default; 
   }
 }
+/* ... existing code ... */
+
+/* --- MOBILE PATCH START --- */
+@media (max-width: 768px) {
+  
+  /* 1. FIX THE LENS (Crystal Ball) */
+  /* Move it up so it doesn't block the Ingredients or Ignite Button */
+  /* We target the div that contains the onClick handler for the lens */
+  .absolute.bottom-4.left-4.z-50 {
+    bottom: 160px !important; /* Lift above the ingredient rack */
+    left: 10px !important;
+    transform: scale(0.85); /* Make it slightly smaller */
+  }
+
+  /* 2. FIX THE CUSTOMER CARD overlap */
+  /* We use the ID we just added to target it specifically */
+  [data-inspect-id="customer-card"] {
+    position: absolute !important;
+    top: 70px; /* Push down below the Day/Gold stats */
+    left: -10px;
+    height: auto !important;
+    min-height: 0 !important;
+    /* Scale it down significantly and pin to left */
+    transform: scale(0.7); 
+    transform-origin: top left; 
+    z-index: 20; /* Ensure it floats ON TOP of the cauldron */
+    max-width: 300px; /* Stop it from growing too wide */
+  }
+
+  /* 3. FIX THE WINDOW (Scry Street) */
+  /* Pin it to the top right and shrink it */
+  [data-inspect-id="window"] {
+    position: absolute !important;
+    top: 70px;
+    right: 10px;
+    /* Force a smaller, fixed size icon-style */
+    width: 80px !important;
+    height: 80px !important;
+    max-width: 80px !important;
+    border-width: 2px !important; /* Thinner border */
+    z-index: 10;
+  }
+  
+  /* 4. MAIN CONTAINER ADJUSTMENT */
+  /* This assumes your main app div uses flex. We force centering. */
+  #root > div {
+    overflow: hidden; /* Prevent scrolling if elements poke out */
+  }
+}
+.lens-wrapper {
+    bottom: 160px !important;
+    left: 10px !important;
+    transform: scale(0.85);
+  }

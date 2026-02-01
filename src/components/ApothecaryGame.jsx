@@ -641,7 +641,7 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
 
 const Lens = ({ isInspecting, onInspect }) => {
   return (
-    <div className="absolute bottom-4 left-4 z-50">
+<div className="absolute bottom-4 left-4 z-50 lens-wrapper">
       <motion.div
         // 1. SIMPLE CLICK INTERACTION
         onClick={() => onInspect(!isInspecting)} 

@@ -168,13 +168,15 @@ const CustomerCard = ({
 }) => {
   // Logic: Only show the "Revealed" visual state if we actually have revealed tags
   const showReveal = revealedTags && revealedTags.length > 0;
-
+const [persistedReveal, setPersistedReveal] = useState(false);
   const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
   const iconSource = customer.class.icon; 
   const districts = [ { name: 'The Dregs', color: 'text-emerald-500' }, { name: 'Market', color: 'text-amber-500' }, { name: 'Arcanum', color: 'text-purple-400' }, { name: 'Docks', color: 'text-cyan-600' }, { name: 'Cathedral', color: 'text-yellow-400' }, { name: 'Spire', color: 'text-rose-500' } ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
-
+useEffect(() => { 
+      if (isInspecting) setPersistedReveal(true); 
+}, [isInspecting]);
   // Animation Variants
   const avatarVariants = {
     idle: { y: 0, rotate: 0, scale: 1, filter: 'none' },

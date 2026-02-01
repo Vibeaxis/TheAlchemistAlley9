@@ -179,7 +179,7 @@ const CustomerCard = ({
   }, [customer.id]);
 
   // Combine parent prop + local memory
-  const showReveal = isInspecting || persistedReveal;
+  const showReveal = revealedTags && revealedTags.length > 0;
 
   const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; // Safe fallback
   const iconSource = customer.class.icon; 

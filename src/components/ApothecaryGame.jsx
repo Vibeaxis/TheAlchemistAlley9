@@ -1092,7 +1092,31 @@ const advanceDay = () => {
     }, 100); // Small delay to ensure state updates settle (though mostly redundant with hooks, safer here)
 };
 
+// --- RIVAL ENCOUNTER RESOLUTION ---
+  const handleEncounterResolve = (effects) => {
+    // 1. Apply immediate effects from your choice
+    if (effects.gold) setGold(g => g + effects.gold);
+    if (effects.rep) setReputation(r => r + effects.rep);
+    if (effects.heat) setHeat(h => h + effects.heat);
+    
+    // 2. Update Rival Health (if violence was chosen)
+    if (effects.rivalHealth) {
+        setRival(prev => {
+            if (!prev) return null;
+            const newHealth = (prev.health || 3) + effects.rivalHealth;
+            // logic: if health <= 0, maybe they are defeated? 
+            // For now, we just lower it.
+            return { ...prev, health: newHealth };
+        });
+    }
 
+    // 3. Close the Modal
+    setActiveEncounter(null);
+    
+    // 4. IMPORTANT: Resume the game flow!
+    // This moves us to the next day now that the interruption is over.
+    advanceDay();
+  };
 
 const handleRest = () => {
     soundEngine.playClick(vol);

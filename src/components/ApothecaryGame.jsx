@@ -21,7 +21,7 @@ import alcBg from '../assets/alc_bg.jpg';
 import ReputationExchange from '@/components/ReputationExchange';
 import WorldCalendar from '@/components/WorldCalendar';
 
-
+import RivalEncounter from '@/components/RivalEncounter';
 
 
 

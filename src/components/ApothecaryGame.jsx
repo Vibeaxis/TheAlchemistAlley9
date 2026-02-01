@@ -550,7 +550,7 @@ const CinematicAnnouncement = ({ text, type }) => {
     </motion.div>
   );
 };
-const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, activeTool, onInspect }) => {
+const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, onInspect }) => {
   const isWatched = watchFocus === activeDistrict;
   const isInspectable = isInspecting;
   // COLORS UPDATED:

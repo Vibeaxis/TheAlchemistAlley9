@@ -588,11 +588,20 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
          `}
        >
           
-          {/* HOVER HINT: Shows if revealed to tell user they can click */}
-          {isRevealed && (
-            <div className="absolute inset-0 z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-blue-900/10 backdrop-blur-[1px]">
-                <Eye className="w-12 h-12 text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" strokeWidth={1.5} />
-            </div>
+         {/* --- THE SPIRIT RUNE (Only shows when Crystal Ball is ON) --- */}
+          {isInspecting && !isRevealed && (
+             <div className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900/10 backdrop-blur-[1px] cursor-pointer hover:bg-purple-900/20 transition-all">
+                <div className="relative group-hover:scale-110 transition-transform duration-500">
+                    {/* Spinning Outer Ring */}
+                    <div className="absolute inset-[-20px] border border-purple-400/30 rounded-full animate-[spin_4s_linear_infinite]" />
+                    {/* The Eye Icon */}
+                    <Eye className="w-16 h-16 text-purple-300 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse" />
+                    {/* Label */}
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-purple-200 tracking-[0.3em] font-serif uppercase whitespace-nowrap">
+                        Scry Street
+                    </div>
+                </div>
+             </div>
           )}
 
           {/* 1. Texture Overlay (Dirty Glass) */}
@@ -1568,6 +1577,8 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
       }
     }, 4000);
 };
+
+
 
 // --- 1. TITLE SCREEN ---
   if (gameState === 'TITLE') {

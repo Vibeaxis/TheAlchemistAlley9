@@ -166,7 +166,7 @@ const CustomerCard = ({
     feedbackState,
     isInspecting,
 }) => {
-
+const showReveal = revealedTags && revealedTags.length > 0;
 const [persistedReveal, setPersistedReveal] = useState(false);
   const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
   const iconSource = customer.class.icon; 

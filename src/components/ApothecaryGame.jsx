@@ -753,8 +753,7 @@ const [isRepModalOpen, setIsRepModalOpen] = useState(false);
 const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 const [activeBuffs, setActiveBuffs] = useState({}); // Stores temp buffs like 'marketing'
 const handleInspectWindow = () => {
-    // FIX: Check your specific state variable
-    if (!isInspecting) return; 
+
 
     soundEngine.playClick(audioVolume/100); 
     
@@ -1753,7 +1752,7 @@ const handleLensHover = (targetId) => {
                                         // NEW PROPS:
                                         isRevealed={revealedItems['window']} // <--- Crucial link
     
-  isInspecting={isInspecting}
+
     onInspect={handleInspectWindow}
                                     />
                                     <div className="flex-1 flex items-start justify-center mt-8">

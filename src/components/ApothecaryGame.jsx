@@ -720,7 +720,9 @@ const [isProcessing, setIsProcessing] = useState(false);
   const [messageType, setMessageType] = useState('normal');
   const [whisperQueue, setWhisperQueue] = useState([]);
   const [observationHint, setObservationHint] = useState(null);
-const [theme, setTheme] = useState(THEMES.grimoire);
+// NEW: Theme State (Defaulting to Grimoire)
+  const [currentThemeId, setCurrentThemeId] = useState('grimoire');
+  const theme = THEMES[currentThemeId];
   // Tracks the result of the night's mission to show in the morning
 const [missionReport, setMissionReport] = useState(null);
 
@@ -1685,7 +1687,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
 />
 
       <BlackBook isOpen={isBlackBookOpen} onClose={() => setIsBlackBookOpen(false)} discoveredIngredients={discoveredIngredients} brewHistory={brewHistory} />
-      <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={currentThemeId}   onSaveGame={handleSaveGame} 
+      <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={theme.id}   onSaveGame={handleSaveGame} 
     onLoadGame={handleLoadGame}    // <--- Add this
   onThemeChange={setCurrentThemeId}      // <--- Add this
   availableThemes={THEMES} />

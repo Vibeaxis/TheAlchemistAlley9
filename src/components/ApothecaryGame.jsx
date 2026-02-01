@@ -1779,8 +1779,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
                                         // NEW PROPS:
   isInspecting={isInspecting}
   
-  
-    onInspect={handleWindowInteract}
+ 
                                     />
                                     <div className="flex-1 flex items-start justify-center mt-8">
                                         <AnimatePresence mode='wait'>

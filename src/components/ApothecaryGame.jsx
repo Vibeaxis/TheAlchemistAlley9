@@ -1958,6 +1958,35 @@ isInspecting={isInspecting}        // The Crystal Ball Switch
                 </motion.div>
             </motion.div>
         )}
+        {/* --- ADD THIS BLOCK FOR THE MESSAGE POPUP --- */}
+      <AnimatePresence>
+        {scoutReport && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "backOut" }}
+            className="absolute top-32 left-0 right-0 z-[100] flex justify-center pointer-events-none"
+          >
+            <div className={`
+              relative bg-black/85 border border-white/10 backdrop-blur-md px-8 py-5 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.5)] max-w-lg text-center
+            `}>
+               {/* Decorative top border glow */}
+               <div className={`absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent ${scoutReport.color.replace('text-', 'via-').replace('-400', '-500')} to-transparent opacity-50`} />
+
+               {/* Label */}
+               <div className="text-[10px] text-stone-500 uppercase tracking-[0.3em] font-bold mb-2">
+                  Scry Result
+               </div>
+
+               {/* The Message */}
+               <div className={`text-xl font-serif italic leading-relaxed drop-shadow-md ${scoutReport.color}`}>
+                 "{scoutReport.msg}"
+               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       </AnimatePresence>
     </div>
   );

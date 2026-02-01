@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sun, BookOpen, Search, Settings,
   Shield, Crown, Coins, Skull, Ghost,
-  FlaskConical, Flame, Trash2, Loader, Map as MapIcon, X, Siren, ShieldAlert, CheckCircle, Eye, VenetianMask
+  FlaskConical, Flame, Trash2, Loader, Map as MapIcon, X, Siren, ShieldAlert, CheckCircle, Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CityMap from '@/components/CityMap'; // Ensure this path is correct
@@ -552,7 +552,8 @@ const CinematicAnnouncement = ({ text, type }) => {
 };
 const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, activeTool, onInspect }) => {
   const isWatched = watchFocus === activeDistrict;
-  const isInspectable = isInspecting;
+  const isInspectable = activeTool === 'magnify'; // Check if we are holding the tool
+
   // COLORS UPDATED:
   const glowColor = isWatched 
     ? 'shadow-[0_0_100px_rgba(153,27,27,0.5)] bg-red-950/30' 
@@ -748,10 +749,10 @@ const [isRepModalOpen, setIsRepModalOpen] = useState(false);
 const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 const [activeBuffs, setActiveBuffs] = useState({}); // Stores temp buffs like 'marketing'
 const handleInspectWindow = () => {
-    // FIX: Check your specific state variable
-    if (!isInspecting) return; 
+    // Only works if using Magnifying Glass!
+    if (activeTool !== 'magnify') return;
 
-    soundEngine.playClick(audioVolume/100); 
+    soundEngine.playClick(vol); // Or a specific "glass" sound
     
     let msg = "";
     let color = "";
@@ -770,9 +771,13 @@ const handleInspectWindow = () => {
         color = "text-red-500 font-bold animate-pulse";
     }
 
+    // Show the report (using your existing Game Message system or a new popup)
     setScoutReport({ msg, color });
+    
+    // Auto-hide after 4 seconds
     setTimeout(() => setScoutReport(null), 4000);
   };
+
 
   const handleRaidResolve = () => {
      if (!activeRaid) return;
@@ -1719,7 +1724,7 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
                                         watchFocus={watchFocus} 
                                         activeDistrict={activeDistrict} 
                                         // NEW PROPS:
-  isInspecting={isInspecting}
+    activeTool={activeTool}
     onInspect={handleInspectWindow}
                                     />
                                     <div className="flex-1 flex items-start justify-center mt-8">

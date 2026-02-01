@@ -1777,8 +1777,11 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
                                         watchFocus={watchFocus} 
                                         activeDistrict={activeDistrict} 
                                         // NEW PROPS:
+  isInspecting={isInspecting}
   
-    onInspect={handleInspectWindow}
+    // 2. TELLS THE WINDOW IF IT WAS ALREADY FOUND
+    isRevealed={revealedItems['window']}
+    onInspect={handleWindowInteract}
                                     />
                                     <div className="flex-1 flex items-start justify-center mt-8">
                                         <AnimatePresence mode='wait'>

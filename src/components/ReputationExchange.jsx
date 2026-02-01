@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Megaphone, Crown, Heart, X, Star, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { REP_RANKS, getRank } from './Gamelogic'; // Import the logic above
+import { REP_RANKS, getRank } from '@/lib/gamelogic'; // Import the logic above
 
 const FAVORS = [
   {

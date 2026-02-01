@@ -1679,8 +1679,8 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
 />
 
       <BlackBook isOpen={isBlackBookOpen} onClose={() => setIsBlackBookOpen(false)} discoveredIngredients={discoveredIngredients} brewHistory={brewHistory} />
-      <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={currentThemeId}   onSaveGame={saveGame}
-    onLoadGame={loadGame}     // <--- Add this
+      <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={currentThemeId}   onSaveGame={handleSaveGame} 
+    onLoadGame={handleLoadGame}    // <--- Add this
   onThemeChange={setCurrentThemeId}      // <--- Add this
   availableThemes={THEMES} />
       <AnimatePresence>

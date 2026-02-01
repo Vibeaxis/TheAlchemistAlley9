@@ -938,8 +938,7 @@ const handleAssignMission = (mission) => {
     setTimeout(() => setGameMessage(''), 2000);
   };
 
-// --- SAVE & LOAD SYSTEM ---
-/ 2. UPDATE SAVE LOGIC (Prevent saving if Rep is 0)
+
 const saveGame = () => {
     // ONLY check Reputation. Being broke (0 gold) is fine, just hard.
     if (reputation <= 0) {

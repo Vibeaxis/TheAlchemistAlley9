@@ -1699,10 +1699,34 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
 />
 
       <BlackBook isOpen={isBlackBookOpen} onClose={() => setIsBlackBookOpen(false)} discoveredIngredients={discoveredIngredients} brewHistory={brewHistory} />
-      <SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} currentThemeId={theme.id}   onSaveGame={handleSaveGame} 
-    onLoadGame={handleLoadGame}    // <--- Add this
-  onThemeChange={setCurrentThemeId}      // <--- Add this
-  availableThemes={THEMES} />
+   <SettingsMenu 
+    isOpen={settingsOpen} 
+    onClose={() => setSettingsOpen(false)} 
+    onReset={handleHardReset} 
+    
+    // 1. Audio & Video Settings
+    currentVolume={audioVolume} 
+    onVolumeChange={handleVolumeChange} 
+    currentScale={uiScale} 
+    onScaleChange={handleScaleChange} 
+    currentGamma={gamma} 
+    onGammaChange={handleGammaChange}
+
+    // 2. Theme Settings (Fixing the logic here)
+    currentThemeId={theme.id} 
+    onThemeChange={(newId) => {
+        // We need to find the theme object by ID and set it
+        if (THEMES[newId]) {
+            setTheme(THEMES[newId]); 
+            soundEngine.playClick(audioVolume/100);
+        }
+    }}
+    availableThemes={THEMES}
+
+    // 3. Save System (Using the new handlers)
+    onSaveGame={handleSaveGame} 
+    onLoadGame={handleLoadGame}
+/>
       <AnimatePresence>
     {missionReport && (
         <motion.div 

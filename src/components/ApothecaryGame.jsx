@@ -158,78 +158,115 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
 
-
 const CustomerCard = ({ 
     customer, 
     observationHint, 
     revealedTags, 
     theme, 
-    feedbackState 
+    feedbackState,
+    isInspecting,
 }) => {
+  // Logic: Only show the "Revealed" visual state if we actually have revealed tags
   const showReveal = revealedTags && revealedTags.length > 0;
+
   const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
-  
-  // Safe fallbacks
-  if (!customer) return null;
+  const iconSource = customer.class.icon; 
   const districts = [ { name: 'The Dregs', color: 'text-emerald-500' }, { name: 'Market', color: 'text-amber-500' }, { name: 'Arcanum', color: 'text-purple-400' }, { name: 'Docks', color: 'text-cyan-600' }, { name: 'Cathedral', color: 'text-yellow-400' }, { name: 'Spire', color: 'text-rose-500' } ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
 
+  // Animation Variants
+  const avatarVariants = {
+    idle: { y: 0, rotate: 0, scale: 1, filter: 'none' },
+    cured: { y: [0, -15, 0], scale: [1, 1.1, 1], filter: 'brightness(1.2) contrast(1.1) drop-shadow(0 0 15px #fbbf24)', transition: { duration: 0.6 } },
+    poisoned: { x: [-5, 5, -5, 5, 0], filter: 'hue-rotate(90deg) contrast(1.2) drop-shadow(0 0 10px #84cc16)', transition: { duration: 0.4 } },
+    exploded: { x: [-10, 10, -10, 10, 0], scale: 0.9, filter: 'grayscale(100%) brightness(0.3) blur(1px)', transition: { duration: 0.3 } },
+    failed: { rotate: [0, -5, 5, 0], filter: 'grayscale(80%) opacity(0.8)', transition: { duration: 0.5 } }
+  };
+
   return (
     <div 
-      // --- CRITICAL FIXES ---
+      // --- FIX: ID IS ON THE MAIN WRAPPER NOW ---
+      // This ensures the lens sees it no matter where you drag on the card.
       data-inspect-id="customer-card" 
-      className={`relative w-full h-full min-h-[460px] rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${showReveal ? 'shadow-[0_0_40px_rgba(168,85,247,0.4)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'} pointer-events-auto`}
-      // ----------------------
+      // ------------------------------------------
+      className={`relative w-full h-full min-h-[460px] rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${showReveal ? 'shadow-[0_0_40px_rgba(168,85,247,0.4)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}`}
     >
-      {/* Background */}
+      
+      {/* 1. Background */}
       <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
       
-      {/* Avatar */}
+      {/* 2. Avatar Container */}
       <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10 pointer-events-none">
          <div className="relative w-full h-full flex justify-center items-center">
-            <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full`} />
+            {/* Glow backing */}
+            <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
+            
+            {/* The Avatar */}
             <motion.img 
                 src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
                 alt="Customer" 
+                variants={avatarVariants}
                 animate={feedbackState || 'idle'}
                 className="h-[85%] w-auto object-contain drop-shadow-xl z-10"
             />
+
+            {/* FEEDBACK OVERLAYS */}
+            <AnimatePresence>
+                {feedbackState === 'poisoned' && (
+                    <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="absolute top-[20%] left-1/2 -translate-x-1/2 z-20 flex gap-12">
+                        <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
+                        <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
          </div>
       </div>
 
-      {/* Text Panel */}
-      <div className="absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-4 border-t border-stone-600 bg-gradient-to-t from-black via-black/95 to-transparent pointer-events-none">
-        <div className="relative z-30 flex-1 flex flex-col font-serif">
+      {/* 3. Stamp */}
+      <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-1000 z-10 text-right ${showReveal ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+        <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>Soul Echo</div>
+        <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/60 px-2 rounded-sm backdrop-blur-md border border-white/10`}>{origin.name}</div>
+      </div>
+
+      {/* 4. Text Panel */}
+      <div className={`absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-4 border-t ${t.accent} bg-gradient-to-t from-black via-black/95 to-transparent pointer-events-none`}>
+        <div className={`absolute inset-0 opacity-90 ${t.nav} -z-10`} />
+        <div className={`relative z-30 flex-1 flex flex-col ${t.font}`}>
             <div className="w-full flex flex-col items-center -mt-8">
-                <div className="p-3 rounded-full border border-stone-600 bg-stone-900 shadow-lg mb-2">
+                <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg mb-2`}>
                    <div className="w-6 h-6 bg-stone-700 rounded-full" /> 
                 </div>
-                <h2 className="text-2xl font-bold text-stone-200 leading-none tracking-wide drop-shadow-md">{customer.class.name}</h2>
-                <p className="text-stone-500 text-xs italic tracking-wider mt-1 opacity-80">"{customer.class.description}"</p>
+                <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>{customer.class.name}</h2>
+                <p className={`${t.textSec} text-xs italic tracking-wider mt-1 opacity-80`}>"{customer.class.description}"</p>
             </div>
             <div className="flex-1 flex items-center justify-center py-2">
-                <p className="text-stone-300 text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm">"{customer.symptom.text}"</p>
+                <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm`}>"{customer.symptom.text}"</p>
             </div>
             
-            {/* HINT */}
+            {/* HINT SECTION */}
             <div className="h-8 w-full flex items-end justify-center shrink-0">
                 <AnimatePresence>
                 {observationHint && showReveal && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center">
-                        <span className="inline-block px-3 py-1 text-[9px] text-stone-200 uppercase tracking-[0.2em] font-bold border-t border-b border-stone-600 bg-black/20">✦ {observationHint} ✦</span>
+                        <span className={`inline-block px-3 py-1 text-[9px] ${t.textMain} uppercase tracking-[0.2em] font-bold border-t border-b ${t.accent} bg-black/20`}>✦ {observationHint} ✦</span>
                     </motion.div>
                 )}
                 </AnimatePresence>
+                {!showReveal && (
+                    <div className="flex flex-col items-center gap-1 opacity-30 transition-opacity">
+                        <span className={`text-[8px] ${t.textSec} uppercase tracking-[0.25em]`}>Divinate Aura</span>
+                    </div>
+                )}
             </div>
         </div>
       </div>
 
-      {/* REVEALED TAGS */}
+      {/* 5. Tags - REVEALED */}
       {revealedTags && revealedTags.length > 0 && (
         <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none animate-in fade-in zoom-in duration-300">
           {revealedTags.map(tag => (
-            <span key={tag} className="text-[10px] text-purple-200 font-bold tracking-widest border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.5)] bg-black/80 px-2 py-0.5 rounded-sm backdrop-blur-md flex items-center gap-1">
+            <span key={tag} className={`text-[8px] text-purple-200 font-bold tracking-widest border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.5)] bg-black/80 px-2 py-0.5 rounded-sm backdrop-blur-md flex items-center gap-1`}>
                 <span>👁️</span> {tag}
             </span>
           ))}
@@ -238,7 +275,6 @@ const CustomerCard = ({
     </div>
   );
 };
-
 
 
 
@@ -556,6 +592,7 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
     </div>
   )
 }
+
 const Lens = ({ onInspect, onHoverDetect }) => {
   return (
     <motion.div
@@ -563,34 +600,37 @@ const Lens = ({ onInspect, onHoverDetect }) => {
       dragElastic={0.05}
       dragMomentum={false}
       whileDrag={{ scale: 1.1, cursor: 'grabbing' }}
+      
       onDragStart={() => onInspect(true)}
       onDragEnd={() => onInspect(false)}
       
-      // THE FIX: Use clientX/Y directly from the event
+      // THE SCANNER LOGIC
       onDrag={(event, info) => {
-        const x = event.clientX;
-        const y = event.clientY;
+        // 1. Get all elements under the mouse cursor
+        const elements = document.elementsFromPoint(info.point.x, info.point.y);
         
-        // Raycast through the lens to find elements underneath
-        const elements = document.elementsFromPoint(x, y);
-        
-        // Find the specific tag we are looking for
+        // 2. Look for any element with our special data attribute
         const target = elements.find(el => el.getAttribute('data-inspect-id'));
         
+        // 3. If found, tell the Game Loop what we found
         if (target) {
-            const id = target.getAttribute('data-inspect-id');
-            // console.log("Found:", id); // Uncomment to debug if needed
-            onHoverDetect(id);
+            const targetId = target.getAttribute('data-inspect-id');
+            onHoverDetect(targetId);
         }
       }}
-      className="absolute bottom-4 left-4 z-50 cursor-grab group touch-none"
+      
+      className="absolute bottom-4 left-4 z-50 cursor-grab group"
     >
-      {/* Visuals */}
+      {/* Visuals (Same as before) */}
       <div className="relative w-24 h-24 pointer-events-none"> 
         <div className="absolute -bottom-6 -right-6 w-16 h-4 bg-amber-900 rounded-full rotate-45 border-2 border-amber-950 z-0" />
         <div className="absolute inset-0 rounded-full border-[6px] border-amber-600 bg-white/10 backdrop-blur-[1px] shadow-xl z-10 flex items-center justify-center overflow-hidden">
              <div className="absolute top-2 left-4 w-8 h-4 bg-white/40 rounded-full rotate-[-15deg] blur-[1px]" />
         </div>
+      </div>
+      
+      <div className="absolute -bottom-10 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-amber-500 font-mono tracking-widest pointer-events-none whitespace-nowrap">
+        DRAG TO SCAN
       </div>
     </motion.div>
   );

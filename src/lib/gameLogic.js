@@ -2,6 +2,86 @@ import {
   Crown, Hand, Shield, Skull, ShieldCheck, Wind, Coins, FlaskConical, 
   Music, Sword, Book, Hammer, Anchor, Cross, Leaf, Eye // <--- Added new icons
 } from 'lucide-react';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const INGREDIENT_PROPERTIES = {
+    // PROPERTIES
+    FLAMMABLE: 'Flammable',
+    VOLATILE: 'Volatile',
+    HOLY: 'Holy',
+    CURSED: 'Cursed',
+    HEAVY: 'Heavy',
+    STABILIZER: 'Stabilizer' // <--- The "Save" Mechanic
+};
+
+export const INGREDIENTS_DB = [
+    { 
+        id: 'sage', 
+        name: 'Sage', 
+        cost: 10, 
+        effect: 'Lungs', 
+        properties: [INGREDIENT_PROPERTIES.FLAMMABLE, INGREDIENT_PROPERTIES.DRY],
+        desc: "Dried leaves. Catches fire easily."
+    },
+    { 
+        id: 'salt', 
+        name: 'Salt', 
+        cost: 5, 
+        effect: 'Purify', 
+        properties: [INGREDIENT_PROPERTIES.STABILIZER, INGREDIENT_PROPERTIES.HOLY],
+        desc: "Common salt. Stabilizes volatile reactions."
+    },
+    { 
+        id: 'sulfur', 
+        name: 'Sulfur', 
+        cost: 15, 
+        effect: 'Skin', 
+        properties: [INGREDIENT_PROPERTIES.VOLATILE, INGREDIENT_PROPERTIES.FLAMMABLE],
+        desc: "Yellow powder. Extremely reactive."
+    },
+    {
+        id: 'bloodroot',
+        name: 'Bloodroot',
+        cost: 25,
+        effect: 'Heart',
+        properties: [INGREDIENT_PROPERTIES.CURSED, INGREDIENT_PROPERTIES.HEAVY],
+        desc: "Grows in graveyards. Cursed."
+    }
+];
+
+export const HIDDEN_TRAITS = [
+    // FLUFF (Distractions)
+    "Loves Cats", "Debt Ridden", "Former Guard", "Gambler",
+    
+    // MECHANICS (Triggers)
+    "Pyromancer", // Explodes with Flammable
+    "Undead",     // Hurt by Holy, Healed by Cursed
+    "Hemophiliac",// Hurt by Volatile
+    "Possessed"   // Requires Holy
+];
+
+
+
+
+
 // --- NEW: COVERT MISSIONS ---
 export const APPRENTICE_MISSIONS = [
   {

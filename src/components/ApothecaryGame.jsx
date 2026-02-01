@@ -157,159 +157,143 @@ const SafeIcon = ({ icon, className, size, strokeWidth }) => {
     // 3. Fallback
     return <Ghost size={size} strokeWidth={strokeWidth} className={className} />;
 };
-// --- UPDATED CUSTOMER CARD (Safe + Visual FX) ---
-// --- UPDATED CUSTOMER CARD (Fixed Feedback Positioning) ---
-const CustomerCard = ({ customer, observationHint, onMouseEnter, onMouseLeave, revealedTags, isInspecting, theme, feedbackState }) => {
-  const [hasRevealed, setHasRevealed] = useState(false);
-  
-  useEffect(() => { if (isInspecting) setHasRevealed(true); }, [isInspecting]);
-  useEffect(() => { setHasRevealed(false); }, [customer.id]);
 
-  const t = theme || THEMES.grimoire;
-  // Use safe icon renderer logic here if not passed as prop, but usually SafeIcon handles it in render
-  const iconSource = customer.class.icon; 
-
+const CustomerCard = ({ 
+    customer, 
+    observationHint, 
+    onMouseEnter, 
+    onMouseLeave, 
+    revealedTags, 
+    theme, 
+    feedbackState 
+}) => {
+  const showReveal = revealedTags && revealedTags.length > 0;
+  const t = theme || { nav: 'border-stone-800', textMain: 'text-stone-200', textSec: 'text-stone-500', accent: 'border-stone-600', font: 'font-serif' }; 
   const districts = [ { name: 'The Dregs', color: 'text-emerald-500' }, { name: 'Market', color: 'text-amber-500' }, { name: 'Arcanum', color: 'text-purple-400' }, { name: 'Docks', color: 'text-cyan-600' }, { name: 'Cathedral', color: 'text-yellow-400' }, { name: 'Spire', color: 'text-rose-500' } ];
   const districtIndex = (customer.id.toString().charCodeAt(0) || 0) % districts.length;
   const origin = districts[districtIndex];
 
-  // Animation Variants
-  const avatarVariants = {
-    idle: { y: 0, rotate: 0, scale: 1, filter: 'none' },
-    cured: { 
-        y: [0, -15, 0], 
-        scale: [1, 1.1, 1],
-        filter: 'brightness(1.2) contrast(1.1) drop-shadow(0 0 15px #fbbf24)', // Golden glow
-        transition: { duration: 0.6 }
-    },
-    poisoned: { 
-        x: [-5, 5, -5, 5, 0],
-        filter: 'hue-rotate(90deg) contrast(1.2) drop-shadow(0 0 10px #84cc16)', // Greenish
-        transition: { duration: 0.4 } 
-    },
-    exploded: { 
-        x: [-10, 10, -10, 10, 0],
-        scale: 0.9,
-        filter: 'grayscale(100%) brightness(0.3) blur(1px)', // Soot
-        transition: { duration: 0.3 }
-    },
-    failed: {
-        rotate: [0, -5, 5, 0],
-        filter: 'grayscale(80%) opacity(0.8)',
-        transition: { duration: 0.5 }
-    }
-  };
-
   return (
-    <div className={`relative w-full h-full min-h-[460px] rounded-xl overflow-hidden shadow-2xl group transition-all duration-700 border-2 ${t.nav} ${hasRevealed ? 'shadow-[0_0_40px_rgba(0,0,0,0.3)] border-opacity-100 scale-[1.01]' : 'border-opacity-60'}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+    <div 
+      data-inspect-id="customer-card" 
+      className={`
+        /* MOBILE: Small Badge */
+        absolute top-[4.5rem] left-2 w-40 h-56 z-40
+        
+        /* DESKTOP: The Main Event */
+        /* Increased width to 320px (was ~280) and min-height to 500px */
+        md:relative md:top-auto md:left-auto md:w-full md:max-w-[340px] md:h-full md:min-h-[520px] md:z-auto
+        
+        /* Styles */
+        rounded-xl shadow-2xl border-2 transition-all duration-700 bg-[#0c0a09]
+        ${t.nav} 
+        ${showReveal ? 'shadow-[0_0_50px_rgba(168,85,247,0.3)] border-purple-500/50 scale-[1.02]' : 'border-opacity-60'} 
+        pointer-events-auto
+        
+        /* CRITICAL: Allow animations to spill out */
+        overflow-visible
+      `}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       
-      {/* 1. Background */}
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
-      
-      {/* 2. Avatar & Feedback Container */}
-      <div className="absolute top-4 left-0 right-0 h-[60%] flex items-center justify-center z-10">
+      {/* 1. Background (Internal Overflow Hidden to keep texture inside) */}
+      <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
+         <div className="absolute inset-0 opacity-[0.05] mix-blend-multiply" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/aged-paper.png")' }} />
+      </div>
+
+      {/* 2. Top Labels (Moved up to clear the head) */}
+      <div className={`absolute -top-3 right-4 z-20 flex flex-col items-end`}>
+        <div className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-white/10 backdrop-blur-md ${origin.color} bg-black/80`}>
+            {origin.name}
+        </div>
+      </div>
+
+      {/* 3. Avatar Container (Adjusted positioning) */}
+      <div className="absolute top-8 left-0 right-0 h-[55%] flex items-center justify-center z-10 pointer-events-none">
          <div className="relative w-full h-full flex justify-center items-center">
-            {/* Glow backing */}
-            <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-40 h-40 bg-white/5 blur-3xl rounded-full pointer-events-none`} />
+            {/* Back Glow */}
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/5 blur-3xl rounded-full`} />
             
-            {/* The Avatar */}
+            {/* Avatar */}
             <motion.img 
                 src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${customer.id + customer.class.name}&backgroundColor=transparent`} 
                 alt="Customer" 
-                variants={avatarVariants}
                 animate={feedbackState || 'idle'}
-               
+                variants={{
+                    idle: { scale: 1, filter: 'drop-shadow(0 10px 10px rgba(0,0,0,0.3))' },
+                    poisoned: { x: [-5, 5, -5, 5, 0], filter: 'hue-rotate(90deg)' },
+                    cured: { scale: [1, 1.1, 1], filter: 'brightness(1.2)' },
+                    exploded: { scale: 0.9, filter: 'grayscale(100%) brightness(0.2)' }
+                }}
+                className="h-[90%] w-auto object-contain z-10"
             />
 
-            {/* FEEDBACK OVERLAYS (Centered over head) */}
+            {/* FEEDBACK OVERLAYS (Floating above everything) */}
             <AnimatePresence>
                 {feedbackState === 'poisoned' && (
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-                        className="absolute top-[20%] left-1/2 -translate-x-1/2 z-20 flex gap-12 pointer-events-none"
-                    >
-                        <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
-                        <div className="text-5xl font-black text-red-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">X</div>
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="absolute -top-4 right-0 z-50">
+                        <div className="text-6xl drop-shadow-md">☠️</div>
                     </motion.div>
                 )}
-                
                 {feedbackState === 'cured' && (
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.5, y: 0 }} animate={{ opacity: 1, scale: 1.2, y: -60 }} exit={{ opacity: 0 }}
-                        className="absolute top-[10%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
-                    >
-                        {/* Golden Sparkles */}
-                        <div className="text-6xl filter drop-shadow-[0_0_10px_gold]">✨</div>
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1.5, rotate: 360 }} exit={{ scale: 0 }} className="absolute -top-6 right-0 z-50">
+                        <div className="text-6xl drop-shadow-[0_0_20px_rgba(255,215,0,0.8)]">✨</div>
                     </motion.div>
                 )}
-                
-                {feedbackState === 'failed' && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 0, rotate: -10 }} animate={{ opacity: 1, y: -50, rotate: 10 }} exit={{ opacity: 0 }}
-                        className="absolute top-[15%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
-                    >
-                        {/* Grey Question Mark */}
-                        <div className="text-7xl font-bold text-slate-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">?</div>
-                    </motion.div>
-                )}
-
                 {feedbackState === 'exploded' && (
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1.5 }} exit={{ opacity: 0 }}
-                        className="absolute top-[25%] left-1/2 -translate-x-1/2 z-20 pointer-events-none"
-                    >
-                        <div className="text-7xl">💥</div>
+                    <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 2, opacity: 1 }} className="absolute inset-0 z-50 flex items-center justify-center">
+                        <div className="text-8xl">💥</div>
                     </motion.div>
                 )}
             </AnimatePresence>
          </div>
       </div>
 
-      {/* 3. Stamp */}
-      <div className={`absolute top-4 right-4 flex flex-col items-end transition-all duration-1000 z-10 text-right ${hasRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-        <div className={`text-[9px] ${t.textSec} italic tracking-widest mb-0.5 bg-black/40 px-2 rounded-sm backdrop-blur-sm`}>Soul Echo</div>
-        <div className={`text-sm font-bold uppercase tracking-widest drop-shadow-md ${origin.color} bg-black/60 px-2 rounded-sm backdrop-blur-md border border-white/10`}>{origin.name}</div>
-      </div>
+      {/* 4. Info Panel (Bottom Half) */}
+      <div className={`absolute bottom-0 left-0 right-0 h-[40%] z-20 flex flex-col p-5 border-t ${t.accent} bg-gradient-to-t from-[#0c0a09] via-[#0c0a09]/95 to-transparent rounded-b-xl`}>
+         
+         {/* Name & Title */}
+         <div className="flex flex-col items-center -mt-10 mb-2">
+            <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg bg-[#1c1917] relative z-20`}>
+                {/* Class Icon Placeholder */}
+                <div className="w-6 h-6 bg-stone-700 rounded-full" /> 
+            </div>
+            <h2 className={`text-2xl font-bold ${t.textMain} mt-2`}>{customer.class.name}</h2>
+            <p className={`${t.textSec} text-xs italic opacity-75`}>"{customer.class.description}"</p>
+         </div>
 
-      {/* 4. Text Panel */}
-      <div className={`absolute bottom-0 left-0 right-0 h-[45%] z-20 flex flex-col p-4 border-t ${t.accent} bg-gradient-to-t from-black via-black/95 to-transparent`}>
-        <div className={`absolute inset-0 opacity-90 ${t.nav} -z-10`} />
-        <div className={`relative z-30 flex-1 flex flex-col ${t.font}`}>
-            <div className="w-full flex flex-col items-center -mt-8">
-                <div className={`p-3 rounded-full border ${t.accent} ${t.nav} shadow-lg mb-2`}>
-                    <SafeIcon icon={iconSource} size={24} className={t.textMain} />
-                </div>
-                <h2 className={`text-2xl font-bold ${t.textMain} leading-none tracking-wide drop-shadow-md`}>{customer.class.name}</h2>
-                <p className={`${t.textSec} text-xs italic tracking-wider mt-1 opacity-80`}>"{customer.class.description}"</p>
-            </div>
-            <div className="flex-1 flex items-center justify-center py-2">
-                <p className={`${t.textMain} text-base leading-relaxed italic text-center opacity-90 drop-shadow-sm`}>"{customer.symptom.text}"</p>
-            </div>
-            <div className="h-8 w-full flex items-end justify-center shrink-0">
-                <AnimatePresence>
-                {observationHint && hasRevealed && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full text-center">
-                        <span className={`inline-block px-3 py-1 text-[9px] ${t.textMain} uppercase tracking-[0.2em] font-bold border-t border-b ${t.accent} bg-black/20`}>✦ {observationHint} ✦</span>
-                    </motion.div>
-                )}
-                </AnimatePresence>
-                {!hasRevealed && (
-                    <div className="flex flex-col items-center gap-1 opacity-30 group-hover:opacity-60 transition-opacity">
-                        <span className={`text-[8px] ${t.textSec} uppercase tracking-[0.25em]`}>Divinate Aura</span>
-                    </div>
-                )}
-            </div>
-        </div>
-      </div>
+         {/* Symptom Text */}
+         <div className="flex-1 flex items-center justify-center">
+             <p className={`${t.textMain} text-lg leading-relaxed italic text-center drop-shadow-sm`}>
+                "{customer.symptom.text}"
+             </p>
+         </div>
 
-      {/* 5. Tags */}
-      {revealedTags && revealedTags.length > 0 && (
-        <div className="absolute top-4 left-4 flex flex-col gap-1 items-start z-30 pointer-events-none">
-          {revealedTags.map(t => (
-            <span key={t} className={`text-[8px] ${t.textSec} font-bold tracking-widest border-b ${t.accent} pb-0.5 shadow-sm bg-black/60 px-2 py-0.5 rounded-sm backdrop-blur-md`}>{t}</span>
-          ))}
-        </div>
-      )}
+         {/* --- NEW: TRAIT REVEAL AREA --- */}
+         {/* Instead of covering the face, clues appear here at the bottom */}
+         <div className="h-12 w-full flex items-center justify-center gap-2 border-t border-white/5 pt-2">
+            <AnimatePresence>
+                {showReveal ? (
+                    revealedTags.map((tag, i) => (
+                        <motion.span 
+                            key={tag}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-purple-300 bg-purple-900/30 border border-purple-500/30 rounded"
+                        >
+                            {tag}
+                        </motion.span>
+                    ))
+                ) : (
+                    <span className="text-[10px] text-stone-700 uppercase tracking-[0.2em] animate-pulse">
+                        Aura Obscured
+                    </span>
+                )}
+            </AnimatePresence>
+         </div>
+      </div>
     </div>
   );
 };

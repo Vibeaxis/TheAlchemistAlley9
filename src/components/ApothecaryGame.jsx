@@ -848,7 +848,14 @@ const handleAssignMission = (mission) => {
       setTimeout(() => setGameMessage(''), 2000);
     }
   };
-
+// --- DEATH WATCHER ---
+  useEffect(() => {
+    // If we are playing and reputation hits 0, trigger Game Over state
+    if (phase !== 'TITLE' && reputation <= 0 && gameState !== 'GAMEOVER') {
+        soundEngine.playFail(vol);
+        setGameState('GAMEOVER');
+    }
+  }, [reputation, phase, gameState, vol]);
   useEffect(() => {
     const districts = ['dregs', 'market', 'arcanum', 'docks', 'cathedral', 'spire'];
     const interval = setInterval(() => {
@@ -867,12 +874,6 @@ const handleAssignMission = (mission) => {
     if (gameState === 'PLAYING') startNewDay();
   }, [gameState]);
 
-  useEffect(() => {
-    if (reputation <= 0 && gameState === 'PLAYING') {
-      soundEngine.playFail(vol);
-      setTimeout(() => setGameState('GAMEOVER'), 1000);
-    }
-  }, [reputation, gameState, vol]);
 
   useEffect(() => {
     if (whisperQueue.length > 0) {
@@ -938,8 +939,13 @@ const handleAssignMission = (mission) => {
   };
 
 // --- SAVE & LOAD SYSTEM ---
-
-  const saveGame = () => {
+/ 2. UPDATE SAVE LOGIC (Prevent saving if Rep is 0)
+const saveGame = () => {
+    // ONLY check Reputation. Being broke (0 gold) is fine, just hard.
+    if (reputation <= 0) {
+        console.warn("Cannot save: Player is exiled (0 Rep).");
+        return;
+    }
     const gameState = {
         day,
         gold,
@@ -1416,10 +1422,41 @@ setFeedbackState(outcome.result); // 'cured', 'poisoned', 'exploded', 'failed'
     }, 4000);
 };
 
-  // --- Render Gates ---
-  if (gameState === 'TITLE') return <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}><TitleScreen onStart={handleStartGame} onOpenSettings={() => setSettingsOpen(true)} /><SettingsMenu isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleHardReset} currentVolume={audioVolume} onVolumeChange={handleVolumeChange} currentScale={uiScale} onScaleChange={handleScaleChange} currentGamma={gamma} onGammaChange={handleGammaChange} /></div>;
-  if (gameState === 'GAMEOVER') return <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}><GameOverScreen stats={gameStats} onReturnToTitle={() => setGameState('TITLE')} /></div>;
+// --- 1. TITLE SCREEN ---
+  if (gameState === 'TITLE') {
+    return (
+      <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}>
+        <TitleScreen onStart={handleStartGame} onOpenSettings={() => setSettingsOpen(true)} />
+        <SettingsMenu 
+            isOpen={settingsOpen} 
+            onClose={() => setSettingsOpen(false)} 
+            onReset={handleHardReset} 
+            currentVolume={audioVolume} 
+            onVolumeChange={handleVolumeChange} 
+            currentScale={uiScale} 
+            onScaleChange={handleScaleChange} 
+            currentGamma={gamma} 
+            onGammaChange={handleGammaChange}
+            // Add these if you implemented the Save System
+            onSaveGame={saveGame}
+            onLoadGame={loadGame}
+        />
+      </div>
+    );
+  }
 
+  // --- 2. GAME OVER SCREEN (Dedicated View) ---
+  if (gameState === 'GAMEOVER') {
+    return (
+      <div style={{ transform: `scale(${uiScale/100})`, filter: `brightness(${gamma})`, height: '100vh', width: '100vw', overflow: 'hidden' }}>
+        <GameOverScreen 
+            stats={gameStats} 
+            // IMPORTANT: This must be handleHardReset to wipe the bad save file!
+            onReturnToTitle={handleHardReset} 
+        />
+      </div>
+    );
+  }
  // --- UPDATED MAIN RENDER ---
   return (
     <div className={`min-h-screen ${theme.bg} ${theme.textMain} ${theme.font} selection:bg-amber-900 selection:text-white overflow-hidden flex flex-col`}>

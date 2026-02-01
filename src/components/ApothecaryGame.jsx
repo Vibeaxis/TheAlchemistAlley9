@@ -588,29 +588,28 @@ const ShopAtmosphere = ({ heat, watchFocus, activeDistrict, isInspecting, isReve
          `}
        >
           
-        {/* --- THE SPIRIT RUNE (Only shows when Crystal Ball is ON) --- */}
-          {isInspecting && !isRevealed && (
-             <div 
-                // ADD THIS LINE HERE:
-                onClick={(e) => {
-                    e.stopPropagation(); // Prevents bubbling issues
-                    onInspect(); 
-                }}
-                className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900/10 backdrop-blur-[1px] cursor-pointer hover:bg-purple-900/20 transition-all"
-             >
-                <div className="relative group-hover:scale-110 transition-transform duration-500">
-                    {/* Spinning Outer Ring */}
-                    <div className="absolute inset-[-20px] border border-purple-400/30 rounded-full animate-[spin_4s_linear_infinite]" />
-                    {/* The Eye Icon */}
-                    <Eye className="w-16 h-16 text-purple-300 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse" />
-                    {/* Label */}
-                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-purple-200 tracking-[0.3em] font-serif uppercase whitespace-nowrap">
-                        Scry Street
-                    </div>
-                </div>
-             </div>
-          )}
-
+      {/* --- THE SPIRIT RUNE (Only shows when Crystal Ball is ON) --- */}
+{isInspecting && !isRevealed && (
+    <div 
+    onClick={(e) => {
+        e.stopPropagation();
+        onInspect(); 
+    }}
+    // ADDED 'pointer-events-auto' HERE so it overrides the parent's pointer-events-none
+    className="absolute inset-0 z-50 flex items-center justify-center bg-purple-900/10 backdrop-blur-[1px] cursor-pointer hover:bg-purple-900/20 transition-all pointer-events-auto"
+    >
+    <div className="relative group-hover:scale-110 transition-transform duration-500">
+        {/* Spinning Outer Ring */}
+        <div className="absolute inset-[-20px] border border-purple-400/30 rounded-full animate-[spin_4s_linear_infinite]" />
+        {/* The Eye Icon */}
+        <Eye className="w-16 h-16 text-purple-300 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse" />
+        {/* Label */}
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-purple-200 tracking-[0.3em] font-serif uppercase whitespace-nowrap">
+            Scry Street
+        </div>
+    </div>
+    </div>
+)}
           {/* 1. Texture Overlay (Dirty Glass) */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 z-10 mix-blend-overlay" />
           
